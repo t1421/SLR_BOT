@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../incl/Broker.h"
+#include "../incl/DEBUG.h"
 
 #include "../API/API/json.hpp"
 #include "../API/API/Types.hpp"
@@ -47,9 +48,11 @@ private:
 	unsigned int imyPlayerIDX;
 	bool once;
 
-	std::vector<api::APIEntity> MyStuff;
+	std::vector<api::APIEntity> MyBuildings;
+	std::vector<api::APIEntity> MyUnits;
 	std::vector<api::APIEntity> FreeWells;
 	std::vector<api::APIEntity> FreeOrbs;
+	std::vector<api::APIEntity> OpWells;
 
 	unsigned int iStage;
 };

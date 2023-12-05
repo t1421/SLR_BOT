@@ -51,20 +51,9 @@ std::vector<api::DeckAPI> FireBot::DecksForMap(const api::MapInfo& mapInfo) {
 	return v;
 }
 
-std::string switchSpecific(api::APIEntitySpecific v)
-{
-	if (std::get_if<api::APIEntitySpecificProjectile>(&v.v))return "APIEntitySpecificProjectile";
-	if (std::get_if<api::APIEntitySpecificPowerSlot>(&v.v))return "APIEntitySpecificPowerSlot";
-	if (std::get_if<api::APIEntitySpecificTokenSlot>(&v.v))return "APIEntitySpecificTokenSlot";
-	if (std::get_if<api::APIEntitySpecificAbilityWorldObject>(&v.v))return "APIEntitySpecificAbilityWorldObject";
-	if (std::get_if<api::APIEntitySpecificSquad>(&v.v))return "APIEntitySpecificSquad";
-	if (std::get_if<api::APIEntitySpecificFigure>(&v.v))return "APIEntitySpecificFigure";
-	if (std::get_if<api::APIEntitySpecificBuilding>(&v.v))return "APIEntitySpecificBuilding";
-	if (std::get_if<api::APIEntitySpecificBarrierSet>(&v.v))return "APIEntitySpecificBarrierSet";
-	if (std::get_if<api::APIEntitySpecificBarrierModule>(&v.v))return "APIEntitySpecificBarrierModule";
-	
-	return "no idea";
-}
+
+
+
 
 float distance(api::Position p1, api::Position p2)
 {
@@ -175,18 +164,22 @@ void FireBot::UpdateStuff(const api::APIGameState& state)
 {
 	MISS;
 
-	MyStuff.clear();
+	MyBuildings.clear();
+	MyUnits.clear();
 	FreeWells.clear();
 	FreeOrbs.clear();
+	OpWells.clear();
 
 	for (auto& e : state.entities)
 	{
 		if ((std::get_if<api::APIEntitySpecificPowerSlot>(&e.specific.v) ||
-			std::get_if<api::APIEntitySpecificTokenSlot>(&e.specific.v) ||
-			std::get_if<api::APIEntitySpecificSquad>(&e.specific.v))
-			//Units ETC
+			std::get_if<api::APIEntitySpecificTokenSlot>(&e.specific.v))
 			&& e.player_entity_id == myId)
-			MyStuff.push_back(e);
+			MyBuildings.push_back(e);
+
+		if (std::get_if<api::APIEntitySpecificSquad>(&e.specific.v)
+			&& e.player_entity_id == myId)
+			MyUnits.push_back(e);
 
 		if (std::get_if<api::APIEntitySpecificPowerSlot>(&e.specific.v) 
 			&& e.player_entity_id != myId
@@ -197,6 +190,10 @@ void FireBot::UpdateStuff(const api::APIGameState& state)
 			&& e.player_entity_id != myId
 			&& e.player_entity_id != opId)
 			FreeOrbs.push_back(e);
+
+		if (std::get_if<api::APIEntitySpecificPowerSlot>(&e.specific.v)
+			&& e.player_entity_id == opId)
+			OpWells.push_back(e);
 	}
 
 	MISE;
@@ -208,16 +205,12 @@ std::vector<api::APICommand> FireBot::Tick(const api::APIGameState& state) {
 	//std::cout << "tick " << state.current_tick << " entities count: " << state.entities.size() << std::endl;
 	auto v = std::vector<api::APICommand>();
 	
+
 	for (auto r : state.rejected_commands)
 	{
-		nlohmann::json j;
-		MISD("rejected Player: " + std::to_string(r.player));
-		
-		api::to_json(j, r.command);
-		MISD("command        : " + j);
-
-		api::to_json(j, r.reason);
-		MISD("reason         : " + j);
+		MISD("rejected Player: " + std::to_string(r.player));		
+		MISD("reason         : " + Bro->B->switchCommandRejectionReason(r.reason));
+		MISD("command        : " + Bro->B->switchAPICommand(r.command));
 	}
 
 	if (once)
@@ -228,15 +221,15 @@ std::vector<api::APICommand> FireBot::Tick(const api::APIGameState& state) {
 					imyPlayerIDX = iPlayerCount;
 		UpdateStuff(state);
 		
-		MISD("MyStuff");
-		for (auto e : MyStuff)
+		MISD("MyBuildings");
+		for (auto e : MyBuildings)
 		{
 			MISD(std::to_string(e.id) + "#" +
 				//std::to_string(e.player_entity_id.value()) + "#" +
 				std::to_string(e.position.x) + "_" +
 				std::to_string(e.position.y) + "_" +
 				std::to_string(e.position.z) + "#" +
-				switchSpecific(e.specific));
+				Bro->B->switchAPIEntitySpecific(e.specific));
 		}
 
 		MISD("FreeWells");
@@ -247,7 +240,7 @@ std::vector<api::APICommand> FireBot::Tick(const api::APIGameState& state) {
 				std::to_string(e.position.x) + "_" +
 				std::to_string(e.position.y) + "_" +
 				std::to_string(e.position.z) + "#" +
-				switchSpecific(e.specific));
+				Bro->B->switchAPIEntitySpecific(e.specific));
 		}
 		MISD("FreeOrbs");
 		for (auto e : FreeOrbs)
@@ -257,35 +250,55 @@ std::vector<api::APICommand> FireBot::Tick(const api::APIGameState& state) {
 				std::to_string(e.position.x) + "_" +
 				std::to_string(e.position.y) + "_" +
 				std::to_string(e.position.z) + "#" +
-				switchSpecific(e.specific));
+				Bro->B->switchAPIEntitySpecific(e.specific));
 		}
 
 		once = false;
 	}
 
-	if (iStage == 0)
+	UpdateStuff(state);
+
+	//WELL KILLER
+	if (true)
+	{
+		for (auto W : OpWells)
+		{
+			for (auto A : W.aspects)
+			{
+				if (std::get_if<api::AspectHealth>(&A.v))
+				{
+					if (std::get<api::AspectHealth>(A.v).current_hp <= 300)
+					{
+						MISD("FIRE !!!!");
+						auto spell = api::APICommandCastSpellGod();
+						spell.card_position = 6;
+						spell.target.v = api::SingleTargetLocation(api::to2D(W.position));
+						auto cmd = api::APICommand();
+						cmd.v = spell;
+						v.push_back(cmd);
+					}
+				}							
+			}
+		}
+	}
+
+	if (MyBuildings.size() < 5 && state.current_tick % 5)
 	{
 		unsigned int iHelperA = 0;
 		unsigned int iHelperB = 0;
-		UpdateStuff(state);
-		float fDistanc = CloseCombi(MyStuff, FreeWells, iHelperA, iHelperB);
-
-		int iPos = -1;
-		for (unsigned int i = 0; i < MyStuff.size(); i++)		
-			if (std::get_if<api::APIEntitySpecificSquad>(&MyStuff[i].specific.v))
-			{
-				iPos = i;
-				break;
-			}
-
+		float fDistanc = 0;
+		
+		if(MyUnits.size() == 0)fDistanc = CloseCombi(MyBuildings, FreeWells, iHelperA, iHelperB);
+		else fDistanc = CloseCombi(MyUnits, FreeWells, iHelperA, iHelperB);
+		
 		//habe keine unit also hol eine
-		if (iPos == -1)
+		if (MyUnits.size() == 0)
 		{
 			if (state.players[imyPlayerIDX].power > 75)
 			{
 				auto spawn = api::APICommandProduceSquad();
 				spawn.card_position = 0; // Code für fast unit
-				spawn.xy = api::to2D(MyStuff[iHelperA].position);
+				spawn.xy = api::to2D(MyBuildings[iHelperA].position);
 				auto cmd = api::APICommand();
 				cmd.v = spawn;
 				v.push_back(cmd);
@@ -294,7 +307,7 @@ std::vector<api::APICommand> FireBot::Tick(const api::APIGameState& state) {
 		else //Move Unit
 		{
 			auto move = api::APICommandGroupGoto();
-			move.squads = { MyStuff[iPos].id};
+			move.squads = { MyUnits[iHelperA].id};
 			move.positions = { api::to2D(FreeWells[iHelperB].position) };
 			move.walk_mode = api::WalkMode_Normal;
 			auto cmd = api::APICommand();
@@ -309,7 +322,7 @@ std::vector<api::APICommand> FireBot::Tick(const api::APIGameState& state) {
 			auto cmd = api::APICommand();
 			cmd.v = build;
 			v.push_back(cmd);
-			//iStage = 1;
+			iStage++;
 		}
 	}
 	/*

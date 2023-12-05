@@ -1,11 +1,18 @@
 #pragma once
 #include "../incl/Broker.h"
 
+
 #include <string>
 #include <mutex> 
 #include <vector>
 #include <fstream>
 
+namespace api 
+{
+	struct APIEntitySpecific;
+	struct CommandRejectionReason;
+	struct APICommand;
+}
 class DEBUG
 {
 public:
@@ -29,6 +36,12 @@ public:
 	std::ofstream ofE;
 
 	std::mutex mtx;
+
+	/////////////////
+	std::string switchAPIEntitySpecific(api::APIEntitySpecific& v);
+	std::string switchCommandRejectionReason(api::CommandRejectionReason& v);
+	std::string switchAPICommand(api::APICommand& v);
+	/////////////////
 
 	static broker* Bro;
 	void teachB() { Bro->B = this; }
