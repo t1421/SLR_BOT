@@ -1,0 +1,3 @@
+[submodule "API"]
+	path = API
+	url = https://gitlab.com/skylords-reborn/skylords-reborn-bot-api-cplusplus.git
