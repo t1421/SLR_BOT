@@ -4,6 +4,57 @@
 
 broker* (FireBot::Bro) = NULL;
 
+float distance(api::Position p1, api::Position p2)
+{
+	return sqrt(pow(p2.x - p1.x, 2) + pow(p2.z - p1.z, 2));
+}
+
+api::Position2D A_B_Offsetter(api::Position A, api::Position B, float Range)
+{
+	float ratio = Range / distance(A, B);
+	api::Position2D Preturn;
+	if (ratio > 1)
+	{
+		Preturn.x = B.x;
+		Preturn.y = B.z;
+		return Preturn;
+	}
+
+	Preturn.x = A.x + ratio * (B.x - A.x);
+	Preturn.y = A.z + ratio * (B.z - A.z);
+	return Preturn;
+}
+
+float CloseCombi(std::vector<api::APIEntity> EntitiesA, std::vector<api::APIEntity> EntitiesB, unsigned int& outA, unsigned int& outB)
+{
+	outA = 0;
+	outB = 0;
+	float topDistance = 99999;
+	float DistanceTemp = 0;
+	for (unsigned int iA = 0; iA < EntitiesA.size(); iA++)
+		for (unsigned int iB = 0; iB < EntitiesB.size(); iB++)
+		{
+			DistanceTemp = distance(EntitiesA[iA].position, EntitiesB[iB].position);
+			if (DistanceTemp < topDistance)
+			{
+				topDistance = DistanceTemp;
+				outA = iA;
+				outB = iB;
+			}
+		}
+	return topDistance;
+}
+
+std::vector<api::APIEntity> pointsInRadius(std::vector<api::APIEntity> toCheck, api::Position Center, float Range) {
+	std::vector<api::APIEntity> vReturn;
+	for (auto e : toCheck)if (distance(e.position,Center) <= Range)vReturn.push_back(e);
+	return vReturn;
+}
+
+////////////////////////////////
+
+
+
 void FireBot::PrepareForBattle(const api::MapInfo& mapInfo, const api::DeckAPI& deck){
 	MISS;
 	std::cout << "Prepare for: " << mapInfo.map << std::endl;
@@ -51,112 +102,17 @@ std::vector<api::DeckAPI> FireBot::DecksForMap(const api::MapInfo& mapInfo) {
 	return v;
 }
 
-
-
-
-
-float distance(api::Position p1, api::Position p2)
-{
-	return sqrt(pow(p2.x - p1.x, 2) + pow(p2.z - p1.z, 2) * 1.0);
-}
-
-float FireBot::CloseCombi(std::vector<api::APIEntity> EntitiesA, std::vector<api::APIEntity> EntitiesB, unsigned int& outA, unsigned int& outB)
-{
-	outA = 0;
-	outB = 0;
-	float topDistance = 99999;
-	float DistanceTemp = 0;
-	for (unsigned int iA = 0; iA < EntitiesA.size();iA++)
-		for (unsigned int iB = 0; iB < EntitiesB.size(); iB++)
-		{
-			DistanceTemp = distance(EntitiesA[iA].position, EntitiesB[iB].position);
-			if (DistanceTemp < topDistance)
-			{
-				MISD(std::to_string(iA) + "#" + std::to_string(iB) + "#" + std::to_string(DistanceTemp) + "XXX");
-				topDistance = DistanceTemp;
-				outA = iA;
-				outB = iB;
-			}
-			else 
-			{
-				MISD(std::to_string(iA) + "#" + std::to_string(iB) + "#" + std::to_string(DistanceTemp));
-			}
-		}
-	return topDistance;
-}
-
 void FireBot::MatchStart(const api::APIGameStartState& state) {
 	MISS;
 	
-	if (true)
-	{
-		
-		MISD("MY ID: " + std::to_string(state.your_player_id));
-
-		MISD("Players: " + std::to_string(state.players.size()));
-		for (auto& p : state.players)
-		{
-			MISD("Name:" + p.name);
-			MISD("Deck:" + p.deck.name);
-			for (auto& d : p.deck.cards)MISD("# " + std::to_string(d));
-		}
-
-		MISD("Entities: " + std::to_string(state.entities.size()));
-		for (auto& e : state.entities)
-		{			
-			if (std::get_if<api::APIEntitySpecificPowerSlot>(&e.specific.v))			
-				Wells.push_back(e);
-			else if (std::get_if<api::APIEntitySpecificTokenSlot>(&e.specific.v))
-				Orbs.push_back(e);
-			/*
-			MISD(std::to_string(e.id) + "#" + 
-				//std::to_string(e.player_entity_id.value()) + "#" +
-				std::to_string(e.position.x) + "_" +
-				std::to_string(e.position.y) + "_" +
-				std::to_string(e.position.z) + "#" +
-				switchSpecific(e.specific));
-			*/
-		}	
-	}
-
 	for (auto p : state.players)
 	{
 		if (p.entity.id != state.your_player_id) opId = p.entity.id;
 	}
-
 	myId = state.your_player_id;
 	MISD("MY ID: " + std::to_string(myId));
 	MISD("OP ID: " + std::to_string(opId));
-	
-	/*
-	std::cout << "My id is " << myId << ", I own: " << std::endl;
-	
-	
-
-	for (auto& p : state.players) {
-		if (p.entity.id == myId) {
-			myTeamId = p.entity.team;
-		}
-	}
-	
-	for (auto& p : state.players) {
-		if (p.entity.team != myTeamId) {
-			oponents.push_back(p.entity.id);
-		}
-	}
-	for (auto& e : state.entities) {
-		if (e.player_entity_id != myId) {
-			continue;
-		}
-		if (std::get_if<api::APIEntitySpecificPowerSlot>(&e.specific.v)) {
-			std::cout << "power slot " << e.id << " at " << e.position.x << " " << e.position.z << std::endl;
-		}
-		else if (std::get_if<api::APIEntitySpecificTokenSlot>(&e.specific.v)) {
-			std::cout << "token slot " << e.id << " at " << e.position.x << " " << e.position.z << std::endl;
-			myStart = api::to2D(e.position);
-		}
-	}
-	*/
+		
 	MISE;
 }
 
@@ -166,6 +122,7 @@ void FireBot::UpdateStuff(const api::APIGameState& state)
 
 	MyBuildings.clear();
 	MyUnits.clear();
+	OpUnits.clear();
 	FreeWells.clear();
 	FreeOrbs.clear();
 	OpWells.clear();
@@ -180,6 +137,10 @@ void FireBot::UpdateStuff(const api::APIGameState& state)
 		if (std::get_if<api::APIEntitySpecificSquad>(&e.specific.v)
 			&& e.player_entity_id == myId)
 			MyUnits.push_back(e);
+
+		if (std::get_if<api::APIEntitySpecificSquad>(&e.specific.v)
+			&& e.player_entity_id == opId)
+			OpUnits.push_back(e);
 
 		if (std::get_if<api::APIEntitySpecificPowerSlot>(&e.specific.v) 
 			&& e.player_entity_id != myId
@@ -199,12 +160,14 @@ void FireBot::UpdateStuff(const api::APIGameState& state)
 	MISE;
 
 }
+
 std::vector<api::APICommand> FireBot::Tick(const api::APIGameState& state) {
 	//MISS;
 	MISD(std::to_string(iStage) +  "#" + Bro->sTime(state.current_tick) + "#" + std::to_string(state.current_tick));
 	//std::cout << "tick " << state.current_tick << " entities count: " << state.entities.size() << std::endl;
 	auto v = std::vector<api::APICommand>();
 	
+	UpdateStuff(state);
 
 	for (auto r : state.rejected_commands)
 	{
@@ -219,7 +182,6 @@ std::vector<api::APICommand> FireBot::Tick(const api::APIGameState& state) {
 			for (iPlayerCount = 0; iPlayerCount < state.players.size(); iPlayerCount++)
 				if (state.players[iPlayerCount].id == myId)
 					imyPlayerIDX = iPlayerCount;
-		UpdateStuff(state);
 		
 		MISD("MyBuildings");
 		for (auto e : MyBuildings)
@@ -256,10 +218,10 @@ std::vector<api::APICommand> FireBot::Tick(const api::APIGameState& state) {
 		once = false;
 	}
 
-	UpdateStuff(state);
+	
 
 	//WELL KILLER
-	if (true)
+	if (false)
 	{
 		for (auto W : OpWells)
 		{
@@ -282,6 +244,26 @@ std::vector<api::APICommand> FireBot::Tick(const api::APIGameState& state) {
 		}
 	}
 
+	//Cool eruption
+	if (true)
+	{
+		std::vector<api::APIEntity> vTemp;
+		for (auto U : OpUnits)
+		{
+			vTemp = pointsInRadius(OpUnits, U.position, 10);
+			if (vTemp.size() >=3)
+			{
+				MISD("FIRE !!!!");
+				auto spell = api::APICommandCastSpellGod();
+				spell.card_position = 6;
+				spell.target.v = api::SingleTargetLocation(api::to2D(U.position));
+				auto cmd = api::APICommand();
+				cmd.v = spell;
+				v.push_back(cmd);
+			}			
+		}
+	}
+
 	if (MyBuildings.size() < 5 && state.current_tick % 5)
 	{
 		unsigned int iHelperA = 0;
@@ -298,7 +280,12 @@ std::vector<api::APICommand> FireBot::Tick(const api::APIGameState& state) {
 			{
 				auto spawn = api::APICommandProduceSquad();
 				spawn.card_position = 0; // Code für fast unit
-				spawn.xy = api::to2D(MyBuildings[iHelperA].position);
+				//spawn.xy = api::to2D(MyBuildings[iHelperA].position);				
+				spawn.xy = A_B_Offsetter(MyBuildings[iHelperA].position, FreeWells[iHelperB].position, CastRange);
+				MISD("My Building: " + std::to_string(MyBuildings[iHelperA].position.x) + "#" + std::to_string(MyBuildings[iHelperA].position.z));
+				MISD("My Traget  : " + std::to_string(FreeWells[iHelperB].position.x) + "#" + std::to_string(FreeWells[iHelperB].position.z));
+				MISD("SPawn at   : " + std::to_string(spawn.xy.x) + "#" + std::to_string(spawn.xy.y));
+				MISD("Distanc    : " + std::to_string(CastRange));
 				auto cmd = api::APICommand();
 				cmd.v = spawn;
 				v.push_back(cmd);
@@ -315,7 +302,7 @@ std::vector<api::APICommand> FireBot::Tick(const api::APIGameState& state) {
 			v.push_back(cmd);
 		}
 
-		if (fDistanc < 10 && state.players[imyPlayerIDX].power >= 100)
+		if (fDistanc < CastRange && state.players[imyPlayerIDX].power >= 100)
 		{
 			auto build = api::APICommandPowerSlotBuild();
 			build.slot_id = FreeWells[iHelperB].id;
@@ -325,82 +312,7 @@ std::vector<api::APICommand> FireBot::Tick(const api::APIGameState& state) {
 			iStage++;
 		}
 	}
-	/*
-	if (!MyStuff.empty() && !FreeStuff.empty())
-	{
-		unsigned int iHelperA = 0;
-		unsigned int iHelperB = 0;
-		CloseCombi(MyStuff, FreeStuff, iHelperA, iHelperB);
-		MISD("I go from " + std::to_string(iHelperA) + " to " + std::to_string(iHelperB));
-		if (state.players[imyPlayerIDX].power > 75)
-		{
-			auto spawn = api::APICommandProduceSquad();
-			spawn.card_position = 0;
-			spawn.xy = api::to2D(MyStuff[iHelperA].position);
-			auto cmd = api::APICommand();
-			cmd.v = spawn;
-			v.push_back(cmd);
-		}
-		for (auto e : MyStuff)
-		{
-			if (std::get_if<api::APIEntitySpecificSquad>(&e.specific.v))
-			{
-				auto move = api::APICommandGroupGoto();
-				move.squads = { e.id };
-				move.positions = { api::to2D(FreeStuff[iHelperB].position) };
-				move.walk_mode = api::WalkMode_Normal;
-				auto cmd = api::APICommand();
-				cmd.v = move;
-				v.push_back(cmd);
-			}
-		}
-	}
-	*/
-	/*
-	auto myPower = 0.f;
-	//std::binary_search(state.players.begin(), state.players.end(), myId, [](api::APIPlayerEntity& p) { p.id == myId });
-	for (auto& p : state.players) {
-		if (p.id == myId) {
-			myPower = p.power;
-			break;
-		}
-	}
-
-	auto myArmy = std::vector<api::EntityId>();
-	auto target = api::EntityId();
-	for (auto& e : state.entities) {
-		if (std::get_if<api::APIEntitySpecificSquad>(&e.specific.v)) {
-			if (e.player_entity_id == myId) {
-				myArmy.push_back(e.id);
-			}
-		}
-		else if (std::get_if<api::APIEntitySpecificTokenSlot>(&e.specific.v)) {
-			for (auto oponent : oponents) {
-				if (e.player_entity_id == oponent) {
-					target = e.id;
-				}
-			}
-		}
-	}
-
 	
-	if (myPower >= 50.f) {
-		auto spawn = api::APICommandProduceSquad();
-		spawn.card_position = 0;
-		spawn.xy = myStart;
-		auto cmd = api::APICommand();
-		cmd.v = spawn;
-		v.push_back(cmd);
-	}
-	if (!myArmy.empty()) {
-		auto attack = api::APICommandGroupAttack();
-		attack.squads = std::move(myArmy);
-		attack.target_entity_id = target;
-		auto cmd = api::APICommand();
-		cmd.v = attack;
-		v.push_back(cmd);
-	}
-	*/
 	//MISE;
 	return v;
 }

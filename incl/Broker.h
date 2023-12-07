@@ -1,6 +1,8 @@
 #pragma once
 //#define DF_Debug
 
+#define CastRange 14.5
+
 	#ifdef DF_Debug 
 		#define MISD(___Mes___) Bro->B_StatusNew(__FUNCTION__, ___Mes___);
 		#define MISERROR(___Mes___)Bro->B_StatusE("E", __FUNCTION__, ___Mes___);

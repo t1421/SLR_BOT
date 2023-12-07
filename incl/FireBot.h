@@ -31,7 +31,7 @@ public:
 	static void learnBro(broker* _Bro) { Bro = _Bro; }
 
 private:
-	float CloseCombi(std::vector<api::APIEntity> EntitiesA, std::vector<api::APIEntity> EntitiesB, unsigned int& outA, unsigned int& outB);
+
 	void UpdateStuff(const api::APIGameState& state);
 
 	api::EntityId myId;
@@ -41,18 +41,17 @@ private:
 	std::vector<api::EntityId> oponents;
 	api::Position2D myStart;
 
-	std::vector<api::APIEntity> Wells;
-	std::vector<api::APIEntity> Orbs;
-
 	unsigned int iPlayerCount;
 	unsigned int imyPlayerIDX;
 	bool once;
 
 	std::vector<api::APIEntity> MyBuildings;
 	std::vector<api::APIEntity> MyUnits;
+	std::vector<api::APIEntity> OpUnits;
 	std::vector<api::APIEntity> FreeWells;
-	std::vector<api::APIEntity> FreeOrbs;
 	std::vector<api::APIEntity> OpWells;
+	std::vector<api::APIEntity> FreeOrbs;
+	
 
 	unsigned int iStage;
 };
