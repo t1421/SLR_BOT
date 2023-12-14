@@ -25,6 +25,9 @@
     <ClCompile Include="src\FireBot.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
+    <ClCompile Include="src\CardBaseSMJ.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="incl\Broker.h">
@@ -34,6 +37,9 @@
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="incl\FireBot.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="incl\CardBaseSMJ.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
   </ItemGroup>

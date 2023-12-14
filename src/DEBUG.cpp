@@ -31,6 +31,8 @@ DEBUG::DEBUG(std::string sLogName, bool _bGUI, bool _bFile, bool _bFilter)
 	Fill_DBArray("FireBot", "*", "*", "true");		
 	Fill_DBArray("FireBot", "CloseCombi", "*", "false");
 	Fill_DBArray("FireBot", "UpdateStuff", "*", "false");
+
+	Fill_DBArray("CardBaseSMJ", "*", "*", "true");
 	
 	
 	//Fill_DBArray("broker", "*", "*", "true");

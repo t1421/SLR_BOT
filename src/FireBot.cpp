@@ -1,4 +1,4 @@
-#define DF_Debug
+//#define DF_Debug
 
 #include "../incl/FireBot.h"
 
@@ -221,7 +221,7 @@ std::vector<api::APICommand> FireBot::Tick(const api::APIGameState& state) {
 	
 
 	//WELL KILLER
-	if (false)
+	if (true)
 	{
 		for (auto W : OpWells)
 		{

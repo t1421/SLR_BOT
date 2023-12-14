@@ -21,6 +21,7 @@
 #include <string>
 
 class DEBUG;
+class CardBaseSMJ;
 
 class broker
 {
@@ -28,6 +29,7 @@ public:
 	broker();
 
 	DEBUG* B;
+	CardBaseSMJ* J;
 	
 	broker* Bro;
 

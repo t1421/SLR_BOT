@@ -15,10 +15,7 @@ using json = nlohmann::json;
 class FireBot : public IBotImp
 {
 public:
-	FireBot() : IBotImp("FireBot"), myId{}, myTeamId{}, oponents{}, myStart{} , iPlayerCount(9), once{true}, iStage(0)
-	{ 
-		Bro->B_StatusNew("", "???");
-	}
+	FireBot() : IBotImp("FireBot"), myId{}, myTeamId{}, oponents{}, myStart{}, iPlayerCount(9), once{ true }, iStage(0) { };
 	~FireBot() override = default;
 	std::vector<api::DeckAPI> DecksForMap(const api::MapInfo& mapInfo) override;
 	void PrepareForBattle(const api::MapInfo& mapInfo, const api::DeckAPI& deck) override;

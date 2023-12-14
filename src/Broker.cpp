@@ -1,6 +1,7 @@
 //#define DF_Debug
 #include "../incl/Broker.h"
 #include "../incl/DEBUG.h"
+#include "../incl/CardBaseSMJ.h"
 
 broker::broker()
 {
@@ -9,6 +10,9 @@ broker::broker()
 
 	DEBUG::learnBro(this);
 	B = NULL;	
+
+	CardBaseSMJ::learnBro(this);
+	J = NULL;
 }
 
 void broker::B_StatusNew(std::string Fun, std::string Wert)
