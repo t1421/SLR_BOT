@@ -1,6 +1,7 @@
 #include <iostream>
 #include "incl/Broker.h"
 #include "incl/DEBUG.h"
+#include "incl/Util.h"
 #include "incl/CardBaseSMJ.h"
 
 
@@ -13,6 +14,9 @@ int main()
 	DEBUG* B = new DEBUG("BOT_LOG", true, true, false);
 	B->teachB();
 	B->StatusNew("", "Hello there :-)");
+
+	Util* U = new Util();
+	U->teachU();
 
 	CardBaseSMJ* J = new CardBaseSMJ();
 	J->teachJ();

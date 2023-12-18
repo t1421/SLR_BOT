@@ -158,12 +158,14 @@
     <ClCompile Include="src\CardBaseSMJ.cpp" />
     <ClCompile Include="src\DEBUG.cpp" />
     <ClCompile Include="src\FireBot.cpp" />
+    <ClCompile Include="src\Util.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="incl\Broker.h" />
     <ClInclude Include="incl\CardBaseSMJ.h" />
     <ClInclude Include="incl\DEBUG.h" />
     <ClInclude Include="incl\FireBot.h" />
+    <ClInclude Include="incl\Util.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

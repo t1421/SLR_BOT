@@ -22,6 +22,7 @@
 
 class DEBUG;
 class CardBaseSMJ;
+class Util;
 
 class broker
 {
@@ -29,6 +30,7 @@ public:
 	broker();
 
 	DEBUG* B;
+	Util* U;
 	CardBaseSMJ* J;
 	
 	broker* Bro;

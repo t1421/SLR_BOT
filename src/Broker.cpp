@@ -2,6 +2,7 @@
 #include "../incl/Broker.h"
 #include "../incl/DEBUG.h"
 #include "../incl/CardBaseSMJ.h"
+#include "../incl/Util.h"
 
 broker::broker()
 {
@@ -13,6 +14,9 @@ broker::broker()
 
 	CardBaseSMJ::learnBro(this);
 	J = NULL;
+
+	Util::learnBro(this);
+	U = NULL;
 }
 
 void broker::B_StatusNew(std::string Fun, std::string Wert)
