@@ -2,10 +2,12 @@
 
 #include "../incl/FireBot.h"
 #include "../incl/Util.h"
+#include "../incl/LOAD.h"
 
 broker* (FireBot::Bro) = NULL;
 
-void FireBot::PrepareForBattle(const api::MapInfo& mapInfo, const api::Deck& deck){
+void FireBot::PrepareForBattle(const api::MapInfo& mapInfo, const api::Deck& deck)
+{
 	MISS;
 	std::cout << "Prepare for: " << mapInfo.map << std::endl;
 	oponents.clear();
@@ -13,7 +15,8 @@ void FireBot::PrepareForBattle(const api::MapInfo& mapInfo, const api::Deck& dec
 }
 
 
-std::vector<api::Deck> FireBot::DecksForMap(const api::MapInfo& mapInfo) {
+std::vector<api::Deck> FireBot::DecksForMap(const api::MapInfo& mapInfo) 
+{
 	MISS;	
 	
 	MISD("MAP: " + mapInfo.map);
@@ -66,18 +69,11 @@ void FireBot::MatchStart(const api::GameStartState& state) {
 	MISE;
 }
 
-//std::vector<api::APICommand> FireBot::Tick(const api::APIGameState& state) {
-std::vector<api::Command> FireBot::Tick(const api::GameState & state) {
-
-	//std::vector<std::vector<api::Entity>> allEntities;
-	//std::vector<api::Entity> allEntities;
-	//state.entities.squads[0].entity.position.x;
-	
+std::vector<api::Command> FireBot::Tick(const api::GameState & state) 
+{		
 	//MISS;
 	MISD(std::to_string(iStage) +  "#" + Bro->sTime(state.current_tick) + "#" + std::to_string(state.current_tick) + "#" + std::to_string(state.players[imyPlayerIDX].power));
-	//std::cout << "tick " << state.current_tick << " entities count: " << state.entities.size() << std::endl;
 	auto v = std::vector<api::Command>();
-	
 
 	for (auto r : state.rejected_commands)
 	{
@@ -92,18 +88,7 @@ std::vector<api::Command> FireBot::Tick(const api::GameState & state) {
 			for (iPlayerCount = 0; iPlayerCount < state.players.size(); iPlayerCount++)
 				if (state.players[iPlayerCount].id == myId)
 					imyPlayerIDX = iPlayerCount;
-		/*
-		MISD("Buildings");
-		for (auto e : state.entities.buildings)
-		{
-			MISD(std::to_string(e.entity.id ) + "#" +
-				//std::to_string(e.player_entity_id.value()) + "#" +
-				std::to_string(e.entity.position.x) + "_" +
-				std::to_string(e.entity.position.y) + "_" +
-				std::to_string(e.entity.position.z) + "#" +
-				Bro->B->switchAPIEntitySpecific(e.entity.specific));
-		}
-		*/
+
 		MISD("Wells");
 		for (auto e : state.entities.power_slots)
 		{
@@ -113,25 +98,12 @@ std::vector<api::Command> FireBot::Tick(const api::GameState & state) {
 				std::to_string(e.entity.position.y) + "_" +
 				std::to_string(e.entity.position.z) + "#" );
 		}
-		/*
-		MISD("FreeOrbs");
-		for (auto e : FreeOrbs)
-		{
-			MISD(std::to_string(e.id) + "#" +
-				//std::to_string(e.player_entity_id.value()) + "#" +
-				std::to_string(e.position.x) + "_" +
-				std::to_string(e.position.y) + "_" +
-				std::to_string(e.position.z) + "#" +
-				Bro->B->switchAPIEntitySpecific(e.specific));
-		}
-		*/
+		
 		once = false;
 	}
 
-	
-
 	//WELL KILLER
-	if (true)
+	if (Bro->L->WellKiller)
 	{
 		for (auto W : state.entities.power_slots)
 		{
@@ -157,7 +129,7 @@ std::vector<api::Command> FireBot::Tick(const api::GameState & state) {
 	}
 
 	//Cool eruption
-	if (true)
+	if (Bro->L->UnitEruption)
 	{
 		std::vector<api::Entity> vTemp;
 		for (auto U : state.entities.squads)
@@ -179,7 +151,8 @@ std::vector<api::Command> FireBot::Tick(const api::GameState & state) {
 		}
 	}
 	
-	if (entitiesTOentity(myId,state.entities.power_slots).size() < 4 && state.current_tick % 5)
+	if (entitiesTOentity(myId,state.entities.power_slots).size() < 4 && state.current_tick % 5
+		&& Bro->L->StartType == 0)
 	{
 		api::Entity A;
 		api::Entity B;
@@ -194,12 +167,7 @@ std::vector<api::Command> FireBot::Tick(const api::GameState & state) {
 			{
 				auto spawn = api::CommandProduceSquad();
 				spawn.card_position = 0; // Code für fast unit
-				//spawn.xy = api::to2D(MyBuildings[iHelperA].position);				
-				spawn.xy = Bro->U->A_B_Offsetter(api::to2D(A.position), api::to2D(B.position), CastRange);
-				//MISD("My Building: " + std::to_string(MyBuildings[iHelperA].position.x) + "#" + std::to_string(MyBuildings[iHelperA].position.z));
-				//MISD("My Traget  : " + std::to_string(FreeWells[iHelperB].position.x) + "#" + std::to_string(FreeWells[iHelperB].position.z));
-				//MISD("SPawn at   : " + std::to_string(spawn.xy.x) + "#" + std::to_string(spawn.xy.y));
-				//MISD("Distanc    : " + std::to_string(CastRange));
+				spawn.xy = Bro->U->A_B_Offsetter(api::to2D(A.position), api::to2D(B.position), CastRange);				
 				auto cmd = api::Command();
 				cmd.v = spawn;
 				v.push_back(cmd);

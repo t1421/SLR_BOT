@@ -10,25 +10,9 @@
 
 namespace api
 {
-	//struct APIEntitySpecific;
 	struct CommandRejectionReason;
 	struct Command;
 }
-/*
-template<typename T>
-std::vector<api::Entity> entitiesTOentity(const std::vector<T>& entities, api::EntityId iFilter)
-{
-	std::vector<api::Entity> vOut;
-	for (const auto& e : entities)
-	{
-		if (iFilter != 0 && e.entity.player_entity_id != iFilter)
-			continue;
-
-		vOut.push_back(e.entity);
-	}
-	return vOut;
-}
-*/
 
 template<typename... Containers>
 std::vector<api::Entity> entitiesTOentity(const api::EntityId iFilter, const Containers&... containers) {
@@ -57,11 +41,7 @@ public:
 	std::vector<api::Entity> pointsInRadius(std::vector<api::Entity> toCheck, api::Position2D Center, float Range);
 	float CloseCombi(std::vector<api::Entity> EntitiesA, std::vector<api::Entity> EntitiesB, api::Entity& outA, api::Entity& outB);
 
-	//std::vector<api::Entity> entitiesTOentity(std::vector<api::Squad> squads) { return entitiesTOentity(squads, 0); };
-	//std::vector<api::Entity> entitiesTOentity(std::vector<api::Squad> squads, api::EntityId iFilter);
-
 	/////////////////	
-	//std::string switchAPIEntitySpecific(api::APIEntitySpecific& v);
 	std::string switchCommandRejectionReason(api::CommandRejectionReason& v);
 	std::string switchCommand(api::Command& v);
 	/////////////////
@@ -72,7 +52,6 @@ public:
 
 protected:
 
-	
 private:
 
 };

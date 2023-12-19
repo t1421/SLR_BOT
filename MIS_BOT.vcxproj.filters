@@ -31,6 +31,9 @@
     <ClCompile Include="src\Util.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
+    <ClCompile Include="src\LOAD.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="incl\Broker.h">
@@ -46,6 +49,9 @@
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="incl\Util.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="incl\LOAD.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
   </ItemGroup>

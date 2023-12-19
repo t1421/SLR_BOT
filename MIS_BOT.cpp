@@ -2,6 +2,7 @@
 #include "incl/Broker.h"
 #include "incl/DEBUG.h"
 #include "incl/Util.h"
+#include "incl/LOAD.h"
 #include "incl/CardBaseSMJ.h"
 
 
@@ -13,14 +14,22 @@ int main()
 
 	DEBUG* B = new DEBUG("BOT_LOG", true, true, false);
 	B->teachB();
-	B->StatusNew("", "Hello there :-)");
+	B->StatusNew("", "Init");
+
+	LOAD* L = new LOAD();
+	L->teachL();
 
 	Util* U = new Util();
 	U->teachU();
 
 	CardBaseSMJ* J = new CardBaseSMJ();
 	J->teachJ();
-	J->DownloadSMJ();
+
+	B->StatusNew("", "Startup");
+	L->StartUp();
+	if(L->SMJOnline)J->DownloadSMJ();
+
+
 	if (!J->readJSON())
 	{
 		B->StatusE("E", "Main", "No JSON - i cant work like this :-(");
@@ -38,6 +47,9 @@ int main()
 			}
 		}
 	}
+
+	B->StatusNew("", "Startup");
+	L->EchoSettings();
 
 	run_FireBot(Bro,6370);
 

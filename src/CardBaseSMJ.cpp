@@ -42,7 +42,7 @@ bool CardBaseSMJ::DownloadSMJ()
 {
 	MISS;
 
-	printf("SMJ: on line mode \n");
+	Bro->B_StatusNew(__FUNCTION__, "on line mode");
 
 	CURL* curl;
 	CURLcode res;
@@ -76,7 +76,7 @@ bool CardBaseSMJ::DownloadSMJ()
 	}
 
 	curl_global_cleanup();
-	printf("SMJ.json updated\n");
+	Bro->B_StatusNew(__FUNCTION__, "SMJ.json updated");
 	MISE;
 }
 #endif
