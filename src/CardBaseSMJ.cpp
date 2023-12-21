@@ -124,3 +124,18 @@ std::string CardBaseSMJ::SwitchRarity(char _Rarity)
 
 	return "???";
 }
+
+Card CardBaseSMJ::CardFromJson(unsigned int ID)
+{
+	MISS;
+	for (const auto& item : mainJSON["data"])
+	{
+		if (item["officialCardIds"].at(0) == ID)
+		{
+			MISEA("Found")
+			return Card(item);
+		}
+	}
+	MISERROR("Card not found:" + std::to_string(ID));
+	return Card();
+}

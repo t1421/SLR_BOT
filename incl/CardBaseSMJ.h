@@ -4,19 +4,18 @@
 #include <fstream>
 #include <vector>
 
-#ifdef SMJonline
-
-#endif // SMJonline
-//#include <nlohmann/json.hpp>
 #include "../API/API/json.hpp"
+#include "../incl/DataTypes.h"
 
-//#include "DataTypes.h" 
+
 
 class CardBaseSMJ
 {
 public:
 	CardBaseSMJ();
-	~CardBaseSMJ();
+	~CardBaseSMJ();	
+
+    Card CardFromJson(unsigned int ID);
 	
 	std::vector<std::pair<std::string, std::string>> EnumColor;
 	std::vector<std::pair<std::string, std::string>> EnumRarity;

@@ -164,6 +164,7 @@
   <ItemGroup>
     <ClInclude Include="incl\Broker.h" />
     <ClInclude Include="incl\CardBaseSMJ.h" />
+    <ClInclude Include="incl\DataTypes.h" />
     <ClInclude Include="incl\DEBUG.h" />
     <ClInclude Include="incl\FireBot.h" />
     <ClInclude Include="incl\LOAD.h" />

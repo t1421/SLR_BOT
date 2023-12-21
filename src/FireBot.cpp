@@ -1,6 +1,7 @@
 #define DF_Debug
 
 #include "../incl/FireBot.h"
+#include "../incl/CardBaseSMJ.h"
 #include "../incl/Util.h"
 #include "../incl/LOAD.h"
 
@@ -9,8 +10,14 @@ broker* (FireBot::Bro) = NULL;
 void FireBot::PrepareForBattle(const api::MapInfo& mapInfo, const api::Deck& deck)
 {
 	MISS;
-	std::cout << "Prepare for: " << mapInfo.map << std::endl;
-	oponents.clear();
+	//std::cout << "Prepare for: " << mapInfo.map << std::endl;
+	//for(auto C: deck.cards)	MISD("CardID:" + std::to_string(C));
+	//MySMJDeck(deck);
+	SMJDeck.clear();
+	for (auto apiCard : deck.cards)
+		SMJDeck.push_back(Bro->J->CardFromJson(apiCard % 1000000));
+	for (auto C : SMJDeck)
+		MISD(C.cardName);
 	MISE;
 }
 
@@ -19,7 +26,7 @@ std::vector<api::Deck> FireBot::DecksForMap(const api::MapInfo& mapInfo)
 {
 	MISS;	
 	
-	MISD("MAP: " + mapInfo.map);
+	//MISD("MAP: " + mapInfo.map);
 	//MISD("COM: " + mapInfo.community_map_details->name);
 	unsigned int i = 0;
 	auto v = std::vector<api::Deck>();
@@ -55,16 +62,28 @@ std::vector<api::Deck> FireBot::DecksForMap(const api::MapInfo& mapInfo)
 	return v;
 }
 
-void FireBot::MatchStart(const api::GameStartState& state) {
+void FireBot::MatchStart(const api::GameStartState& state) 
+{
 	MISS;
 	
-	for (auto p : state.players)
+	for (int iPlayerCount = 0; iPlayerCount < state.players.size(); iPlayerCount++)
 	{
-		if (p.entity.id != state.your_player_id) opId = p.entity.id;
+		
+		if (state.players[iPlayerCount].entity.id == state.your_player_id)
+		{
+			myId = state.players[iPlayerCount].entity.id;
+			imyPlayerIDX = iPlayerCount;
+		}
+
+		if (state.players[iPlayerCount].entity.id != state.your_player_id && state.players[iPlayerCount].entity.power > 0)
+		{
+			opId = state.players[iPlayerCount].entity.id;
+			iopPlayerIDX = iPlayerCount;
+		}
 	}
-	myId = state.your_player_id;
+
 	MISD("MY ID: " + std::to_string(myId));
-	MISD("OP ID: " + std::to_string(opId));
+	MISD("OP ID: " + std::to_string(opId));	
 		
 	MISE;
 }
@@ -80,26 +99,6 @@ std::vector<api::Command> FireBot::Tick(const api::GameState & state)
 		MISD("rejected Player: " + std::to_string(r.player));		
 		MISD("reason         : " + Bro->U->switchCommandRejectionReason(r.reason));
 		MISD("command        : " + Bro->U->switchCommand(r.command));
-	}
-
-	if (once)
-	{
-		if (state.players.size() - 1 < iPlayerCount)
-			for (iPlayerCount = 0; iPlayerCount < state.players.size(); iPlayerCount++)
-				if (state.players[iPlayerCount].id == myId)
-					imyPlayerIDX = iPlayerCount;
-
-		MISD("Wells");
-		for (auto e : state.entities.power_slots)
-		{
-			MISD(std::to_string(e.entity.id) + "#" +
-				std::to_string(e.entity.player_entity_id.has_value()) + "#" +
-				std::to_string(e.entity.position.x) + "_" +
-				std::to_string(e.entity.position.y) + "_" +
-				std::to_string(e.entity.position.z) + "#" );
-		}
-		
-		once = false;
 	}
 
 	//WELL KILLER
@@ -200,7 +199,6 @@ std::vector<api::Command> FireBot::Tick(const api::GameState & state)
 	//MISE;
 	return v;
 }
-
 
 
 void run_FireBot(broker* Bro, unsigned short port)

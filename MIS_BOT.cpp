@@ -27,8 +27,10 @@ int main()
 
 	B->StatusNew("", "Startup");
 	L->StartUp();
-	if(L->SMJOnline)J->DownloadSMJ();
 
+#ifdef MIS_Online
+	if(L->SMJOnline)J->DownloadSMJ();
+#endif
 
 	if (!J->readJSON())
 	{
@@ -40,11 +42,13 @@ int main()
 	{
 		if (item["_id"] == "09")
 		{
+			std::cout << item["officialCardIds"] << "XXX" << item["officialCardIds"].at(0) << std::endl;
+			/*
 			for (auto it = item.begin(); it != item.end(); ++it) {
 				if (it.key() != "_id") {
 					std::cout << "Schlüssel: " << it.key() << ", Wert: " << it.value() << std::endl;
 				}
-			}
+			}*/
 		}
 	}
 
