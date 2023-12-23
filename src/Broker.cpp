@@ -44,3 +44,14 @@ std::string broker::sTime(unsigned long ulTime)
 	snprintf(cOut, 6, "%02d:%02d", int(floor(ulTime / 600)), int(ulTime / 10 % 60));
 	return cOut;
 }
+
+#ifdef MIS_Stream 
+void broker::L_StartsPlus()
+{
+	L->StartsPlus();
+}
+void broker::L_GamesPlus()
+{
+	L->GamesPlus();
+}
+#endif

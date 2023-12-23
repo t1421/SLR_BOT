@@ -45,6 +45,12 @@ public:
 
 	std::string sTime(unsigned long ulTime);
 
+#ifdef MIS_Stream 
+	void L_StartsPlus();
+	void L_GamesPlus();
+#endif
+
+
 protected:
 private:
 };

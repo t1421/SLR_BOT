@@ -31,6 +31,10 @@ int main()
 #ifdef MIS_Online
 	if(L->SMJOnline)J->DownloadSMJ();
 #endif
+#ifdef MIS_Stream 
+	L->Load_Stream();
+	L->StartsPlus();
+#endif
 
 	if (!J->readJSON())
 	{
@@ -38,21 +42,8 @@ int main()
 		return -1;
 	}
 
-	for (const auto& item : J->mainJSON["data"])
-	{
-		if (item["_id"] == "09")
-		{
-			std::cout << item["officialCardIds"] << "XXX" << item["officialCardIds"].at(0) << std::endl;
-			/*
-			for (auto it = item.begin(); it != item.end(); ++it) {
-				if (it.key() != "_id") {
-					std::cout << "Schlüssel: " << it.key() << ", Wert: " << it.value() << std::endl;
-				}
-			}*/
-		}
-	}
 
-	B->StatusNew("", "Startup");
+	B->StatusNew("", "Boot BOT with this Settings");
 	L->EchoSettings();
 
 	run_FireBot(Bro,6370);

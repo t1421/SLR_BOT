@@ -82,3 +82,60 @@ void LOAD::EchoSettings()
 	Bro->B_StatusNew("", "########################");
 	MISE;
 }
+
+#ifdef MIS_Stream 
+void LOAD::Load_Stream()
+{
+	MISS;
+	std::string line;
+	std::string sName;
+	std::ifstream ifFile;
+
+	sName = "Stream_Starts.ini";
+	ifFile.open(sName.c_str(), std::ios::binary);
+	if (ifFile.good())
+	{
+		getline(ifFile, line);
+		iStarts = atoi(line.c_str());
+		ifFile.clear();
+		ifFile.close();
+	}
+
+	sName = "Stream_Games.ini";
+	ifFile.open(sName.c_str(), std::ios::binary);
+	if (ifFile.good())
+	{
+		getline(ifFile, line);
+		iGames = atoi(line.c_str());
+		ifFile.clear();
+		ifFile.close();
+	}
+
+	MISE;
+}
+
+void LOAD::Save_Stream()
+{
+	MISS;
+
+	std::string sName;
+	std::ofstream ofFile;
+
+	sName = "K:\\c++\\SLR_BOT\\Stream_Starts.ini";
+	ofFile.open(sName.c_str(), std::ios::binary);
+	if (ofFile.good())
+	{
+		ofFile << iStarts;
+		ofFile.close();
+	}
+
+	sName = "K:\\c++\\SLR_BOT\\Stream_Games.ini";
+	ofFile.open(sName.c_str(), std::ios::binary);
+	if (ofFile.good())
+	{
+		ofFile << iGames;
+		ofFile.close();
+	}
+	MISE;
+}
+#endif

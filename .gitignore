@@ -366,3 +366,5 @@ cmake-build-debug/
 build/
 .idea/
 xmake/
+Stream_Games.ini
+Stream_Starts.ini

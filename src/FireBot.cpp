@@ -18,6 +18,10 @@ void FireBot::PrepareForBattle(const api::MapInfo& mapInfo, const api::Deck& dec
 		SMJDeck.push_back(Bro->J->CardFromJson(apiCard % 1000000));
 	for (auto C : SMJDeck)
 		MISD(C.cardName);
+#ifdef MIS_Stream 
+	Bro->L_GamesPlus();
+#endif
+
 	MISE;
 }
 
@@ -52,8 +56,8 @@ std::vector<api::Deck> FireBot::DecksForMap(const api::MapInfo& mapInfo)
 	deck.cards[i++] = api::CardIdWithUpgrade(card_templates::Ravage, api::Upgrade_U3);
 	deck.cards[i++] = api::CardIdWithUpgrade(card_templates::RallyingBanner, api::Upgrade_U3);
 	
-	deck.cards[i++] = api::CardIdWithUpgrade(card_templates::JuggernautPromo, api::Upgrade_U3);
-	deck.cards[i++] = api::CardIdWithUpgrade(card_templates::GiantSlayer, api::Upgrade_U3);
+	deck.cards[i++] = api::CardIdWithUpgrade(card_templates::Strikers, api::Upgrade_U3);
+	deck.cards[i++] = api::CardIdWithUpgrade(card_templates::Mine, api::Upgrade_U3);
 	deck.cards[i++] = api::CardIdWithUpgrade(card_templates::Spitfire, api::Upgrade_U3);
 
 	v.push_back(deck);
@@ -93,12 +97,32 @@ std::vector<api::Command> FireBot::Tick(const api::GameState & state)
 	//MISS;
 	MISD(std::to_string(iStage) +  "#" + Bro->sTime(state.current_tick) + "#" + std::to_string(state.current_tick) + "#" + std::to_string(state.players[imyPlayerIDX].power));
 	auto v = std::vector<api::Command>();
+	if (iSkipTick > 0)
+	{
+		MISD("SKIP");
+		iSkipTick--;
+		return v;
+	}
 
 	for (auto r : state.rejected_commands)
 	{
 		MISD("rejected Player: " + std::to_string(r.player));		
 		MISD("reason         : " + Bro->U->switchCommandRejectionReason(r.reason));
 		MISD("command        : " + Bro->U->switchCommand(r.command));
+	}
+	if (Bro->L->StartType == 1 && state.current_tick <= 100)
+	{
+		//std::vector<api::Entity> OPs = entitiesTOentity(opId, state.entities.squads[0]);
+		if (state.entities.squads.size() == 0)return v;
+		auto spawn = api::CommandProduceSquad();
+		spawn.card_position = CardPicker(state.entities.squads[0].card_id, true);
+		spawn.xy = api::to2D(entitiesTOentity(myId, state.entities.token_slots)[0].position);
+		auto cmd = api::Command();
+		cmd.v = spawn;
+		v.push_back(cmd);
+
+		iSkipTick = 40;
+		Bro->L->StartType == 0;		
 	}
 
 	//WELL KILLER
@@ -150,6 +174,7 @@ std::vector<api::Command> FireBot::Tick(const api::GameState & state)
 		}
 	}
 	
+	//Take powerwells
 	if (entitiesTOentity(myId,state.entities.power_slots).size() < 4 && state.current_tick % 5
 		&& Bro->L->StartType == 0)
 	{
@@ -200,6 +225,53 @@ std::vector<api::Command> FireBot::Tick(const api::GameState & state)
 	return v;
 }
 
+int FireBot::GetSwiftCounterFor(Card OP, bool PerfectCounter, bool Swift)
+{
+	MISS;
+	
+	
+	for (unsigned int i = 0; i < SMJDeck.size(); i++)
+	{
+		if (PerfectCounter == false && SMJDeck[i].offenseType == OP.defenseType
+			||
+			PerfectCounter == true && SMJDeck[i].offenseType == OP.defenseType && SMJDeck[i].defenseType != OP.offenseType)
+		{
+			if (!Swift)
+			{
+				MISEA("Not Swift: " + SMJDeck[i].cardName);
+				return i;
+			}
+
+			for (Ability A : SMJDeck[i].abilities)
+				if (A.abilityIdentifier == "Swift")
+				{
+					MISEA("Fast: " + SMJDeck[i].cardName);
+					return i;
+				}
+		}				
+	}
+		
+	MISEA("No Counter :-(");
+	return -1;
+}
+int FireBot::CardPicker(api::CardId opID, bool Swift)
+{
+	MISS;
+	Card OP = Bro->J->CardFromJson(opID % 1000000);
+
+	int iReturn;
+	iReturn = GetSwiftCounterFor(OP, true, Swift);
+	if(iReturn == -1) iReturn = GetSwiftCounterFor(OP, false, Swift);
+	if (iReturn == -1 && Swift)
+	{
+		iReturn = GetSwiftCounterFor(OP, true, false);
+		if (iReturn == -1) iReturn = GetSwiftCounterFor(OP, false, false);
+	}
+	if (iReturn == -1)iReturn = 0;
+	MISE;
+	return iReturn;
+}
+
 
 void run_FireBot(broker* Bro, unsigned short port)
 {
@@ -209,3 +281,4 @@ void run_FireBot(broker* Bro, unsigned short port)
 	run(bot, port);
 	MISE;
 }
+

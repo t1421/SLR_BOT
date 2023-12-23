@@ -41,6 +41,8 @@ public:
 	std::vector<api::Entity> pointsInRadius(std::vector<api::Entity> toCheck, api::Position2D Center, float Range);
 	float CloseCombi(std::vector<api::Entity> EntitiesA, std::vector<api::Entity> EntitiesB, api::Entity& outA, api::Entity& outB);
 
+	
+
 	/////////////////	
 	std::string switchCommandRejectionReason(api::CommandRejectionReason& v);
 	std::string switchCommand(api::Command& v);
