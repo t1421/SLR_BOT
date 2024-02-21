@@ -13,7 +13,7 @@
 class FireBot : public IBotImp
 {
 public:
-	FireBot() : IBotImp("FireBot"), myId{}, myStart{}, iStage(0), iSkipTick(0){ };
+	FireBot() : IBotImp("FireBot"), myId{}, opId{}, myStart{}, iStage(0), iSkipTick(0), imyPlayerIDX(0), iopPlayerIDX(0){ };
 	~FireBot() override = default;
 	std::vector<api::Deck> DecksForMap(const api::MapInfo& mapInfo) override;
 	void PrepareForBattle(const api::MapInfo& mapInfo, const api::Deck& deck) override;

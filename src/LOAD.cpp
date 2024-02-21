@@ -1,8 +1,8 @@
 //#define DF_Debug
 
-#include "..\incl\Broker.h"
+#include "../incl/Broker.h"
 
-#include "..\incl\LOAD.h"
+#include "../incl/LOAD.h"
 
 #include <fstream>
 

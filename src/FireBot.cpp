@@ -122,7 +122,7 @@ std::vector<api::Command> FireBot::Tick(const api::GameState & state)
 		v.push_back(cmd);
 
 		iSkipTick = 40;
-		Bro->L->StartType == 0;		
+		Bro->L->StartType = 0;		
 	}
 
 	//WELL KILLER

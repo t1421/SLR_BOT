@@ -1,8 +1,8 @@
 #define DF_Debug
 
-#include "..\incl\Broker.h" 
+#include "../incl/Broker.h" 
 #define SMJ_Cards "https://smj.cards/api/cards"
-#include "..\incl\CardBaseSMJ.h" 
+#include "../incl/CardBaseSMJ.h" 
 
 #ifdef MIS_Online
 #define CURL_STATICLIB
@@ -78,6 +78,7 @@ bool CardBaseSMJ::DownloadSMJ()
 	curl_global_cleanup();
 	Bro->B_StatusNew(__FUNCTION__, "SMJ.json updated");
 	MISE;
+	return true;
 }
 #endif
 
