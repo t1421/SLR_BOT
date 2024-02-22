@@ -1,4 +1,4 @@
-#define DF_Debug
+﻿#define DF_Debug
 
 #include "../incl/FireBot.h"
 #include "../incl/CardBaseSMJ.h"
@@ -110,6 +110,7 @@ std::vector<api::Command> FireBot::Tick(const api::GameState & state)
 		MISD("reason         : " + Bro->U->switchCommandRejectionReason(r.reason));
 		MISD("command        : " + Bro->U->switchCommand(r.command));
 	}
+
 	if (Bro->L->StartType == 1 && state.current_tick <= 100)
 	{
 		//std::vector<api::Entity> OPs = entitiesTOentity(opId, state.entities.squads[0]);
@@ -190,7 +191,7 @@ std::vector<api::Command> FireBot::Tick(const api::GameState & state)
 			if (state.players[imyPlayerIDX].power > 75)
 			{
 				auto spawn = api::CommandProduceSquad();
-				spawn.card_position = 0; // Code f�r fast unit
+				spawn.card_position = 0; // Code für fast unit
 				spawn.xy = Bro->U->A_B_Offsetter(api::to2D(A.position), api::to2D(B.position), CastRange);				
 				auto cmd = api::Command();
 				cmd.v = spawn;
@@ -218,6 +219,71 @@ std::vector<api::Command> FireBot::Tick(const api::GameState & state)
 			cmd.v = build;
 			v.push_back(cmd);
 			iStage++;
+		}
+	}
+
+	//Spam and run to Base
+	if (state.current_tick % 5 && Bro->L->StartType == 2)
+	{
+		api::Entity A;
+		api::Entity B;
+		float fDistanc = 0;
+
+
+		fDistanc = Bro->U->CloseCombi(entitiesTOentity(myId, state.entities.squads, state.entities.buildings, state.entities.power_slots, state.entities.token_slots),
+			entitiesTOentity(opId, state.entities.power_slots, state.entities.token_slots), A, B);
+
+		if (state.players[imyPlayerIDX].power > 75)
+		{
+			auto spawn = api::CommandProduceSquad();
+			spawn.card_position = 0; // Code für fast unit
+			spawn.xy = Bro->U->A_B_Offsetter(api::to2D(A.position), api::to2D(B.position), CastRange);
+			auto cmd = api::Command();
+			cmd.v = spawn;
+			v.push_back(cmd);
+		}
+
+		for (auto E : entitiesTOentity(myId, state.entities.squads))
+		{
+			//MISD(Bro->U->switchCommandJob(E.job))
+
+			if (std::get_if<api::JobIdle>(&E.job.v))
+			{
+				auto move = api::CommandGroupGoto();
+				move.squads = { E.id };
+				move.positions = { api::to2D(B.position) };
+				move.walk_mode = api::WalkMode_Normal;
+				auto cmd = api::Command();
+				cmd.v = move;
+				v.push_back(cmd);
+			}
+			
+		}
+
+	}
+
+	if (state.current_tick % 2 && Bro->L->MineFinder)
+	{
+		for (auto O : state.entities.ability_world_objects)
+		{
+			for (auto E : O.entity.effects)
+			{
+				if (E.id % 1000000 == 1635)
+				{
+					MISD("MINE");
+					for (auto EE : Bro->U->pointsInRadius(entitiesTOentity(myId, state.entities.squads), api::to2D(O.entity.position), 20))
+					{
+						MISD("MOVE");
+						auto move = api::CommandGroupGoto();
+						move.squads = { EE.id };
+						move.positions = { (Bro->U->A_B_Offsetter(api::to2D(EE.position), api::to2D(O.entity.position), -20)) };
+						move.walk_mode = api::WalkMode_Normal;
+						auto cmd = api::Command();
+						cmd.v = move;
+						v.push_back(cmd);
+					}					
+				}				
+			}
 		}
 	}
 	

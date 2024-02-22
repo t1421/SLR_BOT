@@ -28,6 +28,8 @@ void LOAD::Load_Settings()
 			if (INI_Value_Check(line, "SMJOnline"))SMJOnline = line.substr(0,1) != "0";
 			if (INI_Value_Check(line, "WellKiller"))WellKiller = line.substr(0, 1) != "0";
 			if (INI_Value_Check(line, "UnitEruption"))UnitEruption = line.substr(0, 1) != "0";
+			if (INI_Value_Check(line, "MineFinder"))MineFinder = line.substr(0, 1) != "0";
+			
 			if (INI_Value_Check(line, "StartType"))StartType = atoi(line.c_str());
 			
 			ifFile.clear();
@@ -78,6 +80,7 @@ void LOAD::EchoSettings()
 	Bro->B_StatusNew("", "########################");
 	Bro->B_StatusNew("", "# WellKiller   = " + std::to_string(WellKiller));
 	Bro->B_StatusNew("", "# UnitEruption = " + std::to_string(UnitEruption));
+	Bro->B_StatusNew("", "# MineFinder   = " + std::to_string(MineFinder));
 	Bro->B_StatusNew("", "# StartType    = " + std::to_string(StartType));
 	Bro->B_StatusNew("", "########################");
 	MISE;

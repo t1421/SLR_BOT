@@ -18,6 +18,7 @@ public:
 	bool SMJOnline;
 
 	bool WellKiller;
+	bool MineFinder;
 	bool UnitEruption;
 	unsigned int StartType;
 

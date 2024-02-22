@@ -46,6 +46,7 @@ public:
 	/////////////////	
 	std::string switchCommandRejectionReason(api::CommandRejectionReason& v);
 	std::string switchCommand(api::Command& v);
+	std::string switchCommandJob(api::Job& v);
 	/////////////////
 
 	static broker* Bro;

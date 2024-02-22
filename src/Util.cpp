@@ -76,6 +76,44 @@ std::string Util::switchCommand(api::Command& v)
 	}
 }
 
+std::string Util::switchCommandJob(api::Job& v)
+{
+	switch (v.v.index()) {
+	case 0: return "NoJob"; break;
+	case 1: return "Idle"; break;
+	case 2: return "Goto"; break;
+	case 3: return "AttackMelee"; break;
+	case 4: return "CastSpell"; break;
+	case 5: return "Die"; break;
+	case 6: return "Talk"; break;
+	case 7: return "ScriptTalk"; break;
+	case 8: return "Freeze"; break;
+	case 9: return "Spawn"; break;
+	case 10: return "Cheer"; break;
+	case 11: return "AttackSquad"; break;
+	case 12: return "CastSpellSquad"; break;
+	case 13: return "PushBack"; break;
+	case 14: return "Stampede"; break;
+	case 15: return "BarrierCrush"; break;
+	case 16: return "BarrierGateToggle"; break;
+	case 17: return "FlameThrower"; break;
+	case 18: return "Construct"; break;
+	case 19: return "Crush"; break;
+	case 20: return "MountBarrierSquad"; break;
+	case 21: return "MountBarrier"; break;
+	case 22: return "ModeChangeSquad"; break;
+	case 23: return "ModeChange"; break;
+	case 24: return "SacrificeSquad"; break;
+	case 25: return "UsePortalSquad"; break;
+	case 26: return "Channel"; break;
+	case 27: return "SpawnSquad"; break;
+	case 28: return "LootTargetSquad"; break;
+	case 29: return "Morph"; break;
+	case 30: return "Unknown"; break;
+	default: return "invalid case";
+	}
+}
+
 std::vector<api::Entity> Util::pointsInRadius(std::vector<api::Entity> toCheck, api::Position2D Center, float Range)
 {
 	std::vector<api::Entity> vReturn;
