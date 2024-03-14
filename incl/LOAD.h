@@ -21,6 +21,7 @@ public:
 	bool MineFinder;
 	bool UnitEruption;
 	unsigned int StartType;
+	unsigned int Port;
 
 	//BROKER
 	static broker* Bro;

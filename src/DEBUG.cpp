@@ -1,4 +1,4 @@
-#define Log_path "./log/"
+#define Log_path "./"
 
 #include "../incl/DEBUG.h"
 

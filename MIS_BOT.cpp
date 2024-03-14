@@ -8,11 +8,11 @@
 
 void run_FireBot(broker* Bro,  unsigned short port);
 
-int main()
+int main(int argc, char** argv)
 {
 	broker* Bro = new broker;
 
-	DEBUG* B = new DEBUG("BOT_LOG", true, true, false);
+	DEBUG* B = new DEBUG("MIS_BOT_log", true, true, false);
 	B->teachB();
 	B->StatusNew("", "Init");
 
@@ -42,6 +42,8 @@ int main()
 		return -1;
 	}
 
+	if (argc >= 2)L->Port = atoi(argv[1]);
+	if (L->Port == 0)L->Port = 6370;
 
 	B->StatusNew("", "Boot BOT with this Settings");
 	L->EchoSettings();

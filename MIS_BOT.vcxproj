@@ -73,10 +73,14 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <IncludePath>K:\Sound_Server\lib\curl-7.70.0\builds\libcurl-vc-x64-debug-static-ipv6-sspi-winssl\include;$(IncludePath)</IncludePath>
     <LibraryPath>K:\Sound_Server\lib\curl-7.70.0\builds\libcurl-vc-x64-debug-static-ipv6-sspi-winssl\lib;$(LibraryPath)</LibraryPath>
+    <OutDir>$(SolutionDir)</OutDir>
+    <TargetName>$(ProjectName)_Debug</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <IncludePath>K:\Sound_Server\lib\curl-7.70.0\builds\libcurl-vc-x64-release-static-ipv6-sspi-winssl\include;$(IncludePath)</IncludePath>
     <LibraryPath>K:\Sound_Server\lib\curl-7.70.0\builds\libcurl-vc-x64-release-static-ipv6-sspi-winssl\lib;$(LibraryPath)</LibraryPath>
+    <OutDir>$(SolutionDir)</OutDir>
+    <TargetName>$(ProjectName)_Release</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>

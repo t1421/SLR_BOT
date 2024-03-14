@@ -31,6 +31,7 @@ void LOAD::Load_Settings()
 			if (INI_Value_Check(line, "MineFinder"))MineFinder = line.substr(0, 1) != "0";
 			
 			if (INI_Value_Check(line, "StartType"))StartType = atoi(line.c_str());
+			if (INI_Value_Check(line, "Port"))Port = atoi(line.c_str());
 			
 			ifFile.clear();
 		}
@@ -75,6 +76,10 @@ void LOAD::EchoSettings()
 	MISS;
 	Bro->B_StatusNew("", "########################");
 	Bro->B_StatusNew("", "### Current Settings ###");
+	Bro->B_StatusNew("", "########################");
+	Bro->B_StatusNew("", "# Port         = " + std::to_string(Port));
+	Bro->B_StatusNew("", "# Use Settings.ini");
+	Bro->B_StatusNew("", "# or first Argv to change");
 	Bro->B_StatusNew("", "########################");
 	Bro->B_StatusNew("", "# SMJOnline    = " + std::to_string(SMJOnline));
 	Bro->B_StatusNew("", "########################");

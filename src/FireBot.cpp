@@ -88,6 +88,7 @@ void FireBot::MatchStart(const api::GameStartState& state)
 
 	MISD("MY ID: " + std::to_string(myId));
 	MISD("OP ID: " + std::to_string(opId));	
+	CoolEruptionTest.s = true;
 		
 	MISE;
 }
@@ -153,6 +154,12 @@ std::vector<api::Command> FireBot::Tick(const api::GameState & state)
 	}
 
 	//Cool eruption
+	if (Bro->L->UnitEruption && CoolEruptionTest.s)
+	{
+		CoolEruptionTest.f = std::async(&FireBot::CoolEruption, this, state);
+		CoolEruptionTest.s = false; // dont start again
+	}
+	/*
 	if (Bro->L->UnitEruption)
 	{
 		std::vector<api::Entity> vTemp;
@@ -174,7 +181,7 @@ std::vector<api::Command> FireBot::Tick(const api::GameState & state)
 			}			
 		}
 	}
-	
+	*/
 	//Take powerwells
 	if (entitiesTOentity(myId,state.entities.power_slots).size() < 4 && state.current_tick % 5
 		&& Bro->L->StartType == 0)
@@ -287,8 +294,45 @@ std::vector<api::Command> FireBot::Tick(const api::GameState & state)
 		}
 	}
 	
+
+	if (CoolEruptionTest.f.wait_for(0ms) == std::future_status::ready)
+	{
+		for (auto vv : CoolEruptionTest.f.get())v.push_back(vv);
+		CoolEruptionTest.s = true;
+	}
+
 	//MISE;
 	return v;
+}
+
+std::vector<api::Command> FireBot::CoolEruption(const api::GameState& state)
+{
+	MISS;
+
+	auto vReturn = std::vector<api::Command>();
+
+	std::vector<api::Entity> vTemp;
+	for (auto U : state.entities.squads)
+	{
+		if (U.entity.player_entity_id != opId)continue;
+
+		//vTemp = Bro->U->pointsInRadius(Bro->U->entitiesTOentity(state.entities.squads), api::to2D(U.entity.position), 10);
+		vTemp = Bro->U->pointsInRadius(entitiesTOentity(opId, state.entities.squads), api::to2D(U.entity.position), 10);
+		if (vTemp.size() >= 3)
+		{
+			MISD("FIRE !!!!");
+			auto spell = api::CommandCastSpellGod();
+			spell.card_position = 6;
+			spell.target.v = api::SingleTargetLocation(api::to2D(U.entity.position));
+			auto cmd = api::Command();
+			cmd.v = spell;
+			vReturn.push_back(cmd);
+			break; //only for one unit not all 3
+		}
+	}
+
+	MISE;
+	return vReturn;	
 }
 
 int FireBot::GetSwiftCounterFor(Card OP, bool PerfectCounter, bool Swift)
