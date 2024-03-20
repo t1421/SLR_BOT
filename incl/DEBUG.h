@@ -1,3 +1,4 @@
+#ifdef MIS_DEBUG
 #pragma once
 #include "../incl/Broker.h"
 
@@ -41,3 +42,4 @@ protected:
 private:
 
 };
+#endif

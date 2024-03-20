@@ -74,20 +74,20 @@ bool LOAD::INI_Value_Check(std::string& check, std::string name)
 void LOAD::EchoSettings()
 {
 	MISS;
-	Bro->B_StatusNew("", "########################");
-	Bro->B_StatusNew("", "### Current Settings ###");
-	Bro->B_StatusNew("", "########################");
-	Bro->B_StatusNew("", "# Port         = " + std::to_string(Port));
-	Bro->B_StatusNew("", "# Use Settings.ini");
-	Bro->B_StatusNew("", "# or first Argv to change");
-	Bro->B_StatusNew("", "########################");
-	Bro->B_StatusNew("", "# SMJOnline    = " + std::to_string(SMJOnline));
-	Bro->B_StatusNew("", "########################");
-	Bro->B_StatusNew("", "# WellKiller   = " + std::to_string(WellKiller));
-	Bro->B_StatusNew("", "# UnitEruption = " + std::to_string(UnitEruption));
-	Bro->B_StatusNew("", "# MineFinder   = " + std::to_string(MineFinder));
-	Bro->B_StatusNew("", "# StartType    = " + std::to_string(StartType));
-	Bro->B_StatusNew("", "########################");
+	MISERROR("########################");
+	MISERROR("### Current Settings ###");
+	MISERROR("########################");
+	MISERROR("# Port         = " + std::to_string(Port));
+	MISERROR("# Use Settings.ini");
+	MISERROR("# or first Argv to change");
+	MISERROR("########################");
+	MISERROR("# SMJOnline    = " + std::to_string(SMJOnline));
+	MISERROR("########################");
+	MISERROR("# WellKiller   = " + std::to_string(WellKiller));
+	MISERROR("# UnitEruption = " + std::to_string(UnitEruption));
+	MISERROR("# MineFinder   = " + std::to_string(MineFinder));
+	MISERROR("# StartType    = " + std::to_string(StartType));
+	MISERROR("########################");
 	MISE;
 }
 

@@ -1,6 +1,8 @@
 //#define DF_Debug
 #include "../incl/Broker.h"
+#ifdef MIS_DEBUG
 #include "../incl/DEBUG.h"
+#endif // MIS_DEBUG
 #include "../incl/CardBaseSMJ.h"
 #include "../incl/Util.h"
 #include "../incl/LOAD.h"
@@ -10,8 +12,10 @@ broker::broker()
 	bAktive = true;
 	Bro = this;
 
+#ifdef MIS_DEBUG
 	DEBUG::learnBro(this);
-	B = NULL;	
+	B = NULL;
+#endif // MIS_DEBUG		
 
 	CardBaseSMJ::learnBro(this);
 	J = NULL;
@@ -23,6 +27,7 @@ broker::broker()
 	L = NULL;
 }
 
+#ifdef MIS_DEBUG
 void broker::B_StatusNew(std::string Fun, std::string Wert)
 {
 	B->StatusNew(Fun, Wert);
@@ -37,6 +42,7 @@ void broker::B_StatusE(std::string Modul, std::string Funktion, std::string Wert
 {
 	B->StatusE(Modul, Funktion, Wert);
 }
+#endif // MIS_DEBUG
 
 std::string broker::sTime(unsigned long ulTime)
 {

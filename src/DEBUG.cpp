@@ -1,3 +1,4 @@
+#ifdef MIS_DEBUG
 #define Log_path "./"
 
 #include "../incl/DEBUG.h"
@@ -5,8 +6,6 @@
 #include "../API/API/json.hpp"
 #include "../API/API/Types.hpp"
 #include "../API/API/Helpers.hpp"
-
-//#include "../API/API/boost_wrapper.hpp"
 
 broker *(DEBUG::Bro) = NULL;
 
@@ -129,3 +128,5 @@ bool DEBUG::check_MFW(std::string Modul, std::string Funktion, std::string Wert)
 
 	return false;
 }
+
+#endif
