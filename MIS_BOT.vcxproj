@@ -138,7 +138,7 @@
       </Command>
     </CustomBuildStep>
     <PreBuildEvent>
-      <Command>start "" taskkill /IM MIS_BOT.exe /F</Command>
+      <Command>start "" taskkill /IM MIS_BOT_Debug.exe /F</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">

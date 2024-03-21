@@ -17,6 +17,7 @@ int main(int argc, char** argv)
 #ifdef MIS_DEBUG
 	DEBUG* B = new DEBUG("MIS_BOT_log", true, true, false);
 	B->teachB();
+	B->bFilter = true;
 	B->StatusNew("", "Init");
 #endif // MIS_DEBUG	
 

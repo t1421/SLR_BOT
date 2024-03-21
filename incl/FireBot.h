@@ -50,6 +50,12 @@ private:
 	unsigned int iStage;
 	unsigned int iSkipTick;
 
+	//Instand Functions
+	void WellKiller(std::vector<api::Command> vMain, std::vector<api::Entity> Wells);
+	std::vector<api::Command> AvoidArea(const api::GameState& state);
+
+	//
+
 	int CardPicker(api::CardId opID) { return CardPicker(opID, false); };
 	int CardPicker(api::CardId opID, bool Swift);
 	int GetSwiftCounterFor(Card OP, bool PerfectCounter, bool Swift);

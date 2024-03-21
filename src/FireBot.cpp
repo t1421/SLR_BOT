@@ -42,7 +42,7 @@ std::vector<api::Deck> FireBot::DecksForMap(const api::MapInfo& mapInfo)
 	deck.cards[i++] = api::CardIdWithUpgrade(card_templates::Thugs, api::Upgrade_U3);	
 	deck.cards[i++] = api::CardIdWithUpgrade(card_templates::Wrecker, api::Upgrade_U3);
 	deck.cards[i++] = api::CardIdWithUpgrade(card_templates::Sunderer, api::Upgrade_U3);
-	deck.cards[i++] = api::CardIdWithUpgrade(card_templates::FireswornAFire, api::Upgrade_U3);
+	deck.cards[i++] = api::CardIdWithUpgrade(card_templates::FireswornAFrost, api::Upgrade_U3);
 	deck.cards[i++] = api::CardIdWithUpgrade(card_templates::Eruption, api::Upgrade_U3);
 	deck.cards[i++] = api::CardIdWithUpgrade(card_templates::ScorchedEarthAFire, api::Upgrade_U3);
 
@@ -56,8 +56,11 @@ std::vector<api::Deck> FireBot::DecksForMap(const api::MapInfo& mapInfo)
 	deck.cards[i++] = api::CardIdWithUpgrade(card_templates::Ravage, api::Upgrade_U3);
 	deck.cards[i++] = api::CardIdWithUpgrade(card_templates::RallyingBanner, api::Upgrade_U3);
 	
-	deck.cards[i++] = api::CardIdWithUpgrade(card_templates::Strikers, api::Upgrade_U3);
-	deck.cards[i++] = api::CardIdWithUpgrade(card_templates::Mine, api::Upgrade_U3);
+	deck.cards[i++] = api::CardIdWithUpgrade(card_templates::BurningSpears, api::Upgrade_U3);
+	deck.cards[i++] = api::CardIdWithUpgrade(card_templates::DisenchantANature, api::Upgrade_U3);
+	
+	//deck.cards[i++] = api::CardIdWithUpgrade(card_templates::Strikers, api::Upgrade_U3);
+	//deck.cards[i++] = api::CardIdWithUpgrade(card_templates::Mine, api::Upgrade_U3);
 	deck.cards[i++] = api::CardIdWithUpgrade(card_templates::Spitfire, api::Upgrade_U3);
 
 	v.push_back(deck);
@@ -119,39 +122,16 @@ std::vector<api::Command> FireBot::Tick(const api::GameState & state)
 		auto spawn = api::CommandProduceSquad();
 		spawn.card_position = CardPicker(state.entities.squads[0].card_id, true);
 		spawn.xy = api::to2D(entitiesTOentity(myId, state.entities.token_slots)[0].position);
-		auto cmd = api::Command();
-		cmd.v = spawn;
-		v.push_back(cmd);
+		v.push_back(api::Command(spawn));
 
 		iSkipTick = 40;
 		Bro->L->StartType = 0;		
 	}
 
 	//WELL KILLER
-	if (Bro->L->WellKiller)
-	{
-		for (auto W : state.entities.power_slots)
-		{
-			if (W.entity.player_entity_id != opId)continue;
-
-			for (auto A : W.entity.aspects)
-			{
-				if (std::get_if<api::AspectHealth>(&A.v))
-				{
-					if (std::get<api::AspectHealth>(A.v).current_hp <= 300)
-					{
-						MISD("FIRE !!!!");
-						auto spell = api::CommandCastSpellGod();
-						spell.card_position = 6;
-						spell.target.v = api::SingleTargetLocation(api::to2D(W.entity.position));
-						auto cmd = api::Command();
-						cmd.v = spell;
-						v.push_back(cmd);
-					}
-				}							
-			}
-		}
-	}
+	if (Bro->L->WellKiller)WellKiller(v, entitiesTOentity(opId, state.entities.power_slots));
+	if (state.current_tick % 2 && Bro->L->MineFinder)for (auto vv : AvoidArea(state))v.push_back(vv);
+		
 
 	//Cool eruption
 	if (Bro->L->UnitEruption && CoolEruptionTest.s)
@@ -159,29 +139,7 @@ std::vector<api::Command> FireBot::Tick(const api::GameState & state)
 		CoolEruptionTest.f = std::async(&FireBot::CoolEruption, this, state);
 		CoolEruptionTest.s = false; // dont start again
 	}
-	/*
-	if (Bro->L->UnitEruption)
-	{
-		std::vector<api::Entity> vTemp;
-		for (auto U : state.entities.squads)
-		{
-			if (U.entity.player_entity_id != opId)continue;
-
-			//vTemp = Bro->U->pointsInRadius(Bro->U->entitiesTOentity(state.entities.squads), api::to2D(U.entity.position), 10);
-			vTemp = Bro->U->pointsInRadius(entitiesTOentity(opId,state.entities.squads), api::to2D(U.entity.position), 10);
-			if (vTemp.size() >=3)
-			{
-				MISD("FIRE !!!!");
-				auto spell = api::CommandCastSpellGod();
-				spell.card_position = 6;
-				spell.target.v = api::SingleTargetLocation(api::to2D(U.entity.position));
-				auto cmd = api::Command();
-				cmd.v = spell;
-				v.push_back(cmd);
-			}			
-		}
-	}
-	*/
+	
 	//Take powerwells
 	if (entitiesTOentity(myId,state.entities.power_slots).size() < 4 && state.current_tick % 5
 		&& Bro->L->StartType == 0)
@@ -200,9 +158,7 @@ std::vector<api::Command> FireBot::Tick(const api::GameState & state)
 				auto spawn = api::CommandProduceSquad();
 				spawn.card_position = 0; // Code für fast unit
 				spawn.xy = Bro->U->A_B_Offsetter(api::to2D(A.position), api::to2D(B.position), CastRange);				
-				auto cmd = api::Command();
-				cmd.v = spawn;
-				v.push_back(cmd);
+				v.push_back(api::Command(spawn));
 			}
 		}
 		else //Move Unit
@@ -213,18 +169,14 @@ std::vector<api::Command> FireBot::Tick(const api::GameState & state)
 			move.squads = { A.id};
 			move.positions = { api::to2D(B.position) };
 			move.walk_mode = api::WalkMode_Normal;
-			auto cmd = api::Command();
-			cmd.v = move;
-			v.push_back(cmd);
+			v.push_back(api::Command(move));
 		}
 
 		if (fDistanc < CastRange && state.players[imyPlayerIDX].power >= 100)
 		{
 			auto build = api::CommandPowerSlotBuild();
 			build.slot_id = B.id;
-			auto cmd = api::Command();
-			cmd.v = build;
-			v.push_back(cmd);
+			v.push_back(api::Command(build));
 			iStage++;
 		}
 	}
@@ -245,9 +197,7 @@ std::vector<api::Command> FireBot::Tick(const api::GameState & state)
 			auto spawn = api::CommandProduceSquad();
 			spawn.card_position = 0; // Code für fast unit
 			spawn.xy = Bro->U->A_B_Offsetter(api::to2D(A.position), api::to2D(B.position), CastRange);
-			auto cmd = api::Command();
-			cmd.v = spawn;
-			v.push_back(cmd);
+			v.push_back(api::Command(spawn));
 		}
 
 		for (auto E : entitiesTOentity(myId, state.entities.squads))
@@ -260,39 +210,13 @@ std::vector<api::Command> FireBot::Tick(const api::GameState & state)
 				move.squads = { E.id };
 				move.positions = { api::to2D(B.position) };
 				move.walk_mode = api::WalkMode_Normal;
-				auto cmd = api::Command();
-				cmd.v = move;
-				v.push_back(cmd);
+				v.push_back(api::Command(move));
 			}
 			
 		}
 
 	}
 
-	if (state.current_tick % 2 && Bro->L->MineFinder)
-	{
-		for (auto O : state.entities.ability_world_objects)
-		{
-			for (auto E : O.entity.effects)
-			{
-				if (E.id % 1000000 == 1635)
-				{
-					MISD("MINE");
-					for (auto EE : Bro->U->pointsInRadius(entitiesTOentity(myId, state.entities.squads), api::to2D(O.entity.position), 20))
-					{
-						MISD("MOVE");
-						auto move = api::CommandGroupGoto();
-						move.squads = { EE.id };
-						move.positions = { (Bro->U->A_B_Offsetter(api::to2D(EE.position), api::to2D(O.entity.position), -20)) };
-						move.walk_mode = api::WalkMode_Normal;
-						auto cmd = api::Command();
-						cmd.v = move;
-						v.push_back(cmd);
-					}					
-				}				
-			}
-		}
-	}
 	
 
 	if (CoolEruptionTest.f.wait_for(0ms) == std::future_status::ready)
@@ -392,3 +316,96 @@ void run_FireBot(broker* Bro, unsigned short port)
 	MISE;
 }
 
+void FireBot::WellKiller(std::vector<api::Command> vMain, std::vector<api::Entity> Wells)
+{
+	MISS;	
+	for (auto W : Wells)
+	{
+		for (auto A : W.aspects)
+		{
+			if (std::get_if<api::AspectHealth>(&A.v))
+			{
+				if (std::get<api::AspectHealth>(A.v).current_hp <= 300)
+				{
+					MISD("FIRE !!!!");
+					auto spell = api::CommandCastSpellGod();
+					spell.card_position = 6;
+					// Spot on, maye chaneg to offset so i can hit units
+					spell.target.v = api::SingleTargetLocation(api::to2D(W.position)); 
+					vMain.push_back(api::Command(spell));
+				}
+			}
+		}
+	}
+	MISE;
+}
+
+std::vector<api::Command> FireBot::AvoidArea(const api::GameState& state)
+{
+	MISS;
+
+	auto vReturn = std::vector<api::Command>();
+
+	for (auto O : state.entities.ability_world_objects)
+	{
+		for (auto E : O.entity.effects)
+		{
+
+			/*
+			if (E.id % 1000000 == 290) //Cold snap
+				MISD("Snap at: " + std::to_string(O.entity.position.x) + "#" + std::to_string(O.entity.position.x));			
+			
+			if (E.id % 1000000 == 1006) //Creeping Paralyse
+			{
+				MISD("Creeping at: " + std::to_string(O.entity.position.x) + "#" + std::to_string(O.entity.position.x));
+				//MISD(E.start_tick);
+				printf("%i -> %i\n", E.start_tick, E.end_tick);					
+			}
+
+			if (E.id % 1000000 == 1776) //Huricane
+			{
+				MISD("Huricane at: " + std::to_string(O.entity.position.x) + "#" + std::to_string(O.entity.position.x));
+				printf("%i -> %i\n", E.start_tick, E.end_tick);
+			}*/
+			
+
+			// Area Spells
+			//  1620 // Glyph of Frost
+			//   290 // Cold Snap
+			//  1471 // Aura Of Corruption
+			//  1694 // Ensnaring Roots
+			//  1006 // Creeping Paralyse
+
+			// Line Spells
+			// 11003 // Bandit Minefield
+			//  1776 // Huricane
+			//  1740 // Wildfire
+
+			
+			
+			/*
+			if (E.id % 1000000 == 1635)
+				MISD("Mine at: " + std::to_string(O.entity.position.x) + "#" + std::to_string(O.entity.position.x));
+				*/
+			/*
+			{
+				
+				MISD("MINE");
+				for (auto EE : Bro->U->pointsInRadius(entitiesTOentity(myId, state.entities.squads), api::to2D(O.entity.position), 20))
+				{
+					MISD("MOVE");
+					auto move = api::CommandGroupGoto();
+					move.squads = { EE.id };
+					move.positions = { (Bro->U->A_B_Offsetter(api::to2D(EE.position), api::to2D(O.entity.position), -20)) };
+					move.walk_mode = api::WalkMode_Normal;
+					auto cmd = api::Command();
+					cmd.v = move;
+					v.push_back(cmd);
+				}
+
+			}*/
+		}
+	}
+	MISE;
+	return vReturn;
+}
