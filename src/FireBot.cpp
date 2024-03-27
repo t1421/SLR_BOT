@@ -99,7 +99,7 @@ void FireBot::MatchStart(const api::GameStartState& state)
 std::vector<api::Command> FireBot::Tick(const api::GameState & state) 
 {		
 	//MISS;
-	MISD(std::to_string(iStage) +  "#" + Bro->sTime(state.current_tick) + "#" + std::to_string(state.current_tick) + "#" + std::to_string(state.players[imyPlayerIDX].power));
+	MISD(std::to_string(eStage) +  "#" + Bro->sTime(state.current_tick) + "#" + std::to_string(state.current_tick) + "#" + std::to_string(state.players[imyPlayerIDX].power));
 	auto v = std::vector<api::Command>();
 	if (iSkipTick > 0)
 	{
@@ -107,6 +107,8 @@ std::vector<api::Command> FireBot::Tick(const api::GameState & state)
 		iSkipTick--;
 		return v;
 	}
+
+	if (state.current_tick % 100)Stage(state);
 
 	for (auto r : state.rejected_commands)
 	{
@@ -130,8 +132,17 @@ std::vector<api::Command> FireBot::Tick(const api::GameState & state)
 
 	//WELL KILLER
 	if (Bro->L->WellKiller)WellKiller(v, entitiesTOentity(opId, state.entities.power_slots));
-	if (state.current_tick % 2 && Bro->L->MineFinder)for (auto vv : AvoidArea(state))v.push_back(vv);
-		
+	if (Bro->L->AvoidArea)
+	{
+		//Find New Stuff
+		FindAvoidArea(state);
+
+		//Remove Old Stuff
+		if(vAvoid.size() > 0)RemoveFromMIS_AvoidArea(state.current_tick);
+
+		//Avoid Stuff
+		if (vAvoid.size() > 0)for (auto vv : MoveUnitsAway(state))v.push_back(vv);
+	}
 
 	//Cool eruption
 	if (Bro->L->UnitEruption && CoolEruptionTest.s)
@@ -177,7 +188,7 @@ std::vector<api::Command> FireBot::Tick(const api::GameState & state)
 			auto build = api::CommandPowerSlotBuild();
 			build.slot_id = B.id;
 			v.push_back(api::Command(build));
-			iStage++;
+			//iStage++;
 		}
 	}
 
@@ -340,14 +351,18 @@ void FireBot::WellKiller(std::vector<api::Command> vMain, std::vector<api::Entit
 	MISE;
 }
 
-std::vector<api::Command> FireBot::AvoidArea(const api::GameState& state)
+void FireBot::FindAvoidArea(const api::GameState& state)
 {
 	MISS;
 
-	auto vReturn = std::vector<api::Command>();
-
 	for (auto O : state.entities.ability_world_objects)
 	{
+		//Only OP objects and only New ons
+		if (   O.entity.player_entity_id.value() != opId
+			|| O.entity.id <= MaxAvoidID)continue;
+		
+		MaxAvoidID = O.entity.id;
+
 		for (auto E : O.entity.effects)
 		{
 
@@ -367,8 +382,18 @@ std::vector<api::Command> FireBot::AvoidArea(const api::GameState& state)
 				MISD("Huricane at: " + std::to_string(O.entity.position.x) + "#" + std::to_string(O.entity.position.x));
 				printf("%i -> %i\n", E.start_tick, E.end_tick);
 			}*/
-			
 
+			if (E.id % 1000000 == 1620) 
+			{
+				MISD("Add Glyth til " + std::to_string(E.end_tick.value()));
+				MISD(std::get<api::AbilityEffectSpecificSpellOnEntityNearby>(E.specific.v).radius);
+				vAvoid.push_back(new MIS_AvoidArea(
+					E.end_tick.value(),
+					O.entity.position,
+					std::get<api::AbilityEffectSpecificSpellOnEntityNearby>(E.specific.v).radius));
+			}
+			
+			//std::get<api::AreaShapeCircle>(std::get<api::AbilityEffectSpecificDamageArea>(E.specific.v).shape.v).				
 			// Area Spells
 			//  1620 // Glyph of Frost
 			//   290 // Cold Snap
@@ -376,36 +401,74 @@ std::vector<api::Command> FireBot::AvoidArea(const api::GameState& state)
 			//  1694 // Ensnaring Roots
 			//  1006 // Creeping Paralyse
 
+			//std::get<api::AreaShapeWideLine>(std::get<api::AbilityEffectSpecificDamageArea>(E.specific.v).shape.v).
 			// Line Spells
 			// 11003 // Bandit Minefield
 			//  1776 // Huricane
 			//  1740 // Wildfire
-
 			
-			
-			/*
-			if (E.id % 1000000 == 1635)
-				MISD("Mine at: " + std::to_string(O.entity.position.x) + "#" + std::to_string(O.entity.position.x));
-				*/
-			/*
-			{
-				
-				MISD("MINE");
-				for (auto EE : Bro->U->pointsInRadius(entitiesTOentity(myId, state.entities.squads), api::to2D(O.entity.position), 20))
-				{
-					MISD("MOVE");
-					auto move = api::CommandGroupGoto();
-					move.squads = { EE.id };
-					move.positions = { (Bro->U->A_B_Offsetter(api::to2D(EE.position), api::to2D(O.entity.position), -20)) };
-					move.walk_mode = api::WalkMode_Normal;
-					auto cmd = api::Command();
-					cmd.v = move;
-					v.push_back(cmd);
-				}
-
-			}*/
 		}
 	}
+
+	MISE;
+}
+
+bool FireBot::Stage(const api::GameState& state)
+{
+	MISS;
+
+	
+
+	//if units close to my Well / Orb -> Def.
+
+	//if nothing to do - maybe Save Power
+
+	//If time is right Well / Orb
+
+	//if Def is done -> Atack
+	//Or when power is saved
+	//or when OP build well
+
+	MISE;
+	return true;
+}
+
+
+void FireBot::RemoveFromMIS_AvoidArea(api::Tick curTick)
+{
+	MISS;
+	for (std::vector<MIS_AvoidArea*>::iterator it = vAvoid.begin(); it != vAvoid.end();)
+	{
+		if ((*it)->endTick <= curTick)
+		{
+			MISD("Remove Data")
+			it = vAvoid.erase(it);
+		}
+		else  ++it;
+	}
+	MISE;
+}
+
+
+std::vector<api::Command> FireBot::MoveUnitsAway(const api::GameState& state)
+{
+	MISS;
+
+	auto vReturn = std::vector<api::Command>();
+
+	for(auto A: vAvoid)
+	{
+		for (auto EE : Bro->U->pointsInRadius(entitiesTOentity(myId, state.entities.squads), api::to2D(A->pos), A->radius * 1.1))
+		{
+			MISD("MOVE Units");
+			auto move = api::CommandGroupGoto();
+			move.squads = { EE.id };
+			move.positions = { (Bro->U->A_B_Offsetter(api::to2D(EE.position), api::to2D(A->pos), A->radius * -1 * 1.2)) };
+			move.walk_mode = api::WalkMode_Normal;
+			vReturn.push_back(api::Command(move));
+		}
+	}
+
 	MISE;
 	return vReturn;
 }

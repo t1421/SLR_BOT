@@ -1,6 +1,6 @@
 #pragma once
 #include "../incl/Broker.h"
-
+#include "../incl/DataTypes.h"
 #include "../API/API/json.hpp"
 #include "../API/API/Types.hpp"
 #include "../API/API/Helpers.hpp"
@@ -47,6 +47,8 @@ public:
 	std::string switchCommandRejectionReason(api::CommandRejectionReason& v);
 	std::string switchCommand(api::Command& v);
 	std::string switchCommandJob(api::Job& v);
+	std::string switchAbilityEffectSpecific(api::AbilityEffectSpecific& v);
+	std::string switchAreaShape(api::AreaShape& v);
 	/////////////////
 
 	static broker* Bro;

@@ -18,7 +18,7 @@ public:
 	bool SMJOnline;
 
 	bool WellKiller;
-	bool MineFinder;
+	bool AvoidArea;
 	bool UnitEruption;
 	unsigned int StartType;
 	unsigned int Port;

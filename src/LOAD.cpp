@@ -28,7 +28,7 @@ void LOAD::Load_Settings()
 			if (INI_Value_Check(line, "SMJOnline"))SMJOnline = line.substr(0,1) != "0";
 			if (INI_Value_Check(line, "WellKiller"))WellKiller = line.substr(0, 1) != "0";
 			if (INI_Value_Check(line, "UnitEruption"))UnitEruption = line.substr(0, 1) != "0";
-			if (INI_Value_Check(line, "MineFinder"))MineFinder = line.substr(0, 1) != "0";
+			if (INI_Value_Check(line, "AvoidArea"))AvoidArea = line.substr(0, 1) != "0";
 			
 			if (INI_Value_Check(line, "StartType"))StartType = atoi(line.c_str());
 			if (INI_Value_Check(line, "Port"))Port = atoi(line.c_str());
@@ -85,7 +85,7 @@ void LOAD::EchoSettings()
 	MISERROR("########################");
 	MISERROR("# WellKiller   = " + std::to_string(WellKiller));
 	MISERROR("# UnitEruption = " + std::to_string(UnitEruption));
-	MISERROR("# MineFinder   = " + std::to_string(MineFinder));
+	MISERROR("# AvoidArea    = " + std::to_string(AvoidArea));
 	MISERROR("# StartType    = " + std::to_string(StartType));
 	MISERROR("########################");
 	MISE;

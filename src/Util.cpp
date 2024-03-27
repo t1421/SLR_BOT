@@ -3,6 +3,7 @@
 
 
 
+
 broker *(Util::Bro) = NULL;
 
 /*
@@ -27,19 +28,20 @@ std::string Util::switchCommandRejectionReason(api::CommandRejectionReason& v)
 {
 	switch (v.v.index()) 
 	{
-	case 0: return "Other"; break;
-	case 1: return "NotEnoughPower"; break;
-	case 2: return "SpellDoesNotExist"; break;
-	case 3: return "EntityDoesNotExist"; break;
-	case 4: return "InvalidEntityType"; break;
-	case 5: return "CanNotCast"; break;
-	case 6: return "EntityNotOwned"; break;
-	case 7: return "EntityOwnedBySomeoneElse"; break;
-	case 8: return "NoModeChange"; break;
-	case 9: return "EntityAlreadyInThisMode"; break;
-	case 10: return "ModeNotExist"; break;
-	case 11: return "InvalidCardIndex"; break;
-	case 12: return "InvalidCard"; break;
+	case 0: return "Invalid switchCommandRejectionReason"; break;
+	case 1: return "Other"; break;
+	case 2: return "NotEnoughPower"; break;
+	case 3: return "SpellDoesNotExist"; break;
+	case 4: return "EntityDoesNotExist"; break;
+	case 5: return "InvalidEntityType"; break;
+	case 6: return "CanNotCast"; break;
+	case 7: return "EntityNotOwned"; break;
+	case 8: return "EntityOwnedBySomeoneElse"; break;
+	case 9: return "NoModeChange"; break;
+	case 10: return "EntityAlreadyInThisMode"; break;
+	case 11: return "ModeNotExist"; break;
+	case 12: return "InvalidCardIndex"; break;
+	case 13: return "InvalidCard"; break;
 	default: return "invalid case";
 	}
 }
@@ -48,30 +50,31 @@ std::string Util::switchCommand(api::Command& v)
 {
 	switch (v.v.index()) 
 	{
-	case 0: return "BuildHouse"; break;
-	case 1: return "CastSpellGod"; break;
-	case 2: return "CastSpellGodMulti"; break;
-	case 3: return "ProduceSquad"; break;
-	case 4: return "ProduceSquadOnBarrier"; break;
-	case 5: return "CastSpellEntity"; break;
-	case 6: return "BarrierGateToggle"; break;
-	case 7: return "BarrierBuild"; break;
-	case 8: return "BarrierRepair"; break;
-	case 9: return "BarrierCancelRepair"; break;
-	case 10: return "RepairBuilding"; break;
-	case 11: return "CancelRepairBuilding"; break;
-	case 12: return "GroupAttack"; break;
-	case 13: return "GroupEnterWall"; break;
-	case 14: return "GroupExitWall"; break;
-	case 15: return "GroupGoto"; break;
-	case 16: return "GroupHoldPosition"; break;
-	case 17: return "GroupStopJob"; break;
-	case 18: return "ModeChange"; break;
-	case 19: return "PowerSlotBuild"; break;
-	case 20: return "TokenSlotBuild"; break;
-	case 21: return "Ping"; break;
-	case 22: return "Surrender"; break;
-	case 23: return "WhisperToMaster"; break;
+	case 0: return "Invalid switchCommand"; break;
+	case 1: return "BuildHouse"; break;
+	case 2: return "CastSpellGod"; break;
+	case 3: return "CastSpellGodMulti"; break;
+	case 4: return "ProduceSquad"; break;
+	case 5: return "ProduceSquadOnBarrier"; break;
+	case 6: return "CastSpellEntity"; break;
+	case 7: return "BarrierGateToggle"; break;
+	case 8: return "BarrierBuild"; break;
+	case 9: return "BarrierRepair"; break;
+	case 10: return "BarrierCancelRepair"; break;
+	case 11: return "RepairBuilding"; break;
+	case 12: return "CancelRepairBuilding"; break;
+	case 13: return "GroupAttack"; break;
+	case 14: return "GroupEnterWall"; break;
+	case 15: return "GroupExitWall"; break;
+	case 16: return "GroupGoto"; break;
+	case 17: return "GroupHoldPosition"; break;
+	case 18: return "GroupStopJob"; break;
+	case 19: return "ModeChange"; break;
+	case 20: return "PowerSlotBuild"; break;
+	case 21: return "TokenSlotBuild"; break;
+	case 22: return "Ping"; break;
+	case 23: return "Surrender"; break;
+	case 24: return "WhisperToMaster"; break;
 	default: return "invalid case";
 	}
 }
@@ -79,37 +82,66 @@ std::string Util::switchCommand(api::Command& v)
 std::string Util::switchCommandJob(api::Job& v)
 {
 	switch (v.v.index()) {
-	case 0: return "NoJob"; break;
-	case 1: return "Idle"; break;
-	case 2: return "Goto"; break;
-	case 3: return "AttackMelee"; break;
-	case 4: return "CastSpell"; break;
-	case 5: return "Die"; break;
-	case 6: return "Talk"; break;
-	case 7: return "ScriptTalk"; break;
-	case 8: return "Freeze"; break;
-	case 9: return "Spawn"; break;
-	case 10: return "Cheer"; break;
-	case 11: return "AttackSquad"; break;
-	case 12: return "CastSpellSquad"; break;
-	case 13: return "PushBack"; break;
-	case 14: return "Stampede"; break;
-	case 15: return "BarrierCrush"; break;
-	case 16: return "BarrierGateToggle"; break;
-	case 17: return "FlameThrower"; break;
-	case 18: return "Construct"; break;
-	case 19: return "Crush"; break;
-	case 20: return "MountBarrierSquad"; break;
-	case 21: return "MountBarrier"; break;
-	case 22: return "ModeChangeSquad"; break;
-	case 23: return "ModeChange"; break;
-	case 24: return "SacrificeSquad"; break;
-	case 25: return "UsePortalSquad"; break;
-	case 26: return "Channel"; break;
-	case 27: return "SpawnSquad"; break;
-	case 28: return "LootTargetSquad"; break;
-	case 29: return "Morph"; break;
-	case 30: return "Unknown"; break;
+	case 0: return "Invalid switchCommandJob"; break;
+	case 2: return "Idle"; break;
+	case 3: return "Goto"; break;
+	case 4: return "AttackMelee"; break;
+	case 5: return "CastSpell"; break;
+	case 6: return "Die"; break;
+	case 7: return "Talk"; break;
+	case 8: return "ScriptTalk"; break;
+	case 9: return "Freeze"; break;
+	case 10: return "Spawn"; break;
+	case 11: return "Cheer"; break;
+	case 12: return "AttackSquad"; break;
+	case 13: return "CastSpellSquad"; break;
+	case 14: return "PushBack"; break;
+	case 15: return "Stampede"; break;
+	case 16: return "BarrierCrush"; break;
+	case 17: return "BarrierGateToggle"; break;
+	case 18: return "FlameThrower"; break;
+	case 19: return "Construct"; break;
+	case 20: return "Crush"; break;
+	case 21: return "MountBarrierSquad"; break;
+	case 22: return "MountBarrier"; break;
+	case 23: return "ModeChangeSquad"; break;
+	case 24: return "ModeChange"; break;
+	case 25: return "SacrificeSquad"; break;
+	case 26: return "UsePortalSquad"; break;
+	case 27: return "Channel"; break;
+	case 28: return "SpawnSquad"; break;
+	case 29: return "LootTargetSquad"; break;
+	case 30: return "Morph"; break;
+	case 31: return "Unknown"; break;
+	default: return "invalid case";
+	}
+}
+
+std::string Util::switchAbilityEffectSpecific(api::AbilityEffectSpecific& v)
+{
+	switch (v.v.index()) {
+	case 0: return "Invalid switchAbilityEffectSpecific"; break;
+	case 1: return "DamageArea"; break;
+	case 2: return "DamageOverTime"; break;
+	case 3: return "LinkedFire"; break;	
+	case 4: return "SpellOnEntityNearby"; break;
+	case 5: return "TimedSpell"; break;
+	case 6: return "Collector"; break;
+	case 7: return "Aura"; break;
+	case 8: return "MovingIntervalCast"; break;
+	case 9: return "Other"; break;
+	default: return "invalid case";
+	}
+}
+
+std::string Util::switchAreaShape(api::AreaShape& v)
+{
+	switch (v.v.index()) {
+	case 0: return "Invalid switchAreaShape"; break;
+	case 1: return "Circle"; break;
+	case 2: return "Cone"; break;
+	case 3: return "ConeCut"; break;
+	case 4: return "WideLine"; break;
 	default: return "invalid case";
 	}
 }
