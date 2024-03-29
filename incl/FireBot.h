@@ -41,6 +41,8 @@ struct MIS_AvoidArea
 	float radius;
 };
 
+
+// /AI: add FireBot FireDeck 4
 class FireBot : public IBotImp
 {
 public:
