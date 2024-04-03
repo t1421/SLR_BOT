@@ -1,8 +1,7 @@
 #include "../incl/Util.h"
 
-
-
-
+#define _USE_MATH_DEFINES
+#include <math.h>
 
 broker *(Util::Bro) = NULL;
 
@@ -158,6 +157,31 @@ float Util::distance(api::Position2D p1, api::Position2D p2)
 	return float(sqrt(pow(p2.x - p1.x, 2) + pow(p2.y - p1.y, 2)));
 }
 
+api::Position2D Util::A_B_OffsetSide(api::Position2D A, api::Position2D B, float Range)
+{
+	// Berechne den Vektor von A nach B
+	float dx = B.x - A.x;
+	float dy = B.y - A.y;
+
+	// Berechne die Länge des Vektors AB
+	float length_AB = sqrt(dx * dx + dy * dy);
+
+	// Berechne die Einheitsvektoren in Richtung AB
+	float unit_dx = dx / length_AB;
+	float unit_dy = dy / length_AB;
+
+	// Berechne den Punkt, der 'offset' Einheiten von A in Richtung des rechten Winkels liegt
+	// (indem du den Einheitsvektor in der senkrechten Richtung von AB um 90 Grad drehst)
+	float new_x = A.x - Range * unit_dy;
+	float new_y = A.y + Range * unit_dx;
+
+	// Gib den berechneten Punkt zurück
+	api::Position2D result;
+	result.x = new_x;
+	result.y = new_y;
+	return result;
+}
+
 api::Position2D Util::A_B_Offsetter(api::Position2D A, api::Position2D B, float Range)
 {
 	float ratio = Range / distance(A, B);
@@ -193,3 +217,20 @@ float Util::CloseCombi(std::vector<api::Entity> EntitiesA, std::vector<api::Enti
 	return topDistance;
 }
 
+std::vector<api::Command> Util::DrawCircle(api::Position2D center, float radius)
+{
+	auto vReturn = std::vector<api::Command>();
+	auto ping = api::CommandPing();
+	ping.ping = api::Ping::Ping_Attention;
+
+	for (int i = 0; i < 8; ++i) {
+		float angle = 2 * M_PI * i / 8; // Winkel berechnen
+		float offsetX = radius * cos(angle); // x-Offset berechnen
+		float offsetY = radius * sin(angle); // y-Offset berechnen
+
+		ping.xy = { center.x + offsetX, center.y + offsetY };
+		vReturn.push_back(api::Command(ping));
+	}
+
+	return vReturn;
+}

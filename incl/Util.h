@@ -37,10 +37,11 @@ class Util
 {
 public:
 	float distance(api::Position2D p1, api::Position2D p2);
+	api::Position2D A_B_OffsetSide(api::Position2D A, api::Position2D B, float Range);
 	api::Position2D A_B_Offsetter(api::Position2D A, api::Position2D B, float Range);
 	std::vector<api::Entity> pointsInRadius(std::vector<api::Entity> toCheck, api::Position2D Center, float Range);
 	float CloseCombi(std::vector<api::Entity> EntitiesA, std::vector<api::Entity> EntitiesB, api::Entity& outA, api::Entity& outB);
-
+	std::vector<api::Command> DrawCircle(api::Position2D center, float radius);
 	
 
 	/////////////////	

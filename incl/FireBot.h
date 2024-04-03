@@ -35,10 +35,12 @@ struct MIS_thread
 
 struct MIS_AvoidArea
 {
-	MIS_AvoidArea(api::Tick _endTick, api::Position _pos, float _radius) : endTick(_endTick), pos(_pos), radius(_radius) {};
+	MIS_AvoidArea(api::Tick _endTick, api::Position2D _pos, float _radius) : endTick(_endTick), pos(_pos), radius(_radius) {};
+	MIS_AvoidArea(api::Tick _endTick, api::Position2D _pos, float _radius, std::string _note) : endTick(_endTick), pos(_pos), radius(_radius), note(_note) { };
 	api::Tick endTick;
-	api::Position pos;
+	api::Position2D pos;
 	float radius;
+	std::string note;
 };
 
 
@@ -90,4 +92,12 @@ private:
 	MIS_thread CoolEruptionTest;
 
 	bool Stage(const api::GameState& state);
+	
 };
+
+/*
+auto effect_json = nlohmann::json(state).dump();
+std::ofstream file("ALLat" + std::to_string(state.current_tick) + ".json");
+file << effect_json << std::endl;
+file.close();
+*/

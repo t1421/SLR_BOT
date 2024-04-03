@@ -132,6 +132,8 @@ std::vector<api::Command> FireBot::Tick(const api::GameState & state)
 
 	//WELL KILLER
 	if (Bro->L->WellKiller)WellKiller(v, entitiesTOentity(opId, state.entities.power_slots));
+
+	//Avoid Spells
 	if (Bro->L->AvoidArea)
 	{
 		//Find New Stuff
@@ -142,6 +144,13 @@ std::vector<api::Command> FireBot::Tick(const api::GameState & state)
 
 		//Avoid Stuff
 		if (vAvoid.size() > 0)for (auto vv : MoveUnitsAway(state))v.push_back(vv);
+
+		if (state.current_tick % 50 == 0)
+		{
+			for (auto vv : vAvoid)
+				for (auto vvv : Bro->U->DrawCircle(vv->pos, vv->radius))
+					v.push_back(vvv);
+		}
 	}
 
 	//Cool eruption
@@ -235,6 +244,14 @@ std::vector<api::Command> FireBot::Tick(const api::GameState & state)
 		for (auto vv : CoolEruptionTest.f.get())v.push_back(vv);
 		CoolEruptionTest.s = true;
 	}
+
+
+
+	//Remove dobbel orders
+	//Finde idel units
+	//dont cast unit int avoid area
+
+	//Iff rooted skip order to move out of avoid
 
 	//MISE;
 	return v;
@@ -365,48 +382,106 @@ void FireBot::FindAvoidArea(const api::GameState& state)
 
 		for (auto E : O.entity.effects)
 		{
-
-			/*
-			if (E.id % 1000000 == 290) //Cold snap
-				MISD("Snap at: " + std::to_string(O.entity.position.x) + "#" + std::to_string(O.entity.position.x));			
-			
-			if (E.id % 1000000 == 1006) //Creeping Paralyse
-			{
-				MISD("Creeping at: " + std::to_string(O.entity.position.x) + "#" + std::to_string(O.entity.position.x));
-				//MISD(E.start_tick);
-				printf("%i -> %i\n", E.start_tick, E.end_tick);					
-			}
-
-			if (E.id % 1000000 == 1776) //Huricane
-			{
-				MISD("Huricane at: " + std::to_string(O.entity.position.x) + "#" + std::to_string(O.entity.position.x));
-				printf("%i -> %i\n", E.start_tick, E.end_tick);
-			}*/
-
 			if (E.id % 1000000 == 1620) 
 			{
 				MISD("Add Glyth til " + std::to_string(E.end_tick.value()));
-				MISD(std::get<api::AbilityEffectSpecificSpellOnEntityNearby>(E.specific.v).radius);
 				vAvoid.push_back(new MIS_AvoidArea(
 					E.end_tick.value(),
-					O.entity.position,
+					api::to2D(O.entity.position),
 					std::get<api::AbilityEffectSpecificSpellOnEntityNearby>(E.specific.v).radius));
 			}
-			
-			//std::get<api::AreaShapeCircle>(std::get<api::AbilityEffectSpecificDamageArea>(E.specific.v).shape.v).				
-			// Area Spells
-			//  1620 // Glyph of Frost
-			//   290 // Cold Snap
-			//  1471 // Aura Of Corruption
-			//  1694 // Ensnaring Roots
-			//  1006 // Creeping Paralyse
+			if (E.id % 1000000 == 1694)
+			{
+				MISD("Add Root til " + std::to_string(E.end_tick.value()));
+				vAvoid.push_back(new MIS_AvoidArea(
+					E.end_tick.value(),
+					api::to2D(O.entity.position),
+					std::get<api::AbilityEffectSpecificAura>(E.specific.v).radius));
+			}
+			if (E.id % 1000000 == 290)
+			{
+				MISD("Add Could snap til " + std::to_string(E.end_tick.value()));
+				vAvoid.push_back(new MIS_AvoidArea(
+					E.end_tick.value(),
+					api::to2D(O.entity.position),
+					20));
+			}
+			if (E.id % 1000000 == 1471)
+			{
+				MISD("Add Aura of Coruption til " + std::to_string(E.end_tick.value()));
+				vAvoid.push_back(new MIS_AvoidArea(
+					E.end_tick.value(),
+					api::to2D(O.entity.position),
+					30));
+			}
+			if (E.id % 1000000 == 1006)
+			{
+				MISD("Add Paralyse til " + std::to_string(E.end_tick.value()));
+				vAvoid.push_back(new MIS_AvoidArea(
+					E.end_tick.value(),
+					api::to2D(O.entity.position),
+					20));
+			}
 
-			//std::get<api::AreaShapeWideLine>(std::get<api::AbilityEffectSpecificDamageArea>(E.specific.v).shape.v).
-			// Line Spells
-			// 11003 // Bandit Minefield
-			//  1776 // Huricane
-			//  1740 // Wildfire
-			
+			if (E.id % 1000000 == 11003)
+			{
+				MISD("Add Bandid Minfield til " + std::to_string(E.end_tick.value()));
+
+				for (unsigned int i = 0; i < 4; i++)
+				{
+					vAvoid.push_back(new MIS_AvoidArea(
+						E.end_tick.value(),
+						Bro->U->A_B_Offsetter(api::to2D(O.entity.position), std::get<api::AbilityEffectSpecificMovingIntervalCast>(E.specific.v).direction_step, 6 * i),
+						10));
+				}
+				
+			}
+			if (E.id % 1000000 == 1740)
+			{
+				MISD("Add Wild Fire til " + std::to_string(E.end_tick.value()));
+				int iRange = abs(Bro->U->distance(api::to2D(O.entity.position), std::get<api::AbilityEffectSpecificMovingIntervalCast>(E.specific.v).direction_step));
+				if (iRange <= 15)iRange = 15;
+
+				for (unsigned int i = 0; i < 4; i++)
+				{
+					for (int j = -1; j < 2; j++)
+					{
+						vAvoid.push_back(new MIS_AvoidArea( //Tick1 L
+							E.end_tick.value(),
+							Bro->U->A_B_OffsetSide(
+								Bro->U->A_B_Offsetter(api::to2D(O.entity.position),
+									std::get<api::AbilityEffectSpecificMovingIntervalCast>(E.specific.v).direction_step, iRange / 4 * i),
+								std::get<api::AbilityEffectSpecificMovingIntervalCast>(E.specific.v).direction_step, 5 * j),
+							5));
+					}
+				}				
+			}
+
+
+			if (E.id % 1000000 == 1775)
+			{
+				MISD("Add Hurrican " + std::to_string(E.end_tick.value()));
+
+				api::Position2D EndPos;
+				EndPos.x = std::get<api::AreaShapeWideLine>(std::get<api::AbilityEffectSpecificDamageArea>(E.specific.v).shape.v).start.x +
+					std::get<api::AreaShapeWideLine>(std::get<api::AbilityEffectSpecificDamageArea>(E.specific.v).shape.v).end.x * 100;
+				EndPos.y = std::get<api::AreaShapeWideLine>(std::get<api::AbilityEffectSpecificDamageArea>(E.specific.v).shape.v).start.y +
+					std::get<api::AreaShapeWideLine>(std::get<api::AbilityEffectSpecificDamageArea>(E.specific.v).shape.v).end.y * 100;
+
+				float iRange = std::get<api::AreaShapeWideLine>(std::get<api::AbilityEffectSpecificDamageArea>(E.specific.v).shape.v).radius;
+
+				for (unsigned int i = 0; i < 8; i++)
+				{
+					vAvoid.push_back(new MIS_AvoidArea( 
+						E.end_tick.value(),
+						Bro->U->A_B_Offsetter(std::get<api::AreaShapeWideLine>(std::get<api::AbilityEffectSpecificDamageArea>(E.specific.v).shape.v).start,
+							EndPos,
+						    iRange / 8 * i),
+						5));
+				}
+				
+			}
+
 		}
 	}
 
@@ -458,12 +533,12 @@ std::vector<api::Command> FireBot::MoveUnitsAway(const api::GameState& state)
 
 	for(auto A: vAvoid)
 	{
-		for (auto EE : Bro->U->pointsInRadius(entitiesTOentity(myId, state.entities.squads), api::to2D(A->pos), A->radius * 1.1))
+		for (auto EE : Bro->U->pointsInRadius(entitiesTOentity(myId, state.entities.squads), A->pos, A->radius * 1.1))
 		{
 			MISD("MOVE Units");
 			auto move = api::CommandGroupGoto();
 			move.squads = { EE.id };
-			move.positions = { (Bro->U->A_B_Offsetter(api::to2D(EE.position), api::to2D(A->pos), A->radius * -1 * 1.2)) };
+			move.positions = { (Bro->U->A_B_Offsetter(api::to2D(EE.position), A->pos, A->radius * -1 * 1.2)) };
 			move.walk_mode = api::WalkMode_Normal;
 			vReturn.push_back(api::Command(move));
 		}
