@@ -2,13 +2,15 @@
 #include "incl/Broker.h"
 #ifdef MIS_DEBUG
 #include "incl/DEBUG.h"
+#include <future>
 #endif // MIS_DEBUG
 #include "incl/Util.h"
 #include "incl/LOAD.h"
 #include "incl/CardBaseSMJ.h"
 
 
-void run_FireBot(broker* Bro,  unsigned short port);
+bool run_FireBot(broker* Bro,  unsigned short port);
+
 
 int main(int argc, char** argv)
 {
@@ -19,6 +21,8 @@ int main(int argc, char** argv)
 	B->teachB();
 	B->bFilter = true;
 	B->StatusNew("", "Init");
+	
+	std::future<bool> fBOT;
 #endif // MIS_DEBUG	
 
 	LOAD* L = new LOAD();
@@ -55,7 +59,23 @@ int main(int argc, char** argv)
 	printf("BOT Settings\n");
 	L->EchoSettings();
 
-	run_FireBot(Bro,6370);
+#ifndef MIS_DEBUG
+	MISERROR("sync");
+	run_FireBot(Bro, L->Port);
+#else 
+	MISERROR("async");
+	fBOT = std::async(&run_FireBot, Bro, L->Port);
+
+	char buf[1024] = { '0' };
+	while (Bro->sComand != "X")
+	{
+		std::cin >> buf;
+		Bro->sComand = buf;
+	}
+	
+#endif // !MIS_DEBUG
+
+	
 
 	return 0;
 }

@@ -140,6 +140,9 @@
     <PreBuildEvent>
       <Command>start "" taskkill /IM MIS_BOT_Debug.exe /F</Command>
     </PreBuildEvent>
+    <PostBuildEvent>
+      <Command>start "" K:\c++\SLR_BOT\MIS_BOT_Debug.exe</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>

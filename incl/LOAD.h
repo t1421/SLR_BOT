@@ -20,6 +20,9 @@ public:
 	bool WellKiller;
 	bool AvoidArea;
 	bool UnitEruption;
+	bool DrawAvoidArea;
+	bool AllTick;
+	
 	unsigned int StartType;
 	unsigned int Port;
 

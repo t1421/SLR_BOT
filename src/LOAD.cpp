@@ -32,6 +32,10 @@ void LOAD::Load_Settings()
 			
 			if (INI_Value_Check(line, "StartType"))StartType = atoi(line.c_str());
 			if (INI_Value_Check(line, "Port"))Port = atoi(line.c_str());
+
+			if (INI_Value_Check(line, "DrawAvoidArea"))DrawAvoidArea = line.substr(0, 1) != "0";
+			if (INI_Value_Check(line, "AllTick"))AllTick = line.substr(0, 1) != "0";
+			
 			
 			ifFile.clear();
 		}
@@ -87,6 +91,9 @@ void LOAD::EchoSettings()
 	MISERROR("# UnitEruption = " + std::to_string(UnitEruption));
 	MISERROR("# AvoidArea    = " + std::to_string(AvoidArea));
 	MISERROR("# StartType    = " + std::to_string(StartType));
+	MISERROR("########################");
+	MISERROR("# DrawAvoidArea= " + std::to_string(DrawAvoidArea));	
+	MISERROR("# AllTick      = " + std::to_string(AllTick));
 	MISERROR("########################");
 	MISE;
 }

@@ -133,7 +133,7 @@ Card CardBaseSMJ::CardFromJson(unsigned int ID)
 	{
 		if (item["officialCardIds"].at(0) == ID)
 		{
-			MISEA("Found")
+			MISE;
 			return Card(item);
 		}
 	}

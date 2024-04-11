@@ -2,190 +2,189 @@
 
 #define _USE_MATH_DEFINES
 #include <math.h>
+#include <iostream>
 
 broker *(Util::Bro) = NULL;
 
-/*
-std::string Util::switchAPIEntitySpecific(api::APIEntitySpecific& v)
-{
-	switch (v.v.index()) 
+
+std::string Util::switchCommandRejectionReason(capi::CommandRejectionReason& v)
+{	
+	capi::CommandRejectionReasonCase variant_case = v.variant_case;
+	switch (variant_case)
 	{
-	case 0: return "Projectile"; break;
-	case 1: return "PowerSlot"; break;
-	case 2: return "TokenSlot"; break;
-	case 3: return "AbilityWorldObject"; break;
-	case 4: return "Squad"; break;
-	case 5: return "Figure"; break;
-	case 6: return "Building"; break;
-	case 7: return "BarrierSet"; break;
-	case 8: return "BarrierModule"; break;
+	case capi::CommandRejectionReasonCase::Invalid: return "Invalid default variant!";
+	case capi::CommandRejectionReasonCase::CardRejected: return "CardRejected";
+	case capi::CommandRejectionReasonCase::NotEnoughPower: return "NotEnoughPower";
+	case capi::CommandRejectionReasonCase::SpellDoesNotExist: return "SpellDoesNotExist";
+	case capi::CommandRejectionReasonCase::EntityDoesNotExist: return "EntityDoesNotExist";
+	case capi::CommandRejectionReasonCase::InvalidEntityType: return "InvalidEntityType";
+	case capi::CommandRejectionReasonCase::CanNotCast: return "CanNotCast";
+	case capi::CommandRejectionReasonCase::EntityNotOwned: return "EntityNotOwned";
+	case capi::CommandRejectionReasonCase::EntityOwnedBySomeoneElse: return "EntityOwnedBySomeoneElse";
+	case capi::CommandRejectionReasonCase::NoModeChange: return "NoModeChange";
+	case capi::CommandRejectionReasonCase::EntityAlreadyInThisMode: return "EntityAlreadyInThisMode";
+	case capi::CommandRejectionReasonCase::ModeNotExist: return "ModeNotExist";
+	case capi::CommandRejectionReasonCase::InvalidCardIndex: return "InvalidCardIndex";
+	case capi::CommandRejectionReasonCase::InvalidCard: return "InvalidCard";
 	default: return "invalid case";
 	}
 }
-*/
-std::string Util::switchCommandRejectionReason(api::CommandRejectionReason& v)
+
+std::string Util::switchCommand(capi::Command& v)
 {
-	switch (v.v.index()) 
+	capi::CommandCase variant_case = v.variant_case;
+	switch (variant_case)
 	{
-	case 0: return "Invalid switchCommandRejectionReason"; break;
-	case 1: return "Other"; break;
-	case 2: return "NotEnoughPower"; break;
-	case 3: return "SpellDoesNotExist"; break;
-	case 4: return "EntityDoesNotExist"; break;
-	case 5: return "InvalidEntityType"; break;
-	case 6: return "CanNotCast"; break;
-	case 7: return "EntityNotOwned"; break;
-	case 8: return "EntityOwnedBySomeoneElse"; break;
-	case 9: return "NoModeChange"; break;
-	case 10: return "EntityAlreadyInThisMode"; break;
-	case 11: return "ModeNotExist"; break;
-	case 12: return "InvalidCardIndex"; break;
-	case 13: return "InvalidCard"; break;
+	case capi::CommandCase::Invalid: return "Invalid default variant!";
+	case capi::CommandCase::BuildHouse: return "BuildHouse";
+	case capi::CommandCase::CastSpellGod: return "CastSpellGod";
+	case capi::CommandCase::CastSpellGodMulti: return "CastSpellGodMulti";
+	case capi::CommandCase::ProduceSquad: return "ProduceSquad";
+	case capi::CommandCase::ProduceSquadOnBarrier: return "ProduceSquadOnBarrier";
+	case capi::CommandCase::CastSpellEntity: return "CastSpellEntity";
+	case capi::CommandCase::BarrierGateToggle: return "BarrierGateToggle";
+	case capi::CommandCase::BarrierBuild: return "BarrierBuild";
+	case capi::CommandCase::BarrierRepair: return "BarrierRepair";
+	case capi::CommandCase::BarrierCancelRepair: return "BarrierCancelRepair";
+	case capi::CommandCase::RepairBuilding: return "RepairBuilding";
+	case capi::CommandCase::CancelRepairBuilding: return "CancelRepairBuilding";
+	case capi::CommandCase::GroupAttack: return "GroupAttack";
+	case capi::CommandCase::GroupEnterWall: return "GroupEnterWall";
+	case capi::CommandCase::GroupExitWall: return "GroupExitWall";
+	case capi::CommandCase::GroupGoto: return "GroupGoto";
+	case capi::CommandCase::GroupHoldPosition: return "GroupHoldPosition";
+	case capi::CommandCase::GroupStopJob: return "GroupStopJob";
+	case capi::CommandCase::ModeChange: return "ModeChange";
+	case capi::CommandCase::PowerSlotBuild: return "PowerSlotBuild";
+	case capi::CommandCase::TokenSlotBuild: return "TokenSlotBuild";
+	case capi::CommandCase::Ping: return "Ping";
+	case capi::CommandCase::Surrender: return "Surrender";
+	case capi::CommandCase::WhisperToMaster: return "WhisperToMaster";
 	default: return "invalid case";
 	}
 }
 
-std::string Util::switchCommand(api::Command& v)
+std::string Util::switchCommandJob(capi::Job& v)
 {
-	switch (v.v.index()) 
-	{
-	case 0: return "Invalid switchCommand"; break;
-	case 1: return "BuildHouse"; break;
-	case 2: return "CastSpellGod"; break;
-	case 3: return "CastSpellGodMulti"; break;
-	case 4: return "ProduceSquad"; break;
-	case 5: return "ProduceSquadOnBarrier"; break;
-	case 6: return "CastSpellEntity"; break;
-	case 7: return "BarrierGateToggle"; break;
-	case 8: return "BarrierBuild"; break;
-	case 9: return "BarrierRepair"; break;
-	case 10: return "BarrierCancelRepair"; break;
-	case 11: return "RepairBuilding"; break;
-	case 12: return "CancelRepairBuilding"; break;
-	case 13: return "GroupAttack"; break;
-	case 14: return "GroupEnterWall"; break;
-	case 15: return "GroupExitWall"; break;
-	case 16: return "GroupGoto"; break;
-	case 17: return "GroupHoldPosition"; break;
-	case 18: return "GroupStopJob"; break;
-	case 19: return "ModeChange"; break;
-	case 20: return "PowerSlotBuild"; break;
-	case 21: return "TokenSlotBuild"; break;
-	case 22: return "Ping"; break;
-	case 23: return "Surrender"; break;
-	case 24: return "WhisperToMaster"; break;
+	capi::JobCase variant_case = v.variant_case;
+	switch (variant_case) {
+	case capi::JobCase::Invalid: return "Invalid default variant!";
+	case capi::JobCase::NoJob: return "NoJob";
+	case capi::JobCase::Idle: return "Idle";
+	case capi::JobCase::Goto: return "Goto";
+	case capi::JobCase::AttackMelee: return "AttackMelee";
+	case capi::JobCase::CastSpell: return "CastSpell";
+	case capi::JobCase::Die: return "Die";
+	case capi::JobCase::Talk: return "Talk";
+	case capi::JobCase::ScriptTalk: return "ScriptTalk";
+	case capi::JobCase::Freeze: return "Freeze";
+	case capi::JobCase::Spawn: return "Spawn";
+	case capi::JobCase::Cheer: return "Cheer";
+	case capi::JobCase::AttackSquad: return "AttackSquad";
+	case capi::JobCase::CastSpellSquad: return "CastSpellSquad";
+	case capi::JobCase::PushBack: return "PushBack";
+	case capi::JobCase::Stampede: return "Stampede";
+	case capi::JobCase::BarrierCrush: return "BarrierCrush";
+	case capi::JobCase::BarrierGateToggle: return "BarrierGateToggle";
+	case capi::JobCase::FlameThrower: return "FlameThrower";
+	case capi::JobCase::Construct: return "Construct";
+	case capi::JobCase::Crush: return "Crush";
+	case capi::JobCase::MountBarrierSquad: return "MountBarrierSquad";
+	case capi::JobCase::MountBarrier: return "MountBarrier";
+	case capi::JobCase::ModeChangeSquad: return "ModeChangeSquad";
+	case capi::JobCase::ModeChange: return "ModeChange";
+	case capi::JobCase::SacrificeSquad: return "SacrificeSquad";
+	case capi::JobCase::UsePortalSquad: return "UsePortalSquad";
+	case capi::JobCase::Channel: return "Channel";
+	case capi::JobCase::SpawnSquad: return "SpawnSquad";
+	case capi::JobCase::LootTargetSquad: return "LootTargetSquad";
+	case capi::JobCase::Morph: return "Morph";
+	case capi::JobCase::Unknown: return "Unknown";
+	default: return "Invalid variant";
+	}
+}
+
+std::string Util::switchAbilityEffectSpecific(capi::AbilityEffectSpecific& v)
+{
+	capi::AbilityEffectSpecificCase variant_case = v.variant_case;
+	switch (variant_case) {
+	case capi::AbilityEffectSpecificCase::Invalid: return "Invalid default variant!";
+	case capi::AbilityEffectSpecificCase::DamageArea: return "DamageArea";
+	case capi::AbilityEffectSpecificCase::DamageOverTime: return "DamageOverTime";
+	case capi::AbilityEffectSpecificCase::LinkedFire: return "LinkedFire";
+	case capi::AbilityEffectSpecificCase::SpellOnEntityNearby: return "SpellOnEntityNearby";
+	case capi::AbilityEffectSpecificCase::TimedSpell: return "TimedSpell";
+	case capi::AbilityEffectSpecificCase::Collector: return "Collector";
+	case capi::AbilityEffectSpecificCase::Aura: return "Aura";
+	case capi::AbilityEffectSpecificCase::MovingIntervalCast: return "MovingIntervalCast";
+	case capi::AbilityEffectSpecificCase::Other: return "Other";
+	default: return "Invalid variant";
+	}
+
+}
+
+std::string Util::switchAreaShape(capi::AreaShape& v)
+{
+	capi::AreaShapeCase variant_case = v.variant_case;
+	switch (variant_case) {
+	case capi::AreaShapeCase::Invalid: return "Invalid default variant!";
+	case capi::AreaShapeCase::Circle: return "Circle";
+	case capi::AreaShapeCase::Cone: return "Cone";
+	case capi::AreaShapeCase::ConeCut: return "ConeCut";
+	case capi::AreaShapeCase::WideLine: return "WideLine";
 	default: return "invalid case";
 	}
 }
 
-std::string Util::switchCommandJob(api::Job& v)
-{
-	switch (v.v.index()) {
-	case 0: return "Invalid switchCommandJob"; break;
-	case 2: return "Idle"; break;
-	case 3: return "Goto"; break;
-	case 4: return "AttackMelee"; break;
-	case 5: return "CastSpell"; break;
-	case 6: return "Die"; break;
-	case 7: return "Talk"; break;
-	case 8: return "ScriptTalk"; break;
-	case 9: return "Freeze"; break;
-	case 10: return "Spawn"; break;
-	case 11: return "Cheer"; break;
-	case 12: return "AttackSquad"; break;
-	case 13: return "CastSpellSquad"; break;
-	case 14: return "PushBack"; break;
-	case 15: return "Stampede"; break;
-	case 16: return "BarrierCrush"; break;
-	case 17: return "BarrierGateToggle"; break;
-	case 18: return "FlameThrower"; break;
-	case 19: return "Construct"; break;
-	case 20: return "Crush"; break;
-	case 21: return "MountBarrierSquad"; break;
-	case 22: return "MountBarrier"; break;
-	case 23: return "ModeChangeSquad"; break;
-	case 24: return "ModeChange"; break;
-	case 25: return "SacrificeSquad"; break;
-	case 26: return "UsePortalSquad"; break;
-	case 27: return "Channel"; break;
-	case 28: return "SpawnSquad"; break;
-	case 29: return "LootTargetSquad"; break;
-	case 30: return "Morph"; break;
-	case 31: return "Unknown"; break;
-	default: return "invalid case";
-	}
-}
 
-std::string Util::switchAbilityEffectSpecific(api::AbilityEffectSpecific& v)
+std::vector<capi::Entity> Util::pointsInRadius(std::vector<capi::Entity> toCheck, capi::Position2D Center, float Range)
 {
-	switch (v.v.index()) {
-	case 0: return "Invalid switchAbilityEffectSpecific"; break;
-	case 1: return "DamageArea"; break;
-	case 2: return "DamageOverTime"; break;
-	case 3: return "LinkedFire"; break;	
-	case 4: return "SpellOnEntityNearby"; break;
-	case 5: return "TimedSpell"; break;
-	case 6: return "Collector"; break;
-	case 7: return "Aura"; break;
-	case 8: return "MovingIntervalCast"; break;
-	case 9: return "Other"; break;
-	default: return "invalid case";
-	}
-}
-
-std::string Util::switchAreaShape(api::AreaShape& v)
-{
-	switch (v.v.index()) {
-	case 0: return "Invalid switchAreaShape"; break;
-	case 1: return "Circle"; break;
-	case 2: return "Cone"; break;
-	case 3: return "ConeCut"; break;
-	case 4: return "WideLine"; break;
-	default: return "invalid case";
-	}
-}
-
-std::vector<api::Entity> Util::pointsInRadius(std::vector<api::Entity> toCheck, api::Position2D Center, float Range)
-{
-	std::vector<api::Entity> vReturn;
-	for (auto e : toCheck)if (distance(api::to2D(e.position), Center) <= Range)vReturn.push_back(e);
+	std::vector<capi::Entity> vReturn;
+	for (auto e : toCheck)if (distance(capi::to2D(e.position), Center) <= Range)vReturn.push_back(e);
 	return vReturn;
 }
 
-float Util::distance(api::Position2D p1, api::Position2D p2)
+float Util::distance(capi::Position2D p1, capi::Position2D p2)
 {
 	return float(sqrt(pow(p2.x - p1.x, 2) + pow(p2.y - p1.y, 2)));
 }
-
-api::Position2D Util::A_B_OffsetSide(api::Position2D A, api::Position2D B, float Range)
+/*
+capi::Position2D Util::A_B_OffsetSide(capi::Position2D A, capi::Position2D B, float Range)
 {
+	std::cout<<B.x<<std::endl;
+	std::cout << A.x << std::endl;	
+
 	// Berechne den Vektor von A nach B
 	float dx = B.x - A.x;
 	float dy = B.y - A.y;
+	std::cout << dx << std::endl;
 
 	// Berechne die Länge des Vektors AB
 	float length_AB = sqrt(dx * dx + dy * dy);
+	std::cout << length_AB << std::endl;
 
 	// Berechne die Einheitsvektoren in Richtung AB
 	float unit_dx = dx / length_AB;
 	float unit_dy = dy / length_AB;
+	std::cout << unit_dx << std::endl;
 
 	// Berechne den Punkt, der 'offset' Einheiten von A in Richtung des rechten Winkels liegt
 	// (indem du den Einheitsvektor in der senkrechten Richtung von AB um 90 Grad drehst)
 	float new_x = A.x - Range * unit_dy;
 	float new_y = A.y + Range * unit_dx;
+	std::cout << new_x << std::endl;
 
 	// Gib den berechneten Punkt zurück
-	api::Position2D result;
+	capi::Position2D result;
 	result.x = new_x;
 	result.y = new_y;
 	return result;
 }
 
-api::Position2D Util::A_B_Offsetter(api::Position2D A, api::Position2D B, float Range)
+capi::Position2D Util::A_B_Offsetter(capi::Position2D A, capi::Position2D B, float Range)
 {
 	float ratio = Range / distance(A, B);
-	api::Position2D Preturn;
+	capi::Position2D Preturn;
 	if (ratio > 1)
 	{
 		Preturn.x = B.x;
@@ -197,8 +196,34 @@ api::Position2D Util::A_B_Offsetter(api::Position2D A, api::Position2D B, float 
 	Preturn.y = A.y + ratio * (B.y - A.y);
 	return Preturn;
 }
+*/
+capi::Position2D Util::Offseter(capi::Position2D A, capi::Position2D B, float offset, float shift) 
+{
+	float totalDistance = distance(A, B);
+	float ratio = offset / totalDistance;
 
-float Util::CloseCombi(std::vector<api::Entity> EntitiesA, std::vector<api::Entity> EntitiesB, api::Entity& outA, api::Entity& outB)
+	float offsetX = (B.x - A.x) * ratio;
+	float offsetY = (B.y - A.y) * ratio;
+
+	// Seitlichen Offset berechnen
+	float normalX = B.y - A.y;
+	float normalY = A.x - B.x;
+	float normalLength = std::sqrt(normalX * normalX + normalY * normalY);
+	normalX /= normalLength;
+	normalY /= normalLength;
+
+	offsetX += normalX * shift;
+	offsetY += normalY * shift;
+
+	// Berechnung der Position des ermittelten Punktes
+	capi::Position2D offsetPoint;
+	offsetPoint.x = A.x + offsetX;
+	offsetPoint.y = A.y + offsetY;
+
+	return offsetPoint;
+}
+
+float Util::CloseCombi(std::vector<capi::Entity> EntitiesA, std::vector<capi::Entity> EntitiesB, capi::Entity& outA, capi::Entity& outB)
 {
 	float topDistance = 99999;
 	float DistanceTemp = 0;
@@ -206,7 +231,7 @@ float Util::CloseCombi(std::vector<api::Entity> EntitiesA, std::vector<api::Enti
 	for (auto A: EntitiesA)
 		for (auto B : EntitiesB)
 		{
-			DistanceTemp = distance(api::to2D(A.position), api::to2D(B.position));
+			DistanceTemp = distance(capi::to2D(A.position), capi::to2D(B.position));
 			if (DistanceTemp < topDistance)
 			{
 				topDistance = DistanceTemp;
@@ -217,11 +242,11 @@ float Util::CloseCombi(std::vector<api::Entity> EntitiesA, std::vector<api::Enti
 	return topDistance;
 }
 
-std::vector<api::Command> Util::DrawCircle(api::Position2D center, float radius)
+std::vector<capi::Command> Util::DrawCircle(capi::Position2D center, float radius)
 {
-	auto vReturn = std::vector<api::Command>();
-	auto ping = api::CommandPing();
-	ping.ping = api::Ping::Ping_Attention;
+	auto vReturn = std::vector<capi::Command>();
+	auto ping = capi::CommandPing();
+	ping.ping = capi::Ping::Ping_Attention;
 
 	for (int i = 0; i < 8; ++i) {
 		float angle = 2 * M_PI * i / 8; // Winkel berechnen
@@ -229,7 +254,7 @@ std::vector<api::Command> Util::DrawCircle(api::Position2D center, float radius)
 		float offsetY = radius * sin(angle); // y-Offset berechnen
 
 		ping.xy = { center.x + offsetX, center.y + offsetY };
-		vReturn.push_back(api::Command(ping));
+		vReturn.push_back(capi::Command(ping));
 	}
 
 	return vReturn;

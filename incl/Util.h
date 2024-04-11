@@ -2,21 +2,21 @@
 #include "../incl/Broker.h"
 #include "../incl/DataTypes.h"
 #include "../API/API/json.hpp"
-#include "../API/API/Types.hpp"
-#include "../API/API/Helpers.hpp"
+#include "../API/API/TypesCLike.hpp"
+#include "../API/API/HelpersCLike.hpp"
 
 #include <string>
 #include <vector>
 
-namespace api
+namespace capi
 {
 	struct CommandRejectionReason;
 	struct Command;
 }
 
 template<typename... Containers>
-std::vector<api::Entity> entitiesTOentity(const api::EntityId iFilter, const Containers&... containers) {
-	std::vector<api::Entity> allEntities;
+std::vector<capi::Entity> entitiesTOentity(const capi::EntityId iFilter, const Containers&... containers) {
+	std::vector<capi::Entity> allEntities;
 
 	auto processEntities = [&allEntities, iFilter](const auto& entities) {
 		for (const auto& e : entities) 
@@ -36,20 +36,22 @@ std::vector<api::Entity> entitiesTOentity(const api::EntityId iFilter, const Con
 class Util
 {
 public:
-	float distance(api::Position2D p1, api::Position2D p2);
-	api::Position2D A_B_OffsetSide(api::Position2D A, api::Position2D B, float Range);
-	api::Position2D A_B_Offsetter(api::Position2D A, api::Position2D B, float Range);
-	std::vector<api::Entity> pointsInRadius(std::vector<api::Entity> toCheck, api::Position2D Center, float Range);
-	float CloseCombi(std::vector<api::Entity> EntitiesA, std::vector<api::Entity> EntitiesB, api::Entity& outA, api::Entity& outB);
-	std::vector<api::Command> DrawCircle(api::Position2D center, float radius);
+	float distance(capi::Position2D p1, capi::Position2D p2);
+	//capi::Position2D A_B_OffsetSide(capi::Position2D A, capi::Position2D B, float Range);
+	//capi::Position2D A_B_Offsetter(capi::Position2D A, capi::Position2D B, float Range);
+	capi::Position2D Offseter(capi::Position2D A, capi::Position2D B, float offset) { return Offseter(A,B,offset,0); };
+	capi::Position2D Offseter(capi::Position2D A, capi::Position2D B, float offset, float shift);
+	std::vector<capi::Entity> pointsInRadius(std::vector<capi::Entity> toCheck, capi::Position2D Center, float Range);
+	float CloseCombi(std::vector<capi::Entity> EntitiesA, std::vector<capi::Entity> EntitiesB, capi::Entity& outA, capi::Entity& outB);
+	std::vector<capi::Command> DrawCircle(capi::Position2D center, float radius);
 	
 
 	/////////////////	
-	std::string switchCommandRejectionReason(api::CommandRejectionReason& v);
-	std::string switchCommand(api::Command& v);
-	std::string switchCommandJob(api::Job& v);
-	std::string switchAbilityEffectSpecific(api::AbilityEffectSpecific& v);
-	std::string switchAreaShape(api::AreaShape& v);
+	std::string switchCommandRejectionReason(capi::CommandRejectionReason& v);
+	std::string switchCommand(capi::Command& v);
+	std::string switchCommandJob(capi::Job& v);
+	std::string switchAbilityEffectSpecific(capi::AbilityEffectSpecific& v);
+	std::string switchAreaShape(capi::AreaShape& v);
 	/////////////////
 
 	static broker* Bro;
