@@ -30,7 +30,8 @@ enum Stages
 
 struct MIS_thread
 {
-	std::future<std::vector<capi::Command>> f;
+	std::future<std::vector<capi::Command>> fc;
+	std::future<bool> fb;
 	//std::thread t;
 	bool s;
 
@@ -67,19 +68,20 @@ public:
 private:
 	std::vector<Card> SMJDeck;
 	std::vector<Card> SMJDeckOP;
-
 	capi::EntityId myId;
 	capi::EntityId opId;
 	unsigned int imyPlayerIDX;
 	unsigned int iopPlayerIDX;
+	BattleTable myBT;
+	BattleTable opBT;
 	capi::Position2D myStart;
 
-	//unsigned int iStage;
+
 	Stages eStage;
 	unsigned int iSkipTick;
 
 	//Instand Functions
-	void WellKiller(std::vector<capi::Command> vMain, std::vector<capi::Entity> Wells);
+	bool WellKiller(std::vector<capi::Command> vMain, std::vector<capi::Entity> Wells);
 	void FindAvoidArea(const capi::GameState& state);
 	void RemoveFromMIS_AvoidArea(capi::Tick curTick);
 	std::vector<capi::Command> MoveUnitsAway(const capi::GameState& state);
@@ -95,7 +97,14 @@ private:
 	std::vector<capi::Command> CoolEruption(const capi::GameState& state);
 	MIS_thread CoolEruptionTest;
 
+	BattleTable CalcBattleTable(std::vector<capi::Squad> squads);
+	bool CalGlobalBattleTable(const capi::GameState& state);
+	MIS_thread GlobalBattleTable;
+	void EchoBattleTable(BattleTable BT);
+
 	bool Stage(const capi::GameState& state);
+
+	
 	
 };
 

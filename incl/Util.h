@@ -33,6 +33,7 @@ std::vector<capi::Entity> entitiesTOentity(const capi::EntityId iFilter, const C
 	return allEntities;
 }
 
+
 class Util
 {
 public:
@@ -42,6 +43,7 @@ public:
 	capi::Position2D Offseter(capi::Position2D A, capi::Position2D B, float offset) { return Offseter(A,B,offset,0); };
 	capi::Position2D Offseter(capi::Position2D A, capi::Position2D B, float offset, float shift);
 	std::vector<capi::Entity> pointsInRadius(std::vector<capi::Entity> toCheck, capi::Position2D Center, float Range);
+	std::vector<capi::Squad> SquadsInRadius(const capi::EntityId iFilter, std::vector<capi::Squad> toCheck, capi::Position2D Center, float Range);
 	float CloseCombi(std::vector<capi::Entity> EntitiesA, std::vector<capi::Entity> EntitiesB, capi::Entity& outA, capi::Entity& outB);
 	std::vector<capi::Command> DrawCircle(capi::Position2D center, float radius);
 	

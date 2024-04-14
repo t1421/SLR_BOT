@@ -144,59 +144,21 @@ std::vector<capi::Entity> Util::pointsInRadius(std::vector<capi::Entity> toCheck
 	return vReturn;
 }
 
+std::vector<capi::Squad> Util::SquadsInRadius(const capi::EntityId iFilter, std::vector<capi::Squad> toCheck, capi::Position2D Center, float Range)
+{
+	std::vector<capi::Squad> vReturn;
+	for (auto s : toCheck)
+		if(s.entity.player_entity_id == iFilter)
+			if (distance(capi::to2D(s.entity.position), Center) <= Range)
+				vReturn.push_back(s);
+	return vReturn;
+}
+
 float Util::distance(capi::Position2D p1, capi::Position2D p2)
 {
 	return float(sqrt(pow(p2.x - p1.x, 2) + pow(p2.y - p1.y, 2)));
 }
-/*
-capi::Position2D Util::A_B_OffsetSide(capi::Position2D A, capi::Position2D B, float Range)
-{
-	std::cout<<B.x<<std::endl;
-	std::cout << A.x << std::endl;	
 
-	// Berechne den Vektor von A nach B
-	float dx = B.x - A.x;
-	float dy = B.y - A.y;
-	std::cout << dx << std::endl;
-
-	// Berechne die Länge des Vektors AB
-	float length_AB = sqrt(dx * dx + dy * dy);
-	std::cout << length_AB << std::endl;
-
-	// Berechne die Einheitsvektoren in Richtung AB
-	float unit_dx = dx / length_AB;
-	float unit_dy = dy / length_AB;
-	std::cout << unit_dx << std::endl;
-
-	// Berechne den Punkt, der 'offset' Einheiten von A in Richtung des rechten Winkels liegt
-	// (indem du den Einheitsvektor in der senkrechten Richtung von AB um 90 Grad drehst)
-	float new_x = A.x - Range * unit_dy;
-	float new_y = A.y + Range * unit_dx;
-	std::cout << new_x << std::endl;
-
-	// Gib den berechneten Punkt zurück
-	capi::Position2D result;
-	result.x = new_x;
-	result.y = new_y;
-	return result;
-}
-
-capi::Position2D Util::A_B_Offsetter(capi::Position2D A, capi::Position2D B, float Range)
-{
-	float ratio = Range / distance(A, B);
-	capi::Position2D Preturn;
-	if (ratio > 1)
-	{
-		Preturn.x = B.x;
-		Preturn.y = B.y;
-		return Preturn;
-	}
-
-	Preturn.x = A.x + ratio * (B.x - A.x);
-	Preturn.y = A.y + ratio * (B.y - A.y);
-	return Preturn;
-}
-*/
 capi::Position2D Util::Offseter(capi::Position2D A, capi::Position2D B, float offset, float shift) 
 {
 	float totalDistance = distance(A, B);

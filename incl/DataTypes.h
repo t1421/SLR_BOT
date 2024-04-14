@@ -126,3 +126,17 @@ struct Card {
         }
     }
 };
+
+
+struct BattleTable
+{
+    unsigned int SizeCounter[4][5];
+    //unsigned int Sige;
+    unsigned int Flyer;
+    void Init()
+    {
+        for (unsigned int iCounter = 0; iCounter < 5; iCounter++)
+            for (unsigned int iSize = 0; iSize < 4; iSize++)
+                SizeCounter[iSize][iCounter] = 0;
+    };
+};

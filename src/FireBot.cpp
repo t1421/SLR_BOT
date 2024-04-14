@@ -88,6 +88,7 @@ void FireBot::MatchStart(const capi::GameStartState& state)
 	MISD("MY ID: " + std::to_string(myId));
 	MISD("OP ID: " + std::to_string(opId));	
 	CoolEruptionTest.s = true;
+	GlobalBattleTable.s = true;
 		
 	MISE;
 }
@@ -99,12 +100,30 @@ std::vector<capi::Command> FireBot::Tick(const capi::GameState& state)
 
 	if(Bro->L->AllTick)	MISD(std::to_string(eStage) + "#" + Bro->sTime(state.current_tick) + "#" + std::to_string(state.current_tick) + "#" + std::to_string(state.players[imyPlayerIDX].power));
 
-	if (Bro->sComand == "dump")
+	if (Bro->sComand != "")
 	{
-		auto effect_json = nlohmann::json(state).dump();
-		std::ofstream file("DUMP_at_" + std::to_string(state.current_tick) + ".json");
-		file << effect_json << std::endl;
-		file.close();
+		if (Bro->sComand == "?")
+		{
+			MISERROR("------------------------------");
+			MISERROR("# dump     = Save tick        ");
+			MISERROR("# bt       = Print BattleTable");
+			MISERROR("------------------------------");
+		}
+
+		if (Bro->sComand == "dump")
+		{
+			auto effect_json = nlohmann::json(state).dump();
+			std::ofstream file("DUMP_at_" + std::to_string(state.current_tick) + ".json");
+			file << effect_json << std::endl;
+			file.close();
+			Bro->sComand = "";
+		}
+
+		if (Bro->sComand == "bt")
+		{
+			EchoBattleTable(myBT);
+			EchoBattleTable(opBT);
+		}
 		Bro->sComand = "";
 	}
 #endif
@@ -139,8 +158,11 @@ std::vector<capi::Command> FireBot::Tick(const capi::GameState& state)
 		Bro->L->StartType = 0;		
 	}
 	
+	///////////////Timing critical ////////////////
 	//WELL KILLER
-	if (Bro->L->WellKiller)WellKiller(v, entitiesTOentity(opId, state.entities.power_slots));
+	if (Bro->L->WellKiller)
+		if(WellKiller(v, entitiesTOentity(opId, state.entities.power_slots)))
+			return v;
 	
 	//Avoid Spells
 	if (Bro->L->AvoidArea)
@@ -163,13 +185,24 @@ std::vector<capi::Command> FireBot::Tick(const capi::GameState& state)
 						
 	}
 
+	/////////////THREADS////////////////
+
 	//Cool eruption
 	if (Bro->L->UnitEruption && CoolEruptionTest.s)
 	{
-		CoolEruptionTest.f = std::async(&FireBot::CoolEruption, this, state);
+		CoolEruptionTest.fc = std::async(&FireBot::CoolEruption, this, state);
 		CoolEruptionTest.s = false; // dont start again
 	}
 	
+	if (Bro->L->BattleTable && GlobalBattleTable.s && state.current_tick % 50)
+	{
+		GlobalBattleTable.fb = std::async(&FireBot::CalGlobalBattleTable, this, state);
+		GlobalBattleTable.s = false; // dont start again
+	}
+	
+
+	////////////////Normal Stuff ////////////////////
+
 	//Take powerwells
 	if (entitiesTOentity(myId,state.entities.power_slots).size() < 4 && state.current_tick % 5
 		&& Bro->L->StartType == 0)
@@ -244,13 +277,16 @@ std::vector<capi::Command> FireBot::Tick(const capi::GameState& state)
 
 	}
 
-	if(Bro->L->UnitEruption)
-	if (CoolEruptionTest.f.wait_for(0ms) == std::future_status::ready)
-	{
-		for (auto vv : CoolEruptionTest.f.get())v.push_back(vv);
-		CoolEruptionTest.s = true;
-	}
-
+	if(Bro->L->UnitEruption && CoolEruptionTest.s == false)
+		if (CoolEruptionTest.fc.wait_for(0ms) == std::future_status::ready)
+		{
+			for (auto vv : CoolEruptionTest.fc.get())v.push_back(vv);
+			CoolEruptionTest.s = true;
+		}
+	
+	if (Bro->L->BattleTable && GlobalBattleTable.s == false)
+		if (GlobalBattleTable.fb.wait_for(0ms) == std::future_status::ready)
+			GlobalBattleTable.s = true;
 	
 
 	//Remove dobbel orders
@@ -348,7 +384,7 @@ bool run_FireBot(broker* Bro, unsigned short port)
 	return true;
 }
 
-void FireBot::WellKiller(std::vector<capi::Command> vMain, std::vector<capi::Entity> Wells)
+bool FireBot::WellKiller(std::vector<capi::Command> vMain, std::vector<capi::Entity> Wells)
 {
 	MISS;	
 	for (auto W : Wells)
@@ -366,11 +402,13 @@ void FireBot::WellKiller(std::vector<capi::Command> vMain, std::vector<capi::Ent
 					// Spot on, maye chaneg to offset so i can hit units
 					spell.target = capi::SingleTargetLocation(capi::to2D(W.position));
 					vMain.push_back(capi::Command(spell));
+					return true;
 				}
 			}
 		}
 	}
 	MISE;
+	return false;
 }
 
 void FireBot::FindAvoidArea(const capi::GameState& state)
@@ -559,4 +597,67 @@ std::vector<capi::Command> FireBot::MoveUnitsAway(const capi::GameState& state)
 
 	MISE;
 	return vReturn;
+}
+
+
+BattleTable FireBot::CalcBattleTable(std::vector<capi::Squad> squads)
+{
+	MISS;
+	BattleTable BTreturn;
+	BTreturn.Init();
+	Card TempCard;
+	for (auto S : squads)
+	{
+		TempCard = Bro->J->CardFromJson(S.card_id % 1000000);
+		if (TempCard.offenseType < 0)TempCard.offenseType = 4; //fall back;
+		if (TempCard.defenseType < 0)TempCard.defenseType = 4; //fall back;
+		BTreturn.SizeCounter[TempCard.defenseType][TempCard.offenseType] += TempCard.health;
+
+		if (TempCard.movementType == 1)BTreturn.Flyer++;
+	}
+	MISE;
+	return BTreturn;
+}
+
+bool FireBot::CalGlobalBattleTable(const capi::GameState& state)
+{
+	MISS;
+	std::vector<capi::Squad> mySquads;
+	std::vector<capi::Squad> opSquads;
+
+	for (auto S : state.entities.squads)
+	{
+		if (S.entity.player_entity_id == myId)mySquads.push_back(S);
+		else if (S.entity.player_entity_id == opId)opSquads.push_back(S);
+	}
+
+	myBT = CalcBattleTable(mySquads);
+	opBT = CalcBattleTable(opSquads);
+
+	MISE;
+	return true;
+}
+
+void FireBot::EchoBattleTable(BattleTable BT)
+{
+	MISS;
+	std::stringstream ssLine;
+	MISERROR("SIZE ->  #      S #      M #      L #     XL #");
+	MISERROR("COUNTER  #####################################");
+	for (unsigned int iCounter = 0; iCounter < 5; iCounter++)
+	{
+		ssLine.str("");
+		if (iCounter == 0)     ssLine << "       S #";
+		else if (iCounter == 1)ssLine << "       M #";
+		else if (iCounter == 2)ssLine << "       L #";
+		else if (iCounter == 3)ssLine << "      Xl #";
+		else if (iCounter == 4)ssLine << "       ? #";
+
+		for (unsigned int iSize = 0; iSize < 4; iSize++)
+		{
+			ssLine<< std::fixed << std::setw(7) << std::setfill(' ') << std::setprecision(0) << BT.SizeCounter[iSize][iCounter]<< " #";
+		}
+		MISERROR(ssLine.str());
+	}
+	MISE;
 }

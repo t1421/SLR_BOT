@@ -22,6 +22,8 @@ public:
 	bool UnitEruption;
 	bool DrawAvoidArea;
 	bool AllTick;
+	bool BattleTable;
+	
 	
 	unsigned int StartType;
 	unsigned int Port;

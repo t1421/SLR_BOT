@@ -27,12 +27,26 @@ DEBUG::DEBUG(std::string sLogName, bool _bGUI, bool _bFile, bool _bFilter)
 
 	Fill_DBArray("", "*", "*", "true"); // MAIN
 
-	Fill_DBArray("FireBot", "*", "*", "true");		
-	Fill_DBArray("FireBot", "CloseCombi", "*", "false");
-	Fill_DBArray("FireBot", "UpdateStuff", "*", "false");
-
+	Fill_DBArray("FireBot", "*", "*", "true");	
+	/*
+	Fill_DBArray("FireBot", "WellKiller", "-->", "false");
+	Fill_DBArray("FireBot", "WellKiller", "<--", "false");
+	Fill_DBArray("FireBot", "CoolEruption","-->", "false");
+	Fill_DBArray("FireBot", "CoolEruption",  "<--", "false");
+	Fill_DBArray("FireBot", "Stage",  "-->", "false");
+	Fill_DBArray("FireBot", "Stage",  "<--", "false");
+	Fill_DBArray("FireBot", "FindAvoidArea", "-->", "false");
+	Fill_DBArray("FireBot", "FindAvoidArea",  "<--", "false");
+	Fill_DBArray("FireBot", "FindAvoidArea", "-->", "false");
+	Fill_DBArray("FireBot", "CalcBattleTable", "<--", "false");
+	Fill_DBArray("FireBot", "CalcBattleTable", "-->", "false");
+	Fill_DBArray("FireBot", "CalGlobalBattleTable", "<--", "false");
+	Fill_DBArray("FireBot", "CalGlobalBattleTable", "-->", "false");
+	*/
+	
 	Fill_DBArray("CardBaseSMJ", "*", "*", "true");
 	Fill_DBArray("CardBaseSMJ", "DownloadSMJ", "*", "true");
+	Fill_DBArray("CardBaseSMJ", "CardFromJson", "*", "false");
 
 	Fill_DBArray("LOAD", "*", "*", "true");	
 	
