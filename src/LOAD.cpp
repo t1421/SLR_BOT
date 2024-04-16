@@ -50,6 +50,13 @@ void LOAD::StartUp()
 {
 	MISS;
 	Load_Settings();
+
+	if (StartType == 1 && !BattleTable)
+	{
+		MISERROR("StartType = 1 needs BattleTable activ -> switched: StartType = 2");
+		StartType = 2;
+	}
+
 	MISE;
 }
 

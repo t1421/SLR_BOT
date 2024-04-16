@@ -146,16 +146,20 @@ std::vector<capi::Command> FireBot::Tick(const capi::GameState& state)
 		MISD("command        : " + Bro->U->switchCommand(r.command));
 	}
 	
-	if (Bro->L->StartType == 1 && state.current_tick <= 100)
+	if (Bro->L->StartType == 1 && Bro->L->BattleTable && state.current_tick <= 100)
 	{
+		//Wait for spawen
+		if (state.current_tick > 90) Bro->L->StartType = 0;
 		if (state.entities.squads.size() == 0)return v;
+		CalGlobalBattleTable(state);
+		
 		auto spawn = capi::CommandProduceSquad();
-		spawn.card_position = CardPicker(state.entities.squads[0].card_id, true);
-		spawn.xy = capi::to2D(entitiesTOentity(myId, state.entities.token_slots)[0].position);
+		spawn.card_position = CardPickerFromBT(opBT, Swift);
+		spawn.xy = capi::to2D(entitiesTOentity(myId, state.entities.token_slots)[0].position); //First of my Buildings
 		v.push_back(capi::Command(spawn));
 
-		iSkipTick = 40;
-		Bro->L->StartType = 0;		
+		iSkipTick = 40; // Wait till spwn is done
+		Bro->L->StartType = 0;
 	}
 	
 	///////////////Timing critical ////////////////
@@ -326,52 +330,100 @@ std::vector<capi::Command> FireBot::CoolEruption(const capi::GameState& state)
 	return vReturn;	
 }
 
-int FireBot::GetSwiftCounterFor(Card OP, bool PerfectCounter, bool Swift)
+int FireBot::CardPicker(unsigned int opSize, unsigned int opCounter, CardPickCrit Crit)
 {
 	MISS;
 	
 	
 	for (unsigned int i = 0; i < SMJDeck.size(); i++)
 	{
-		if (PerfectCounter == false && SMJDeck[i].offenseType == OP.defenseType
-			||
-			PerfectCounter == true && SMJDeck[i].offenseType == OP.defenseType && SMJDeck[i].defenseType != OP.offenseType)
+		if (SMJDeck[i].offenseType == opSize && SMJDeck[i].defenseType != opCounter)
 		{
-			if (!Swift)
+			switch (Crit)
 			{
-				MISEA("Not Swift: " + SMJDeck[i].cardName);
+			case Swift:
+				for (Ability A : SMJDeck[i].abilities)
+					if (A.abilityIdentifier == "Swift")
+					{
+						MISEA("Swift: " + SMJDeck[i].cardName);
+						return i;
+					}
+				break;
+			case NotS:
+				if (SMJDeck[i].defenseType == 0)break;
+			case NotM:
+				if (SMJDeck[i].defenseType == 1)break;
+			case NotL:
+				if (SMJDeck[i].defenseType == 2)break;
+
+			case None:
+			default:
+				MISEA("Default: " + SMJDeck[i].cardName)
 				return i;
 			}
-
-			for (Ability A : SMJDeck[i].abilities)
-				if (A.abilityIdentifier == "Swift")
-				{
-					MISEA("Fast: " + SMJDeck[i].cardName);
-					return i;
-				}
+			
 		}				
 	}
 		
-	MISEA("No Counter :-(");
+	MISEA("No Card");
 	return -1;
 }
-int FireBot::CardPicker(capi::CardId opID, bool Swift)
+
+int FireBot::CardPickerFromBT(BattleTable BT, CardPickCrit Crit)
 {
 	MISS;
-	Card OP = Bro->J->CardFromJson(opID % 1000000);
+	int iReturn = -1;
+	unsigned int MaxSize = 0;
+	unsigned int MaxCounter = 0;
+	unsigned int MaxHealth = 0;
 
-	int iReturn;
-	iReturn = GetSwiftCounterFor(OP, true, Swift);
-	if(iReturn == -1) iReturn = GetSwiftCounterFor(OP, false, Swift);
-	if (iReturn == -1 && Swift)
+	for (unsigned int iCounter = 0; iCounter < 5; iCounter++)
+		for (unsigned int iSize = 0; iSize < 4; iSize++)
+			if (MaxHealth < BT.SizeCounter[iSize][iCounter])
+			{
+				MaxSize = iSize;
+				MaxCounter = iCounter;
+				MaxHealth = BT.SizeCounter[iSize][iCounter];							
+			}
+
+	//Maybe check my own Battle Tabble if i have egnaut units of that type???
+
+	if ((iReturn = CardPicker(MaxSize, MaxCounter, Crit)) == -1)    //Perfect Counter
+		if ((iReturn = CardPicker(MaxSize, 9, Crit)) == -1)   //Counter of any Size
+			if ((iReturn = CardPicker(MaxSize, MaxCounter, None)) == -1)    //Perfect Counter, not Crits
+				if ((iReturn = CardPicker(MaxSize, 9, None)) == -1)   //Counter of any Size, not Crits
+					iReturn = -1; // I dont have a counter card???
+
+	// If size is XL do XYZ
+
+
+	if (iReturn == -1)
 	{
-		iReturn = GetSwiftCounterFor(OP, true, false);
-		if (iReturn == -1) iReturn = GetSwiftCounterFor(OP, false, false);
+		unsigned int iAvoidSize = MaxSize;
+		MaxSize = 0;
+		MaxCounter = 0;
+		MaxHealth = 0;
+		for (unsigned int iCounter = 0; iCounter < 5; iCounter++)
+			for (unsigned int iSize = 0; iSize < 4; iSize++)
+				if (MaxHealth < BT.SizeCounter[iSize][iCounter] && iAvoidSize != iSize)
+				{
+					MaxSize = iSize;
+					MaxCounter = iCounter;
+					MaxHealth = BT.SizeCounter[iSize][iCounter];
+				}
+		if ((iReturn = CardPicker(MaxSize, MaxCounter, Crit)) == -1)    //Perfect Counter
+			if ((iReturn = CardPicker(MaxSize, 9, Crit)) == -1)   //Counter of any Size
+				if ((iReturn = CardPicker(MaxSize, MaxCounter, None)) == -1)    //Perfect Counter, not Crits
+					if ((iReturn = CardPicker(MaxSize, 9, None)) == -1)   //Counter of any Size, not Crits
+						iReturn = -1; // I dont have a counter card???
 	}
-	if (iReturn == -1)iReturn = 0;
+
+
+	if (iReturn == -1)iReturn = 0; // Play card 1
 	MISE;
 	return iReturn;
 }
+
 
 
 bool run_FireBot(broker* Bro, unsigned short port)

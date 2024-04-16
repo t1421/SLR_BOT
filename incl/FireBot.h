@@ -28,6 +28,15 @@ enum Stages
 	SavePower = 5
 };
 
+enum CardPickCrit
+{
+	None = 0,
+	Swift = 1,
+	NotS = 2,
+	NotM = 3,
+	NotL = 4
+};
+
 struct MIS_thread
 {
 	std::future<std::vector<capi::Command>> fc;
@@ -90,9 +99,10 @@ private:
 
 	//
 
-	int CardPicker(capi::CardId opID) { return CardPicker(opID, false); };
-	int CardPicker(capi::CardId opID, bool Swift);
-	int GetSwiftCounterFor(Card OP, bool PerfectCounter, bool Swift);
+	//int CardPicker(capi::CardId opID) { return CardPicker(opID, false); };
+	//int CardPicker(capi::CardId opID, bool Swift);
+	int CardPickerFromBT(BattleTable BT, CardPickCrit Crit);
+	int CardPicker(unsigned int opSize, unsigned int opCounter, CardPickCrit Crit);
 
 	std::vector<capi::Command> CoolEruption(const capi::GameState& state);
 	MIS_thread CoolEruptionTest;
