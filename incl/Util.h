@@ -15,7 +15,8 @@ namespace capi
 }
 
 template<typename... Containers>
-std::vector<capi::Entity> entitiesTOentity(const capi::EntityId iFilter, const Containers&... containers) {
+std::vector<capi::Entity> entitiesTOentity(const capi::EntityId iFilter, const Containers&... containers) 
+{
 	std::vector<capi::Entity> allEntities;
 
 	auto processEntities = [&allEntities, iFilter](const auto& entities) {
@@ -46,7 +47,7 @@ public:
 	std::vector<capi::Squad> SquadsInRadius(const capi::EntityId iFilter, std::vector<capi::Squad> toCheck, capi::Position2D Center, float Range);
 	float CloseCombi(std::vector<capi::Entity> EntitiesA, std::vector<capi::Entity> EntitiesB, capi::Entity& outA, capi::Entity& outB);
 	std::vector<capi::Command> DrawCircle(capi::Position2D center, float radius);
-	
+	std::vector<capi::Squad> FilterSquad(const capi::EntityId iFilter, std::vector<capi::Squad> inSquad);
 
 	/////////////////	
 	std::string switchCommandRejectionReason(capi::CommandRejectionReason& v);

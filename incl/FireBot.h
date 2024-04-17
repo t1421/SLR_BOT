@@ -62,7 +62,7 @@ struct MIS_AvoidArea
 class FireBot : public capi::IBotImp
 {
 public:
-	FireBot() : capi::IBotImp("FireBot"), myId{}, opId{}, myStart{}, eStage(BuildWell), iSkipTick(0), imyPlayerIDX(0), iopPlayerIDX(0), MaxAvoidID(0){ };
+	FireBot(std::string sBotNme) : capi::IBotImp(sBotNme), myId{}, opId{}, myStart{}, eStage(BuildWell), iSkipTick(0), imyPlayerIDX(0), iopPlayerIDX(0), MaxAvoidID(0){ };
 	~FireBot() override = default;
 	std::vector<capi::Deck> DecksForMap(const capi::MapInfo& mapInfo) override;
 	void PrepareForBattle(const capi::MapInfo& mapInfo, const capi::Deck& deck) override;
@@ -111,6 +111,7 @@ private:
 	bool CalGlobalBattleTable(const capi::GameState& state);
 	MIS_thread GlobalBattleTable;
 	void EchoBattleTable(BattleTable BT);
+	int NextCardSpawn;
 
 	bool Stage(const capi::GameState& state);
 

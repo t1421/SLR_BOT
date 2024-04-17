@@ -132,7 +132,7 @@ std::vector<capi::Command> FireBot::Tick(const capi::GameState& state)
 	
 	if (iSkipTick > 0)
 	{
-		MISD("SKIP");
+		MISD("SKIP: " + std::to_string(iSkipTick) );
 		iSkipTick--;
 		return v;
 	}
@@ -145,23 +145,7 @@ std::vector<capi::Command> FireBot::Tick(const capi::GameState& state)
 		MISD("reason         : " + Bro->U->switchCommandRejectionReason(r.reason));
 		MISD("command        : " + Bro->U->switchCommand(r.command));
 	}
-	
-	if (Bro->L->StartType == 1 && Bro->L->BattleTable && state.current_tick <= 100)
-	{
-		//Wait for spawen
-		if (state.current_tick > 90) Bro->L->StartType = 0;
-		if (state.entities.squads.size() == 0)return v;
-		CalGlobalBattleTable(state);
 		
-		auto spawn = capi::CommandProduceSquad();
-		spawn.card_position = CardPickerFromBT(opBT, Swift);
-		spawn.xy = capi::to2D(entitiesTOentity(myId, state.entities.token_slots)[0].position); //First of my Buildings
-		v.push_back(capi::Command(spawn));
-
-		iSkipTick = 40; // Wait till spwn is done
-		Bro->L->StartType = 0;
-	}
-	
 	///////////////Timing critical ////////////////
 	//WELL KILLER
 	if (Bro->L->WellKiller)
@@ -205,39 +189,24 @@ std::vector<capi::Command> FireBot::Tick(const capi::GameState& state)
 	}
 	
 
-	////////////////Normal Stuff ////////////////////
+	////////////////Starters ////////////////////
 
 	//Take powerwells
-	if (entitiesTOentity(myId,state.entities.power_slots).size() < 4 && state.current_tick % 5
+	if (entitiesTOentity(myId, state.entities.power_slots).size() < 3 && state.current_tick % 5
 		&& Bro->L->StartType == 0)
 	{
 		capi::Entity A;
 		capi::Entity B;
 		float fDistanc = 0;
-		
-		if (entitiesTOentity(myId, state.entities.squads).size() == 0)
-		{			
-			fDistanc = Bro->U->CloseCombi(entitiesTOentity(myId, state.entities.squads, state.entities.buildings, state.entities.power_slots, state.entities.token_slots),
-				entitiesTOentity(0, state.entities.power_slots), A, B);
 
-			if (state.players[imyPlayerIDX].power > 75)
-			{
-				auto spawn = capi::CommandProduceSquad();
-				spawn.card_position = 0; // Code für fast unit
-				spawn.xy = Bro->U->Offseter(capi::to2D(A.position), capi::to2D(B.position), CastRange);
-				v.push_back(capi::Command(spawn));
-			}
-		}
-		else //Move Unit
-		{
-			fDistanc = Bro->U->CloseCombi(entitiesTOentity(myId, state.entities.squads), 
-				entitiesTOentity(0, state.entities.power_slots), A, B);
-			auto move = capi::CommandGroupGoto();
-			move.squads = { A.id};
-			move.positions = { capi::to2D(B.position) };
-			move.walk_mode = capi::WalkMode_Normal;
-			v.push_back(capi::Command(move));
-		}
+		fDistanc = Bro->U->CloseCombi(entitiesTOentity(myId, state.entities.squads),
+			entitiesTOentity(0, state.entities.power_slots), A, B);
+		auto move = capi::CommandGroupGoto();
+		move.squads = { A.id };
+		move.positions = { capi::to2D(B.position) };
+		move.walk_mode = capi::WalkMode_Normal;
+		v.push_back(capi::Command(move));
+
 		if (fDistanc < CastRange && state.players[imyPlayerIDX].power >= 100)
 		{
 			auto build = capi::CommandPowerSlotBuild();
@@ -247,13 +216,30 @@ std::vector<capi::Command> FireBot::Tick(const capi::GameState& state)
 		}
 	}
 
+	//Wait for spawn for perfect counter
+	if (Bro->L->StartType == 1 && Bro->L->BattleTable && state.current_tick <= 100)
+	{
+		//Wait for spawen
+		if (state.current_tick > 90) Bro->L->StartType = 0;
+		if (state.entities.squads.size() == 0)return v;
+		CalGlobalBattleTable(state);
+
+		auto spawn = capi::CommandProduceSquad();
+		spawn.card_position = CardPickerFromBT(opBT, Swift);
+		spawn.xy = capi::to2D(entitiesTOentity(myId, state.entities.token_slots)[0].position); //First of my Buildings
+		v.push_back(capi::Command(spawn));
+
+		iSkipTick = 40; // Wait till spwn is done
+		Bro->L->StartType = 0;
+	}
+
+
 	//Spam and run to Base
-	if (state.current_tick % 5 == 0 && Bro->L->StartType == 2)
+	if (Bro->L->StartType == 2 && state.current_tick % 5 == 0)
 	{
 		capi::Entity A;
 		capi::Entity B;
 		float fDistanc = 0;
-
 
 		fDistanc = Bro->U->CloseCombi(entitiesTOentity(myId, state.entities.squads, state.entities.buildings, state.entities.power_slots, state.entities.token_slots),
 			entitiesTOentity(opId, state.entities.power_slots, state.entities.token_slots), A, B);
@@ -268,7 +254,7 @@ std::vector<capi::Command> FireBot::Tick(const capi::GameState& state)
 
 		for (auto E : entitiesTOentity(myId, state.entities.squads))
 		{
-			if (E.job.variant_case == capi::JobCase::NoJob)
+			if (E.job.variant_case == capi::JobCase::Idle)
 			{
 				auto move = capi::CommandGroupGoto();
 				move.squads = { E.id };
@@ -281,6 +267,51 @@ std::vector<capi::Command> FireBot::Tick(const capi::GameState& state)
 
 	}
 
+	//PLay Card 1
+	if (Bro->L->StartType == 3 && state.current_tick % 5 == 0)
+	{
+		auto spawn = capi::CommandProduceSquad();
+		spawn.card_position = 1;
+		spawn.xy = capi::to2D(entitiesTOentity(myId, state.entities.token_slots)[0].position); //First of my Buildings
+		v.push_back(capi::Command(spawn));
+
+		if (entitiesTOentity(myId, state.entities.squads).size() > 0)Bro->L->StartType = 4;
+	}
+
+	//Battle Mode
+	if (Bro->L->StartType == 4)
+	{
+		for (auto S : Bro->U->FilterSquad(myId, state.entities.squads))
+		{
+			if (S.entity.job.variant_case == capi::JobCase::AttackSquad) // Unit in Combet
+			{				
+				if(state.current_tick % 5 == 0)NextCardSpawn = CardPickerFromBT(CalcBattleTable(Bro->U->SquadsInRadius(opId, state.entities.squads, capi::to2D(S.entity.position), 50)),None);
+
+				if (SMJDeck[NextCardSpawn].powerCost < state.players[imyPlayerIDX].power)
+				{
+					
+					capi::Entity A;
+					capi::Entity B;
+					float fDistanc = 0;
+
+					fDistanc = Bro->U->CloseCombi(entitiesTOentity(myId,Bro->U->SquadsInRadius(myId, state.entities.squads, capi::to2D(S.entity.position), 50)),
+						entitiesTOentity(opId, Bro->U->SquadsInRadius(opId, state.entities.squads, capi::to2D(S.entity.position), 50)), A, B);
+
+					//TODO:: If well /Orb near by then use it
+
+					if (fDistanc > CastRange)fDistanc = CastRange;
+
+					auto spawn = capi::CommandProduceSquad();
+					spawn.card_position = NextCardSpawn;
+					spawn.xy = Bro->U->Offseter(capi::to2D(A.position), capi::to2D(B.position), fDistanc);
+					v.push_back(capi::Command(spawn));
+				}
+			}
+		}
+	}
+
+
+	/////////////THREADS////////////////
 	if(Bro->L->UnitEruption && CoolEruptionTest.s == false)
 		if (CoolEruptionTest.fc.wait_for(0ms) == std::future_status::ready)
 		{
@@ -318,8 +349,15 @@ std::vector<capi::Command> FireBot::CoolEruption(const capi::GameState& state)
 		if (vTemp.size() >= 3)
 		{
 			MISD("FIRE !!!!");
+			unsigned int iDeckPos = 0;
+			for (unsigned int i = 0; i < SMJDeck.size(); i++) if (SMJDeck[i].cardName == "Eruption")iDeckPos = i;
+			if (iDeckPos == 0)
+			{
+				MISERROR("No Eruption?!?!");
+				return vReturn;
+			}
 			auto spell = capi::CommandCastSpellGod();
-			spell.card_position = 6;
+			spell.card_position = iDeckPos;			
 			spell.target = capi::SingleTargetLocation(capi::to2D(U.entity.position));			
 			vReturn.push_back(capi::Command(spell));
 			break; //only for one unit not all 3
@@ -426,11 +464,11 @@ int FireBot::CardPickerFromBT(BattleTable BT, CardPickCrit Crit)
 
 
 
-bool run_FireBot(broker* Bro, unsigned short port)
+bool run_FireBot(broker* Bro, unsigned short port, std::string sName)
 {
 	MISS;
 	FireBot::learnBro(Bro);
-	auto bot = FireBot();		
+	auto bot = FireBot(sName);
 	run(bot, port);
 	MISE;
 	return true;

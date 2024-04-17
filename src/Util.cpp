@@ -221,3 +221,19 @@ std::vector<capi::Command> Util::DrawCircle(capi::Position2D center, float radiu
 
 	return vReturn;
 }
+
+
+std::vector<capi::Squad> Util::FilterSquad(const capi::EntityId iFilter, std::vector<capi::Squad> inSquad)
+{
+	std::vector<capi::Squad> allSquad;
+
+	for (const auto& s : inSquad)
+	{
+		if (iFilter == 0 && s.entity.player_entity_id.has_value())continue;
+		if (iFilter != 0 && !s.entity.player_entity_id.has_value())continue;
+		if (iFilter != 0 && s.entity.player_entity_id != iFilter)continue;
+		allSquad.push_back(s);
+	}
+
+	return allSquad;
+}

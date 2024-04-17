@@ -27,6 +27,7 @@ public:
 	
 	unsigned int StartType;
 	unsigned int Port;
+	std::string Name;
 
 	//BROKER
 	static broker* Bro;

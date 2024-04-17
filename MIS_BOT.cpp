@@ -9,7 +9,7 @@
 #include "incl/CardBaseSMJ.h"
 
 
-bool run_FireBot(broker* Bro,  unsigned short port);
+bool run_FireBot(broker* Bro,  unsigned short port, std::string sName);
 
 
 int main(int argc, char** argv)
@@ -56,15 +56,18 @@ int main(int argc, char** argv)
 	if (argc >= 2)L->Port = atoi(argv[1]);
 	if (L->Port == 0)L->Port = 6370;
 
+	if (argc >= 3)L->Name = argv[2];
+	if (L->Name == "")L->Name = "FireBot";
+
 	printf("BOT Settings\n");
 	L->EchoSettings();
 
 #ifndef MIS_DEBUG
 	MISERROR("sync");
-	run_FireBot(Bro, L->Port);
+	run_FireBot(Bro, L->Port, L->Name);
 #else 
 	MISERROR("async");
-	fBOT = std::async(&run_FireBot, Bro, L->Port);
+	fBOT = std::async(&run_FireBot, Bro, L->Port, L->Name);
 
 	char buf[1024] = { '0' };
 	while (Bro->sComand != "X")

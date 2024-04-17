@@ -33,7 +33,8 @@ void LOAD::Load_Settings()
 			
 			if (INI_Value_Check(line, "StartType"))StartType = atoi(line.c_str());
 			if (INI_Value_Check(line, "Port"))Port = atoi(line.c_str());
-
+			if (INI_Value_Check(line, "Name"))Name = line.c_str();
+			
 			if (INI_Value_Check(line, "DrawAvoidArea"))DrawAvoidArea = line.substr(0, 1) != "0";
 			if (INI_Value_Check(line, "AllTick"))AllTick = line.substr(0, 1) != "0";
 			
@@ -90,8 +91,9 @@ void LOAD::EchoSettings()
 	MISERROR("### Current Settings ###");
 	MISERROR("########################");
 	MISERROR("# Port         = " + std::to_string(Port));
+	MISERROR("# Name         = " + Name);
 	MISERROR("# Use Settings.ini");
-	MISERROR("# or first Argv to change");
+	MISERROR("# Bot.exe [Port] [Name]");
 	MISERROR("########################");
 	MISERROR("# SMJOnline    = " + std::to_string(SMJOnline));
 	MISERROR("########################");
