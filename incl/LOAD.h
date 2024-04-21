@@ -6,7 +6,9 @@
 #include <string>
 #include <vector>
 
-struct TomeStruct;
+
+
+//struct TomeStruct;
 
 class LOAD //: public Thread_MIS
 {
@@ -14,6 +16,7 @@ public:
 
 	void StartUp();
 	void EchoSettings();
+	int ProcessArg(int argc, char** argv);
 
 	bool SMJOnline;
 
@@ -28,6 +31,7 @@ public:
 	unsigned int StartType;
 	unsigned int Port;
 	std::string Name;
+	std::string Settings;
 
 	//BROKER
 	static broker* Bro;

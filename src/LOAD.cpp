@@ -5,6 +5,7 @@
 #include "../incl/LOAD.h"
 
 #include <fstream>
+#include <boost/program_options.hpp>
 
 broker *(LOAD::Bro) = NULL;
 
@@ -12,10 +13,10 @@ void LOAD::Load_Settings()
 {
 	MISS;
 	std::string line;
-	std::string sName = "Settings.ini";
+	if(Settings=="") Settings = "Settings.ini";
 
 	std::ifstream ifFile;
-	ifFile.open(sName.c_str(), std::ios::binary);
+	ifFile.open(Settings.c_str(), std::ios::binary);
 
 	if (ifFile.good())
 	{
@@ -32,8 +33,9 @@ void LOAD::Load_Settings()
 			if (INI_Value_Check(line, "BattleTable"))BattleTable = line.substr(0, 1) != "0";
 			
 			if (INI_Value_Check(line, "StartType"))StartType = atoi(line.c_str());
-			if (INI_Value_Check(line, "Port"))Port = atoi(line.c_str());
-			if (INI_Value_Check(line, "Name"))Name = line.c_str();
+
+			if (INI_Value_Check(line, "Port") && Port == 0)Port = atoi(line.c_str());
+			if (INI_Value_Check(line, "Name") && Name == "")Name = line.c_str();
 			
 			if (INI_Value_Check(line, "DrawAvoidArea"))DrawAvoidArea = line.substr(0, 1) != "0";
 			if (INI_Value_Check(line, "AllTick"))AllTick = line.substr(0, 1) != "0";
@@ -44,6 +46,14 @@ void LOAD::Load_Settings()
 		
 		ifFile.close();
 	}
+	else
+	{
+		MISERROR(Settings + " not found")
+	}
+
+	//Fall back
+	if (Port == 0)Port = 6370;
+	if (Name == "")Name = "FireBot";
 	MISE;
 }
 
@@ -90,10 +100,10 @@ void LOAD::EchoSettings()
 	MISERROR("########################");
 	MISERROR("### Current Settings ###");
 	MISERROR("########################");
+	MISERROR("# use --help for options");
+	MISERROR("########################");
 	MISERROR("# Port         = " + std::to_string(Port));
 	MISERROR("# Name         = " + Name);
-	MISERROR("# Use Settings.ini");
-	MISERROR("# Bot.exe [Port] [Name]");
 	MISERROR("########################");
 	MISERROR("# SMJOnline    = " + std::to_string(SMJOnline));
 	MISERROR("########################");
@@ -109,6 +119,38 @@ void LOAD::EchoSettings()
 	MISERROR("########################");
 	MISE;
 }
+
+int LOAD::ProcessArg(int argc, char** argv)
+{
+	MISS;
+	boost::program_options::variables_map vm;
+	boost::program_options::options_description desc("All options");
+	desc.add_options()
+		("help", "Show this masage")
+		("p", boost::program_options::value<unsigned int>(&Port), "port (default 6370)")
+		("n", boost::program_options::value<std::string>(&Name), "name of bot (default FireBot)")
+		("s", boost::program_options::value<std::string>(&Settings), "settings file (default settings.ini)");
+
+	try {
+		boost::program_options::store(boost::program_options::parse_command_line(argc, argv, desc), vm);
+		boost::program_options::notify(vm);
+	}
+	catch (const std::exception& e) {
+		fprintf(stderr, "Error: %s\n", e.what());
+		return -1;
+	}
+
+	if (vm.count("help")) 
+	{
+		fprintf(stderr, "%s\n", boost::lexical_cast<std::string>(desc).c_str());
+		return -1;
+	}
+
+	MISE;
+	if (vm.count("n"))return 1;
+	return 0;
+}
+
 
 #ifdef MIS_Stream 
 void LOAD::Load_Stream()

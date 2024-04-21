@@ -2,6 +2,7 @@
 //#define DF_Debug
 
 #define CastRange 14.5
+#define ArcherRange 29
 
 #ifdef MIS_DEBUG
 	#ifdef DF_Debug 

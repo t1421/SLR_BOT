@@ -13,6 +13,7 @@ void FireBot::PrepareForBattle(const capi::MapInfo& mapInfo, const capi::Deck& d
 	MISD("PrepareForBattle: " + std::to_string(mapInfo.map) + " with " + deck.name);
 	vAvoid.clear();
 	MaxAvoidID = 0;
+	NextCardSpawn = -1;
 
 	SMJDeck.clear();
 	for (auto apiCard : deck.cards)	SMJDeck.push_back(Bro->J->CardFromJson(apiCard % 1000000));
@@ -87,7 +88,15 @@ void FireBot::MatchStart(const capi::GameStartState& state)
 
 	MISD("MY ID: " + std::to_string(myId));
 	MISD("OP ID: " + std::to_string(opId));	
-	CoolEruptionTest.s = true;
+
+	EruptionPos = -1;
+	for (unsigned int i = 0; i < SMJDeck.size(); i++) if (SMJDeck[i].cardName == "Eruption")EruptionPos = i;
+	if (EruptionPos == -1)
+	{
+		MISD("No Eruption in deck");		
+		CoolEruptionTest.s = false;
+	}
+	else CoolEruptionTest.s = true;
 	GlobalBattleTable.s = true;
 		
 	MISE;
@@ -148,7 +157,7 @@ std::vector<capi::Command> FireBot::Tick(const capi::GameState& state)
 		
 	///////////////Timing critical ////////////////
 	//WELL KILLER
-	if (Bro->L->WellKiller)
+	if (Bro->L->WellKiller && EruptionPos != -1)
 		if(WellKiller(v, entitiesTOentity(opId, state.entities.power_slots)))
 			return v;
 	
@@ -192,7 +201,7 @@ std::vector<capi::Command> FireBot::Tick(const capi::GameState& state)
 	////////////////Starters ////////////////////
 
 	//Take powerwells
-	if (entitiesTOentity(myId, state.entities.power_slots).size() < 3 && state.current_tick % 5
+	if (entitiesTOentity(myId, state.entities.power_slots).size() < 4 && state.current_tick % 5
 		&& Bro->L->StartType == 0)
 	{
 		capi::Entity A;
@@ -201,18 +210,23 @@ std::vector<capi::Command> FireBot::Tick(const capi::GameState& state)
 
 		fDistanc = Bro->U->CloseCombi(entitiesTOentity(myId, state.entities.squads),
 			entitiesTOentity(0, state.entities.power_slots), A, B);
-		auto move = capi::CommandGroupGoto();
-		move.squads = { A.id };
-		move.positions = { capi::to2D(B.position) };
-		move.walk_mode = capi::WalkMode_Normal;
-		v.push_back(capi::Command(move));
 
-		if (fDistanc < CastRange && state.players[imyPlayerIDX].power >= 100)
+		if (A.player_entity_id == myId)
 		{
-			auto build = capi::CommandPowerSlotBuild();
-			build.slot_id = B.id;
-			v.push_back(capi::Command(build));
-			//iStage++;
+			auto move = capi::CommandGroupGoto();
+			move.squads = { A.id };
+			move.positions = { capi::to2D(B.position) };
+			move.walk_mode = capi::WalkMode_Normal;
+			v.push_back(capi::Command(move));
+
+			if (fDistanc < CastRange && state.players[imyPlayerIDX].power >= 100)
+			{
+				auto build = capi::CommandPowerSlotBuild();
+				build.slot_id = B.id;
+				v.push_back(capi::Command(build));
+				//iStage++;
+				if (entitiesTOentity(myId, state.entities.power_slots).size() == 3)Bro->L->StartType = 4;
+			}
 		}
 	}
 
@@ -285,7 +299,7 @@ std::vector<capi::Command> FireBot::Tick(const capi::GameState& state)
 		{
 			if (S.entity.job.variant_case == capi::JobCase::AttackSquad) // Unit in Combet
 			{				
-				if(state.current_tick % 5 == 0)NextCardSpawn = CardPickerFromBT(CalcBattleTable(Bro->U->SquadsInRadius(opId, state.entities.squads, capi::to2D(S.entity.position), 50)),None);
+				if (state.current_tick % 5 == 0 || NextCardSpawn == -1)NextCardSpawn = CardPickerFromBT(CalcBattleTable(Bro->U->SquadsInRadius(opId, state.entities.squads, capi::to2D(S.entity.position), 50)), None);
 
 				if (SMJDeck[NextCardSpawn].powerCost < state.players[imyPlayerIDX].power)
 				{
@@ -293,17 +307,38 @@ std::vector<capi::Command> FireBot::Tick(const capi::GameState& state)
 					capi::Entity A;
 					capi::Entity B;
 					float fDistanc = 0;
+					capi::Position2D SpawnPos;
 
-					fDistanc = Bro->U->CloseCombi(entitiesTOentity(myId,Bro->U->SquadsInRadius(myId, state.entities.squads, capi::to2D(S.entity.position), 50)),
-						entitiesTOentity(opId, Bro->U->SquadsInRadius(opId, state.entities.squads, capi::to2D(S.entity.position), 50)), A, B);
+					//if well near by go there
+					std::vector<capi::Entity> UnDazed = Bro->U->pointsInRadius(entitiesTOentity(myId, state.entities.power_slots, state.entities.token_slots), capi::to2D(S.entity.position), 50);
+					if (UnDazed.size() > 0)
+					{
+						MISD("Spawn undazed");
+						SpawnPos = Bro->U->Offseter(capi::to2D(UnDazed[0].position), capi::to2D(S.entity.position), CastRange);
 
-					//TODO:: If well /Orb near by then use it
-
-					if (fDistanc > CastRange)fDistanc = CastRange;
-
+					}
+					//if archer go away
+					else if (SMJDeck[NextCardSpawn].attackType == 1) //ranged
+					{
+						MISD("Spawn Range Distance");
+						Bro->U->CloseCombi({ S.entity },
+							entitiesTOentity(opId, Bro->U->SquadsInRadius(opId, state.entities.squads, capi::to2D(S.entity.position), 50)),
+							A, B);
+						SpawnPos = Bro->U->Offseter(capi::to2D(B.position), capi::to2D(A.position), ArcherRange);
+					}
+					//if melee go near
+					else
+					{
+						MISD("Spawn Near");
+						fDistanc = Bro->U->CloseCombi(entitiesTOentity(myId, Bro->U->SquadsInRadius(myId, state.entities.squads, capi::to2D(S.entity.position), 50)),
+							entitiesTOentity(opId, Bro->U->SquadsInRadius(opId, state.entities.squads, capi::to2D(S.entity.position), 50)), A, B);
+						if (fDistanc > CastRange)fDistanc = CastRange;
+						SpawnPos = Bro->U->Offseter(capi::to2D(A.position), capi::to2D(B.position), fDistanc - 1,-1); //a bit offset
+					}
+					
 					auto spawn = capi::CommandProduceSquad();
 					spawn.card_position = NextCardSpawn;
-					spawn.xy = Bro->U->Offseter(capi::to2D(A.position), capi::to2D(B.position), fDistanc);
+					spawn.xy = SpawnPos;
 					v.push_back(capi::Command(spawn));
 				}
 			}
@@ -339,28 +374,40 @@ std::vector<capi::Command> FireBot::CoolEruption(const capi::GameState& state)
 
 	auto vReturn = std::vector<capi::Command>();
 
-	std::vector<capi::Entity> vTemp;
+	unsigned int iUnitCount;
+	unsigned int iUnitCountH;
+
+	std::vector<capi::Squad> vSquad;
 	for (auto U : state.entities.squads)
 	{
+		
 		if (U.entity.player_entity_id != opId)continue;
 
-		//vTemp = Bro->U->pointsInRadius(Bro->U->entitiesTOentity(state.entities.squads), capi::to2D(U.entity.position), 10);
-		vTemp = Bro->U->pointsInRadius(entitiesTOentity(opId, state.entities.squads), capi::to2D(U.entity.position), 10);
-		if (vTemp.size() >= 3)
+		vSquad = Bro->U->SquadsInRadius(opId, state.entities.squads, capi::to2D(U.entity.position), 10);
+		if (vSquad.size() >= 3)
 		{
-			MISD("FIRE !!!!");
-			unsigned int iDeckPos = 0;
-			for (unsigned int i = 0; i < SMJDeck.size(); i++) if (SMJDeck[i].cardName == "Eruption")iDeckPos = i;
-			if (iDeckPos == 0)
+			iUnitCount = 0;
+			iUnitCountH = 0;
+			for (auto S : vSquad)
 			{
-				MISERROR("No Eruption?!?!");
-				return vReturn;
+				iUnitCount++;
+				for (auto A : S.entity.aspects)
+				{
+					if (A.variant_case == capi::AspectCase::Health)
+						if (A.variant_union.health.current_hp <= 300)iUnitCountH++;
+				}
 			}
-			auto spell = capi::CommandCastSpellGod();
-			spell.card_position = iDeckPos;			
-			spell.target = capi::SingleTargetLocation(capi::to2D(U.entity.position));			
-			vReturn.push_back(capi::Command(spell));
-			break; //only for one unit not all 3
+			if (iUnitCountH >= 1 && iUnitCount >= 3
+				|| iUnitCountH >= 2 && iUnitCount >= 2)
+			{
+				MISD("FIRE !!!!");
+
+				auto spell = capi::CommandCastSpellGod();
+				spell.card_position = EruptionPos;
+				spell.target = capi::SingleTargetLocation(capi::to2D(U.entity.position));
+				vReturn.push_back(capi::Command(spell));
+				break; //only for one unit not all 3
+			}
 		}
 	}
 
@@ -474,7 +521,7 @@ bool run_FireBot(broker* Bro, unsigned short port, std::string sName)
 	return true;
 }
 
-bool FireBot::WellKiller(std::vector<capi::Command> vMain, std::vector<capi::Entity> Wells)
+bool FireBot::WellKiller(std::vector<capi::Command> &vMain, std::vector<capi::Entity> Wells)
 {
 	MISS;	
 	for (auto W : Wells)
@@ -488,7 +535,7 @@ bool FireBot::WellKiller(std::vector<capi::Command> vMain, std::vector<capi::Ent
 				{
 					MISD("FIRE !!!!");
 					auto spell = capi::CommandCastSpellGod();
-					spell.card_position = 6;
+					spell.card_position = EruptionPos;
 					// Spot on, maye chaneg to offset so i can hit units
 					spell.target = capi::SingleTargetLocation(capi::to2D(W.position));
 					vMain.push_back(capi::Command(spell));

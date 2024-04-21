@@ -142,5 +142,12 @@ bool DEBUG::check_MFW(std::string Modul, std::string Funktion, std::string Wert)
 
 	return false;
 }
+void DEBUG::ReOpenLog(std::string _sLogName)
+{
+	if (ofB.good())ofB.close();
+	if (ofE.good())ofE.close();
 
+	if (bFile)ofB.open(Log_path + _sLogName + ".log", std::ios::binary);
+	ofE.open(Log_path + _sLogName + "_E.log", std::ios::binary | std::ofstream::app);
+}
 #endif

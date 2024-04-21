@@ -90,7 +90,7 @@ private:
 	unsigned int iSkipTick;
 
 	//Instand Functions
-	bool WellKiller(std::vector<capi::Command> vMain, std::vector<capi::Entity> Wells);
+	bool WellKiller(std::vector<capi::Command> &vMain, std::vector<capi::Entity> Wells);
 	void FindAvoidArea(const capi::GameState& state);
 	void RemoveFromMIS_AvoidArea(capi::Tick curTick);
 	std::vector<capi::Command> MoveUnitsAway(const capi::GameState& state);
@@ -106,6 +106,7 @@ private:
 
 	std::vector<capi::Command> CoolEruption(const capi::GameState& state);
 	MIS_thread CoolEruptionTest;
+	int EruptionPos;
 
 	BattleTable CalcBattleTable(std::vector<capi::Squad> squads);
 	bool CalGlobalBattleTable(const capi::GameState& state);

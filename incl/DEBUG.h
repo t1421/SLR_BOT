@@ -21,6 +21,7 @@ public:
 	void StatusNew(std::string Fun, std::string Wert);
 	bool check_MFW(std::string Modul, std::string Funktion, std::string Wert);
 	void Fill_DBArray(std::string Modul, std::string Funktion, std::string Wert, std::string Status);
+	void ReOpenLog(std::string _sLogName);
 	
 	std::vector<std::vector<std::string>> DebugInfo;
 	

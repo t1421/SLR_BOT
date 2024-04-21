@@ -9,21 +9,23 @@
 #include "incl/CardBaseSMJ.h"
 
 
+
 bool run_FireBot(broker* Bro,  unsigned short port, std::string sName);
 
 
 int main(int argc, char** argv)
 {
+
+	//Create Stuff
 	broker* Bro = new broker;
 
 #ifdef MIS_DEBUG
 	DEBUG* B = new DEBUG("MIS_BOT_log", true, true, false);
 	B->teachB();
-	B->bFilter = true;
-	B->StatusNew("", "Init");
+	B->bFilter = true;	
 	
 	std::future<bool> fBOT;
-#endif // MIS_DEBUG	
+#endif 
 
 	LOAD* L = new LOAD();
 	L->teachL();
@@ -34,7 +36,14 @@ int main(int argc, char** argv)
 	CardBaseSMJ* J = new CardBaseSMJ();
 	J->teachJ();
 
-	//B->StatusNew("", "Startup");
+	//INIT stuff
+	switch (L->ProcessArg(argc, argv))
+	{
+	case -1: return -1;
+	case 1: B->ReOpenLog(L->Name);
+		break;
+
+	}	
 	L->StartUp();
 
 #ifdef MIS_Online
@@ -53,13 +62,6 @@ int main(int argc, char** argv)
 		return -1;
 	}
 
-	if (argc >= 2)L->Port = atoi(argv[1]);
-	if (L->Port == 0)L->Port = 6370;
-
-	if (argc >= 3)L->Name = argv[2];
-	if (L->Name == "")L->Name = "FireBot";
-
-	printf("BOT Settings\n");
 	L->EchoSettings();
 
 #ifndef MIS_DEBUG
