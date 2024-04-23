@@ -234,7 +234,7 @@ std::vector<capi::Command> FireBot::Tick(const capi::GameState& state)
 	if (Bro->L->StartType == 1 && Bro->L->BattleTable && state.current_tick <= 100)
 	{
 		//Wait for spawen
-		if (state.current_tick > 90) Bro->L->StartType = 0;
+		if (state.current_tick > 90) Bro->L->StartType = 3;
 		if (state.entities.squads.size() == 0)return v;
 		CalGlobalBattleTable(state);
 
@@ -243,8 +243,8 @@ std::vector<capi::Command> FireBot::Tick(const capi::GameState& state)
 		spawn.xy = capi::to2D(entitiesTOentity(myId, state.entities.token_slots)[0].position); //First of my Buildings
 		v.push_back(capi::Command(spawn));
 
-		iSkipTick = 40; // Wait till spwn is done
-		Bro->L->StartType = 0;
+		iSkipTick = 50; // Wait till spwn is done
+		Bro->L->StartType = 3;
 	}
 
 
@@ -295,7 +295,17 @@ std::vector<capi::Command> FireBot::Tick(const capi::GameState& state)
 	//Battle Mode
 	if (Bro->L->StartType == 4)
 	{
-		for (auto S : Bro->U->FilterSquad(myId, state.entities.squads))
+		std::vector<capi::Squad> mySquat = Bro->U->FilterSquad(myId, state.entities.squads);
+
+		//NO unit? get any unit
+		if (mySquat.size() == 0)
+		{
+			auto spawn = capi::CommandProduceSquad();
+			spawn.card_position = 0; 
+			spawn.xy = capi::to2D(entitiesTOentity(myId, state.entities.power_slots, state.entities.token_slots)[0].position);
+			v.push_back(capi::Command(spawn));
+		}
+		else for (auto S : mySquat)
 		{
 			if (S.entity.job.variant_case == capi::JobCase::AttackSquad) // Unit in Combet
 			{				
@@ -324,7 +334,7 @@ std::vector<capi::Command> FireBot::Tick(const capi::GameState& state)
 						Bro->U->CloseCombi({ S.entity },
 							entitiesTOentity(opId, Bro->U->SquadsInRadius(opId, state.entities.squads, capi::to2D(S.entity.position), 50)),
 							A, B);
-						SpawnPos = Bro->U->Offseter(capi::to2D(B.position), capi::to2D(A.position), ArcherRange);
+						SpawnPos = Bro->U->Offseter(capi::to2D(B.position), capi::to2D(A.position), CastRange); // ArcherRange);
 					}
 					//if melee go near
 					else
@@ -340,6 +350,31 @@ std::vector<capi::Command> FireBot::Tick(const capi::GameState& state)
 					spawn.card_position = NextCardSpawn;
 					spawn.xy = SpawnPos;
 					v.push_back(capi::Command(spawn));
+				}
+			}
+		
+			if (S.entity.job.variant_case == capi::JobCase::Idle)
+			{
+				//Units Close By
+				std::vector<capi::Squad> STemp = Bro->U->SquadsInRadius(opId, state.entities.squads, capi::to2D(S.entity.position), 50);
+				if (STemp.size() > 0)
+				{
+					auto attack = capi::CommandGroupAttack();
+					attack.squads = { S.entity.id };
+					attack.target_entity_id = STemp[0].entity.id;
+					v.push_back(capi::Command(attack));
+				}
+				else
+				{
+					capi::Entity A;
+					capi::Entity B;
+					Bro->U->CloseCombi({ S.entity },
+						entitiesTOentity(opId, state.entities.power_slots, state.entities.token_slots, state.entities.squads), A, B);
+					auto move = capi::CommandGroupGoto();
+					move.squads = { S.entity.id };
+					move.positions = { capi::to2D(B.position) };
+					move.walk_mode = capi::WalkMode_Normal;
+					v.push_back(capi::Command(move));
 				}
 			}
 		}
