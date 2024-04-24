@@ -5,7 +5,7 @@
 #include "../incl/LOAD.h"
 
 #include <fstream>
-#include <boost/program_options.hpp>
+#include "../CLI/CLI11.hpp"
 
 broker *(LOAD::Bro) = NULL;
 
@@ -123,31 +123,16 @@ void LOAD::EchoSettings()
 int LOAD::ProcessArg(int argc, char** argv)
 {
 	MISS;
-	boost::program_options::variables_map vm;
-	boost::program_options::options_description desc("All options");
-	desc.add_options()
-		("help", "Show this masage")
-		("p", boost::program_options::value<unsigned int>(&Port), "port (default 6370)")
-		("n", boost::program_options::value<std::string>(&Name), "name of bot (default FireBot)")
-		("s", boost::program_options::value<std::string>(&Settings), "settings file (default settings.ini)");
+	CLI::App app{ "MIS BOT" };
 
-	try {
-		boost::program_options::store(boost::program_options::parse_command_line(argc, argv, desc), vm);
-		boost::program_options::notify(vm);
-	}
-	catch (const std::exception& e) {
-		fprintf(stderr, "Error: %s\n", e.what());
-		return -1;
-	}
+	app.add_option("--p", Port, "port (default 6370)");
+	app.add_option("--n", Name, "name of bot (default FireBot)");
+	app.add_option("--s", Settings, "settings file (default settings.ini)");
 
-	if (vm.count("help")) 
-	{
-		fprintf(stderr, "%s\n", boost::lexical_cast<std::string>(desc).c_str());
-		return -1;
-	}
+	CLI11_PARSE(app, argc, argv);
 
 	MISE;
-	if (vm.count("n"))return 1;
+	if (Name != "")return 1;
 	return 0;
 }
 

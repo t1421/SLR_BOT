@@ -40,7 +40,9 @@ int main(int argc, char** argv)
 	switch (L->ProcessArg(argc, argv))
 	{
 	case -1: return -1;
+#ifdef MIS_DEBUG
 	case 1: B->ReOpenLog(L->Name);
+#endif 
 		break;
 
 	}	
