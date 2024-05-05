@@ -4,16 +4,12 @@
 #include "../incl/DEBUG.h"
 #include "../incl/DataTypes.h"
 
-//#include "../API/API/Types.hpp"
-//#include "../API/API/Helpers.hpp"
-
 #include "../API/API/json.hpp"
 #include "../API/API/TypesCLike.hpp"
 #include "../API/API/HelpersCLike.hpp"
 
 #include "../API/API/boost_wrapper.hpp"
 
-//#include <thread>
 #include <future>
 #include <chrono>
 using namespace std::chrono_literals;
@@ -25,7 +21,12 @@ enum Stages
 	BuildOrb = 2,
 	Attack = 3,
 	Fight = 4,
-	SavePower = 5
+	SavePower = 5,
+
+	WaitForOP = 10,
+	GetUnit = 11,
+	SpamBotX = 12,
+	NoStage = 99
 };
 
 enum CardPickCrit
@@ -58,6 +59,40 @@ struct MIS_AvoidArea
 };
 
 
+
+
+/////////////////
+capi::Command MIS_CommandGroupAttack(std::vector<capi::EntityId> _Units, capi::EntityId _OP)
+{
+	auto GroupAttack = capi::CommandGroupAttack();
+	GroupAttack.squads = _Units;
+	GroupAttack.target_entity_id = _OP;
+	return capi::Command(GroupAttack);
+}
+capi::Command MIS_CommandProduceSquad(uint8_t _Card, capi::Position2D _Pos)
+{
+	auto ProduceSquad = capi::CommandProduceSquad();
+	ProduceSquad.card_position = _Card;
+	ProduceSquad.xy = _Pos;
+	return capi::Command(ProduceSquad);
+}
+capi::Command MIS_CommandGroupGoto(std::vector<capi::EntityId> _Units, capi::Position2D _Pos, capi::WalkMode _Type)
+{
+	auto GroupGoto = capi::CommandGroupGoto();
+	GroupGoto.squads = _Units;
+	GroupGoto.positions = { _Pos };
+	GroupGoto.walk_mode = _Type;
+	return capi::Command(GroupGoto);
+}
+capi::Command MIS_CommandPowerSlotBuild(capi::EntityId _ID)
+{
+	auto PowerSlotBuild = capi::CommandPowerSlotBuild();
+	PowerSlotBuild.slot_id = _ID;
+	return capi::Command(PowerSlotBuild);
+}
+/////////////////
+
+
 // /AI: add FireBot FireDeck 4
 class FireBot : public capi::IBotImp
 {
@@ -85,8 +120,6 @@ private:
 	BattleTable opBT;
 	capi::Position2D myStart;
 
-
-	Stages eStage;
 	unsigned int iSkipTick;
 
 	//Instand Functions
@@ -98,9 +131,6 @@ private:
 	capi::EntityId MaxAvoidID;
 
 	//
-
-	//int CardPicker(capi::CardId opID) { return CardPicker(opID, false); };
-	//int CardPicker(capi::CardId opID, bool Swift);
 	int CardPickerFromBT(BattleTable BT, CardPickCrit Crit);
 	int CardPicker(unsigned int opSize, unsigned int opCounter, CardPickCrit Crit);
 
@@ -114,7 +144,19 @@ private:
 	void EchoBattleTable(BattleTable BT);
 	int NextCardSpawn;
 
+	std::vector< capi::EntityId> vSaveUnit;
+	Card CARD_ID_to_SMJ_CARD(capi::CardId card_id);
+
+	//STAGE
+	Stages eStage;
+	Stages eNextStage;
+	bool bStage;
 	bool Stage(const capi::GameState& state);
+	std::vector<capi::Command> sWaitForOP(const capi::GameState& state);
+	std::vector<capi::Command> sBuildWell(const capi::GameState& state);
+	std::vector<capi::Command> sGetUnit(const capi::GameState& state);
+	std::vector<capi::Command> sSpamBotX(const capi::GameState& state);
+	std::vector<capi::Command> sFight(const capi::GameState& state);
 
 	
 	

@@ -31,8 +31,7 @@ void LOAD::Load_Settings()
 			if (INI_Value_Check(line, "UnitEruption"))UnitEruption = line.substr(0, 1) != "0";
 			if (INI_Value_Check(line, "AvoidArea"))AvoidArea = line.substr(0, 1) != "0";
 			if (INI_Value_Check(line, "BattleTable"))BattleTable = line.substr(0, 1) != "0";
-			
-			if (INI_Value_Check(line, "StartType"))StartType = atoi(line.c_str());
+			if (INI_Value_Check(line, "LowHPMover"))LowHPMover = line.substr(0, 1) != "0";
 
 			if (INI_Value_Check(line, "Port") && Port == 0)Port = atoi(line.c_str());
 			if (INI_Value_Check(line, "Name") && Name == "")Name = line.c_str();
@@ -61,13 +60,6 @@ void LOAD::StartUp()
 {
 	MISS;
 	Load_Settings();
-
-	if (StartType == 1 && !BattleTable)
-	{
-		MISERROR("StartType = 1 needs BattleTable activ -> switched: StartType = 2");
-		StartType = 2;
-	}
-
 	MISE;
 }
 
@@ -111,9 +103,7 @@ void LOAD::EchoSettings()
 	MISERROR("# UnitEruption = " + std::to_string(UnitEruption));
 	MISERROR("# AvoidArea    = " + std::to_string(AvoidArea));
 	MISERROR("# BattleTable  = " + std::to_string(BattleTable));
-	MISERROR("########################");
-	MISERROR("# StartType    = " + std::to_string(StartType));
-	MISERROR("########################");
+	MISERROR("########################");	
 	MISERROR("# DrawAvoidArea= " + std::to_string(DrawAvoidArea));	
 	MISERROR("# AllTick      = " + std::to_string(AllTick));
 	MISERROR("########################");

@@ -34,7 +34,6 @@ std::vector<capi::Entity> entitiesTOentity(const capi::EntityId iFilter, const C
 	return allEntities;
 }
 
-
 class Util
 {
 public:
@@ -55,6 +54,8 @@ public:
 	std::string switchCommandJob(capi::Job& v);
 	std::string switchAbilityEffectSpecific(capi::AbilityEffectSpecific& v);
 	std::string switchAreaShape(capi::AreaShape& v);
+	/////////////////
+
 	/////////////////
 
 	static broker* Bro;

@@ -26,9 +26,8 @@ public:
 	bool DrawAvoidArea;
 	bool AllTick;
 	bool BattleTable;
+	bool LowHPMover;
 	
-	
-	unsigned int StartType;
 	unsigned int Port;
 	std::string Name;
 	std::string Settings;

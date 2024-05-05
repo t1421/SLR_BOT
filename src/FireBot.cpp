@@ -14,7 +14,12 @@ void FireBot::PrepareForBattle(const capi::MapInfo& mapInfo, const capi::Deck& d
 	vAvoid.clear();
 	MaxAvoidID = 0;
 	NextCardSpawn = -1;
+	eNextStage = NoStage;
+	if(Bro->L->BattleTable)eStage = WaitForOP;
+	else eStage = BuildWell;
+	bStage = false;
 
+	vSaveUnit.clear();
 	SMJDeck.clear();
 	for (auto apiCard : deck.cards)	SMJDeck.push_back(Bro->J->CardFromJson(apiCard % 1000000));
 #ifdef MIS_Stream 
@@ -138,6 +143,7 @@ std::vector<capi::Command> FireBot::Tick(const capi::GameState& state)
 #endif
 
 	auto v = std::vector<capi::Command>();
+	auto vTemp = std::vector<capi::Command>();
 	
 	if (iSkipTick > 0)
 	{
@@ -199,187 +205,30 @@ std::vector<capi::Command> FireBot::Tick(const capi::GameState& state)
 	
 
 	////////////////Starters ////////////////////
-
-	//Take powerwells
-	if (entitiesTOentity(myId, state.entities.power_slots).size() < 4 && state.current_tick % 5
-		&& Bro->L->StartType == 0)
+	
+	switch (eStage)
 	{
-		capi::Entity A;
-		capi::Entity B;
-		float fDistanc = 0;
+			//Wait for spawn for perfect counter
+		case WaitForOP:
+			for (auto vv : sWaitForOP(state))v.push_back(vv);
+			break;
+			//Get Unit Close to OP Well/Orb
+		case GetUnit:
+			for (auto vv : sGetUnit(state))v.push_back(vv);
+			break;
+			//Get a Well
+		case BuildWell:
+			for (auto vv : sBuildWell(state))v.push_back(vv);
+			break;
+		case SpamBotX:
+			for (auto vv : sSpamBotX(state))v.push_back(vv);
+			break;
+		case Fight:
+			for (auto vv : sFight(state))v.push_back(vv);
+			break;
 
-		fDistanc = Bro->U->CloseCombi(entitiesTOentity(myId, state.entities.squads),
-			entitiesTOentity(0, state.entities.power_slots), A, B);
-
-		if (A.player_entity_id == myId)
-		{
-			auto move = capi::CommandGroupGoto();
-			move.squads = { A.id };
-			move.positions = { capi::to2D(B.position) };
-			move.walk_mode = capi::WalkMode_Normal;
-			v.push_back(capi::Command(move));
-
-			if (fDistanc < CastRange && state.players[imyPlayerIDX].power >= 100)
-			{
-				auto build = capi::CommandPowerSlotBuild();
-				build.slot_id = B.id;
-				v.push_back(capi::Command(build));
-				//iStage++;
-				if (entitiesTOentity(myId, state.entities.power_slots).size() == 3)Bro->L->StartType = 4;
-			}
-		}
-	}
-
-	//Wait for spawn for perfect counter
-	if (Bro->L->StartType == 1 && Bro->L->BattleTable && state.current_tick <= 100)
-	{
-		//Wait for spawen
-		if (state.current_tick > 90) Bro->L->StartType = 3;
-		if (state.entities.squads.size() == 0)return v;
-		CalGlobalBattleTable(state);
-
-		auto spawn = capi::CommandProduceSquad();
-		spawn.card_position = CardPickerFromBT(opBT, Swift);
-		spawn.xy = capi::to2D(entitiesTOentity(myId, state.entities.token_slots)[0].position); //First of my Buildings
-		v.push_back(capi::Command(spawn));
-
-		iSkipTick = 50; // Wait till spwn is done
-		Bro->L->StartType = 3;
-	}
-
-
-	//Spam and run to Base
-	if (Bro->L->StartType == 2 && state.current_tick % 5 == 0)
-	{
-		capi::Entity A;
-		capi::Entity B;
-		float fDistanc = 0;
-
-		fDistanc = Bro->U->CloseCombi(entitiesTOentity(myId, state.entities.squads, state.entities.buildings, state.entities.power_slots, state.entities.token_slots),
-			entitiesTOentity(opId, state.entities.power_slots, state.entities.token_slots), A, B);
-
-		if (state.players[imyPlayerIDX].power > 75)
-		{
-			auto spawn = capi::CommandProduceSquad();
-			spawn.card_position = 0; // Code für fast unit
-			spawn.xy = Bro->U->Offseter(capi::to2D(A.position), capi::to2D(B.position), CastRange);
-			v.push_back(capi::Command(spawn));
-		}
-
-		for (auto E : entitiesTOentity(myId, state.entities.squads))
-		{
-			if (E.job.variant_case == capi::JobCase::Idle)
-			{
-				auto move = capi::CommandGroupGoto();
-				move.squads = { E.id };
-				move.positions = { capi::to2D(B.position) };
-				move.walk_mode = capi::WalkMode_Normal;
-				v.push_back(capi::Command(move));
-			}
 			
-		}
-
 	}
-
-	//PLay Card 1
-	if (Bro->L->StartType == 3 && state.current_tick % 5 == 0)
-	{
-		auto spawn = capi::CommandProduceSquad();
-		spawn.card_position = 1;
-		spawn.xy = capi::to2D(entitiesTOentity(myId, state.entities.token_slots)[0].position); //First of my Buildings
-		v.push_back(capi::Command(spawn));
-
-		if (entitiesTOentity(myId, state.entities.squads).size() > 0)Bro->L->StartType = 4;
-	}
-
-	//Battle Mode
-	if (Bro->L->StartType == 4)
-	{
-		std::vector<capi::Squad> mySquat = Bro->U->FilterSquad(myId, state.entities.squads);
-
-		//NO unit? get any unit
-		if (mySquat.size() == 0)
-		{
-			auto spawn = capi::CommandProduceSquad();
-			spawn.card_position = 0; 
-			spawn.xy = capi::to2D(entitiesTOentity(myId, state.entities.power_slots, state.entities.token_slots)[0].position);
-			v.push_back(capi::Command(spawn));
-		}
-		else for (auto S : mySquat)
-		{
-			if (S.entity.job.variant_case == capi::JobCase::AttackSquad) // Unit in Combet
-			{				
-				if (state.current_tick % 5 == 0 || NextCardSpawn == -1)NextCardSpawn = CardPickerFromBT(CalcBattleTable(Bro->U->SquadsInRadius(opId, state.entities.squads, capi::to2D(S.entity.position), 50)), None);
-
-				if (SMJDeck[NextCardSpawn].powerCost < state.players[imyPlayerIDX].power)
-				{
-					
-					capi::Entity A;
-					capi::Entity B;
-					float fDistanc = 0;
-					capi::Position2D SpawnPos;
-
-					//if well near by go there
-					std::vector<capi::Entity> UnDazed = Bro->U->pointsInRadius(entitiesTOentity(myId, state.entities.power_slots, state.entities.token_slots), capi::to2D(S.entity.position), 50);
-					if (UnDazed.size() > 0)
-					{
-						MISD("Spawn undazed");
-						SpawnPos = Bro->U->Offseter(capi::to2D(UnDazed[0].position), capi::to2D(S.entity.position), CastRange);
-
-					}
-					//if archer go away
-					else if (SMJDeck[NextCardSpawn].attackType == 1) //ranged
-					{
-						MISD("Spawn Range Distance");
-						Bro->U->CloseCombi({ S.entity },
-							entitiesTOentity(opId, Bro->U->SquadsInRadius(opId, state.entities.squads, capi::to2D(S.entity.position), 50)),
-							A, B);
-						SpawnPos = Bro->U->Offseter(capi::to2D(B.position), capi::to2D(A.position), CastRange); // ArcherRange);
-					}
-					//if melee go near
-					else
-					{
-						MISD("Spawn Near");
-						fDistanc = Bro->U->CloseCombi(entitiesTOentity(myId, Bro->U->SquadsInRadius(myId, state.entities.squads, capi::to2D(S.entity.position), 50)),
-							entitiesTOentity(opId, Bro->U->SquadsInRadius(opId, state.entities.squads, capi::to2D(S.entity.position), 50)), A, B);
-						if (fDistanc > CastRange)fDistanc = CastRange;
-						SpawnPos = Bro->U->Offseter(capi::to2D(A.position), capi::to2D(B.position), fDistanc - 1,-1); //a bit offset
-					}
-					
-					auto spawn = capi::CommandProduceSquad();
-					spawn.card_position = NextCardSpawn;
-					spawn.xy = SpawnPos;
-					v.push_back(capi::Command(spawn));
-				}
-			}
-		
-			if (S.entity.job.variant_case == capi::JobCase::Idle)
-			{
-				//Units Close By
-				std::vector<capi::Squad> STemp = Bro->U->SquadsInRadius(opId, state.entities.squads, capi::to2D(S.entity.position), 50);
-				if (STemp.size() > 0)
-				{
-					auto attack = capi::CommandGroupAttack();
-					attack.squads = { S.entity.id };
-					attack.target_entity_id = STemp[0].entity.id;
-					v.push_back(capi::Command(attack));
-				}
-				else
-				{
-					capi::Entity A;
-					capi::Entity B;
-					Bro->U->CloseCombi({ S.entity },
-						entitiesTOentity(opId, state.entities.power_slots, state.entities.token_slots, state.entities.squads), A, B);
-					auto move = capi::CommandGroupGoto();
-					move.squads = { S.entity.id };
-					move.positions = { capi::to2D(B.position) };
-					move.walk_mode = capi::WalkMode_Normal;
-					v.push_back(capi::Command(move));
-				}
-			}
-		}
-	}
-
 
 	/////////////THREADS////////////////
 	if(Bro->L->UnitEruption && CoolEruptionTest.s == false)
@@ -715,9 +564,36 @@ void FireBot::FindAvoidArea(const capi::GameState& state)
 bool FireBot::Stage(const capi::GameState& state)
 {
 	MISS;
+	Stages inStage = eStage;
 
+	if (bStage && eNextStage != NoStage)
+	{
+		MISD("NextStage Switch: " + std::to_string(inStage) + "->" + std::to_string(eStage));
+		eStage = eNextStage;
+		eNextStage = NoStage;	
+		bStage = false;
+	}
 	
 
+	switch (eStage)
+	{
+	case WaitForOP:
+		if (state.current_tick >= 100 || bStage)eStage = BuildWell;
+		break;
+	case BuildWell:
+		if (bStage)eStage = SavePower;
+		break;
+	case SavePower:
+		if (state.players[imyPlayerIDX].power > 100 || bStage)eStage = Fight;
+		break;
+
+	case GetUnit:  //Manuel Stageing with eNextStage		
+	case SpamBotX: //Never Stages xD
+	case Fight: //Never Stages xD
+		break;
+	}
+	
+	bStage = false;
 	//if units close to my Well / Orb -> Def.
 
 	//if nothing to do - maybe Save Power
@@ -728,8 +604,9 @@ bool FireBot::Stage(const capi::GameState& state)
 	//Or when power is saved
 	//or when OP build well
 
+	if(inStage != eStage)MISD("Switch: " + std::to_string(inStage) + "->" + std::to_string(eStage));
 	MISE;
-	return true;
+	return inStage != eStage;
 }
 
 
@@ -832,4 +709,229 @@ void FireBot::EchoBattleTable(BattleTable BT)
 		MISERROR(ssLine.str());
 	}
 	MISE;
+}
+
+
+std::vector<capi::Command> FireBot::sWaitForOP(const capi::GameState& state)
+{
+	MISS;
+	auto vReturn = std::vector<capi::Command>();
+	if (state.entities.squads.size() == 0)return vReturn;
+	CalGlobalBattleTable(state);
+
+	vReturn.push_back(MIS_CommandProduceSquad(CardPickerFromBT(opBT, Swift), 
+		capi::to2D(entitiesTOentity(myId, state.entities.token_slots)[0].position)));
+
+	iSkipTick = 50; // Wait till spwn is done
+	bStage = true;
+	MISE;
+}
+
+std::vector<capi::Command> FireBot::sBuildWell(const capi::GameState& state)
+{
+	MISS;
+
+	auto vReturn = std::vector<capi::Command>();
+
+	// We need a Unit to go to the well
+	if (entitiesTOentity(myId, state.entities.squads).size() == 0)
+	{
+		eNextStage = BuildWell;
+		eStage = GetUnit;
+		MISEA("No Units");
+		return vReturn;
+	}
+
+	capi::Entity A;
+	capi::Entity B;
+	float fDistanc = 0;
+
+	fDistanc = Bro->U->CloseCombi(entitiesTOentity(myId, state.entities.squads),
+		entitiesTOentity(0, state.entities.power_slots), A, B);
+
+	if (A.player_entity_id == myId)
+	{
+		//if (A.job.variant_case != capi::JobCase::Goto && fDistanc > CastRange)
+		vReturn.push_back(MIS_CommandGroupGoto({ A.id }, capi::to2D(B.position), capi::WalkMode_Normal));
+
+		if (fDistanc < CastRange && state.players[imyPlayerIDX].power >= 100)
+		{
+			vReturn.push_back(capi::Command(MIS_CommandPowerSlotBuild(B.id)));
+			bStage = true;
+			MISD("!!! bStage !!!")
+		}
+	}
+	MISE;
+	return vReturn;
+}
+
+std::vector<capi::Command> FireBot::sGetUnit(const capi::GameState& state)
+{
+	MISS;
+	auto vReturn = std::vector<capi::Command>();
+	int iCard = CardPickerFromBT(opBT, None);
+
+	if (SMJDeck[iCard].powerCost > state.players[imyPlayerIDX].power)
+	{
+		MISEA("No Power: " + std::to_string(SMJDeck[iCard].powerCost) + ">" + std::to_string(state.players[imyPlayerIDX].power));
+		return vReturn;
+	}
+
+	capi::Entity A;
+	capi::Entity B;
+
+	Bro->U->CloseCombi(
+		entitiesTOentity(myId, state.entities.power_slots, state.entities.token_slots, state.entities.squads, state.entities.buildings),
+		entitiesTOentity(opId, state.entities.power_slots, state.entities.token_slots, state.entities.squads),
+		A, B);
+
+	vReturn.push_back(MIS_CommandProduceSquad(iCard,
+		Bro->U->Offseter(capi::to2D(A.position), capi::to2D(B.position), CastRange)));
+
+	iSkipTick = 50; // Wait till spwn is done
+	bStage = true;
+	MISE;
+}
+
+
+
+std::vector<capi::Command> FireBot::sSpamBotX(const capi::GameState& state)
+{
+	MISS;
+
+	auto vReturn = std::vector<capi::Command>();
+
+	capi::Entity A;
+	capi::Entity B;	
+	int iCard = CardPickerFromBT(opBT, None);	
+
+	float fDistanc = Bro->U->CloseCombi(entitiesTOentity(myId, state.entities.squads, state.entities.buildings, state.entities.power_slots, state.entities.token_slots),
+		entitiesTOentity(opId, state.entities.power_slots, state.entities.token_slots), A, B);
+
+	if (SMJDeck[iCard].powerCost > state.players[imyPlayerIDX].power)
+	{
+		//Cant Spawn insice the base (collition)
+		if (fDistanc > CastRange * 2) fDistanc = CastRange;
+		else fDistanc = CastRange * -1;
+
+		vReturn.push_back(MIS_CommandProduceSquad(iCard,
+			Bro->U->Offseter(capi::to2D(A.position), capi::to2D(B.position), fDistanc)));
+	}
+
+	for (auto E : entitiesTOentity(myId, state.entities.squads))	
+		if (E.job.variant_case == capi::JobCase::Idle)		
+			vReturn.push_back(MIS_CommandGroupGoto({ E.id }, capi::to2D(B.position), capi::WalkMode_Normal));
+
+	MISE;
+	return vReturn;
+}
+
+std::vector<capi::Command> FireBot::sFight(const capi::GameState& state)
+{
+	MISS;
+	auto vReturn = std::vector<capi::Command>();
+
+	std::vector<capi::Squad> mySquat = Bro->U->FilterSquad(myId, state.entities.squads);
+
+	capi::Entity A;
+	capi::Entity B;
+	float fDistanc = Bro->U->CloseCombi(entitiesTOentity(myId, state.entities.squads),
+		entitiesTOentity(opId, state.entities.power_slots, state.entities.token_slots, state.entities.squads, state.entities.buildings), A, B);
+
+	//NO unit? get any unit
+	if (mySquat.size() == 0)
+	{
+		eNextStage = Fight;
+		eStage = GetUnit;
+		MISEA("No Units");
+		return vReturn;
+	}
+	else for (auto S : mySquat)
+	{
+		if (S.entity.job.variant_case == capi::JobCase::AttackSquad || fDistanc < CastRange * 3) // Unit in Combet pr near
+		{
+			if (std::find(vSaveUnit.begin(), vSaveUnit.end(), S.entity.id) == vSaveUnit.end())
+				for (auto F : state.entities.figures)
+					if(F.squad_id == S.entity.id)
+						for (auto Asp : F.entity.aspects)
+							if (Asp.variant_case == capi::AspectCase::Health)
+								if (Asp.variant_union.health.current_hp / Asp.variant_union.health.cap_current_max < 0.3)
+									{
+										vSaveUnit.push_back(S.entity.id);
+										Bro->U->CloseCombi({ S.entity },
+											entitiesTOentity(opId, state.entities.power_slots, state.entities.token_slots, state.entities.squads), A, B);
+										vReturn.push_back(MIS_CommandGroupGoto({ S.entity.id },
+											Bro->U->Offseter(capi::to2D(A.position), capi::to2D(B.position), CastRange * -1), capi::WalkMode_Force));
+									}
+
+			if (state.current_tick % 5 == 0 || NextCardSpawn == -1)NextCardSpawn = CardPickerFromBT(CalcBattleTable(Bro->U->SquadsInRadius(opId, state.entities.squads, capi::to2D(S.entity.position), 75)), None);
+
+			if (SMJDeck[NextCardSpawn].powerCost < state.players[imyPlayerIDX].power)
+			{
+				capi::Position2D SpawnPos;
+
+				//if well near by go there
+				std::vector<capi::Entity> UnDazed = Bro->U->pointsInRadius(entitiesTOentity(myId, state.entities.power_slots, state.entities.token_slots), capi::to2D(S.entity.position), 75);
+				if (UnDazed.size() > 0)
+				{
+					MISD("Spawn undazed");
+					SpawnPos = Bro->U->Offseter(capi::to2D(UnDazed[0].position), capi::to2D(S.entity.position), CastRange);
+
+				}
+				//if archer go away
+				else if (SMJDeck[NextCardSpawn].attackType == 1) //ranged
+				{
+					MISD("Spawn Range Distance");
+					Bro->U->CloseCombi({ S.entity },
+						entitiesTOentity(opId, Bro->U->SquadsInRadius(opId, state.entities.squads, capi::to2D(S.entity.position), 75)),
+						A, B);
+					SpawnPos = Bro->U->Offseter(capi::to2D(B.position), capi::to2D(A.position), CastRange); // ArcherRange);
+				}
+				//if melee go near
+				else
+				{
+					MISD("Spawn Near");
+					fDistanc = Bro->U->CloseCombi(entitiesTOentity(myId, Bro->U->SquadsInRadius(myId, state.entities.squads, capi::to2D(S.entity.position), 75)),
+						entitiesTOentity(opId, Bro->U->SquadsInRadius(opId, state.entities.squads, capi::to2D(S.entity.position), 75)), A, B);
+					if (fDistanc > CastRange)fDistanc = CastRange;
+					SpawnPos = Bro->U->Offseter(capi::to2D(A.position), capi::to2D(B.position), fDistanc - 1, -1); //a bit offset
+				}
+				vReturn.push_back(MIS_CommandProduceSquad(NextCardSpawn, SpawnPos));
+			}
+		}
+
+		if (S.entity.job.variant_case == capi::JobCase::Idle)
+		{
+			//Units Close By
+			std::vector<capi::Squad> STemp = Bro->U->SquadsInRadius(opId, state.entities.squads, capi::to2D(S.entity.position), 75);
+			if (STemp.size() > 0)
+			{
+				vReturn.push_back(MIS_CommandGroupAttack({ S.entity.id }, STemp[0].entity.id));
+			}
+			else
+			{
+				Bro->U->CloseCombi({ S.entity },
+					entitiesTOentity(opId, state.entities.power_slots, state.entities.token_slots, state.entities.squads), A, B);
+				vReturn.push_back(MIS_CommandGroupGoto({ S.entity.id }, capi::to2D(B.position), capi::WalkMode_Normal));
+			}
+		}
+	}
+	MISE;
+	return vReturn;
+}
+
+
+Card FireBot::CARD_ID_to_SMJ_CARD(capi::CardId card_id)
+{
+	//MISS
+	MISD("CARD_ID_to_SMJ_CARD");
+
+	//in my Deck?
+	for (auto C : SMJDeck)if (C.officialCardIds == card_id % 1000000)return C;
+	//in op Deck?
+	for (auto C : SMJDeckOP)if (C.officialCardIds == card_id % 1000000)return C;
+	//Add to OP Deck;
+	SMJDeckOP.push_back(Bro->J->CardFromJson(card_id % 1000000));
+	return SMJDeckOP[SMJDeckOP.size() - 1];
+	//MISE;
 }
