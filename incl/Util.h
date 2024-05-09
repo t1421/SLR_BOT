@@ -54,6 +54,7 @@ public:
 	std::string switchCommandJob(capi::Job& v);
 	std::string switchAbilityEffectSpecific(capi::AbilityEffectSpecific& v);
 	std::string switchAreaShape(capi::AreaShape& v);
+	std::string switchAspect(capi::Aspect& v);
 	/////////////////
 
 	/////////////////

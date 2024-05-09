@@ -3,6 +3,8 @@
 
 #define CastRange 14.5
 #define ArcherRange 29
+#define FightRange 100
+
 
 #ifdef MIS_DEBUG
 	#ifdef DF_Debug 

@@ -137,6 +137,45 @@ std::string Util::switchAreaShape(capi::AreaShape& v)
 }
 
 
+std::string Util::switchAspect(capi::Aspect& v)
+{
+	capi::AspectCase variant_case = v.variant_case;
+	switch (variant_case) {
+	case capi::AspectCase::Invalid: return "Invalid default variant!";
+	case capi::AspectCase::PowerProduction: return "PowerProduction";
+	case capi::AspectCase::Health: return "Health";
+	case capi::AspectCase::Combat: return "Combat";
+	case capi::AspectCase::ModeChange: return "ModeChange";
+	case capi::AspectCase::Ammunition: return "Ammunition";
+	case capi::AspectCase::SuperWeaponShadow: return "SuperWeaponShadow";
+	case capi::AspectCase::WormMovement: return "WormMovement";
+	case capi::AspectCase::NPCTag: return "NPCTag";
+	case capi::AspectCase::PlayerKit: return "PlayerKit";
+	case capi::AspectCase::Loot: return "Loot";
+	case capi::AspectCase::Immunity: return "Immunity";
+	case capi::AspectCase::Turret: return "Turret";
+	case capi::AspectCase::Tunnel: return "Tunnel";
+	case capi::AspectCase::MountBarrier: return "MountBarrier";
+	case capi::AspectCase::SpellMemory: return "SpellMemory";
+	case capi::AspectCase::Portal: return "Portal";
+	case capi::AspectCase::Hate: return "Hate";
+	case capi::AspectCase::BarrierGate: return "BarrierGate";
+	case capi::AspectCase::Attackable: return "Attackable";
+	case capi::AspectCase::SquadRefill: return "SquadRefill";
+	case capi::AspectCase::PortalExit: return "PortalExit";
+	case capi::AspectCase::ConstructionData: return "ConstructionData";
+	case capi::AspectCase::SuperWeaponShadowBomb: return "SuperWeaponShadowBomb";
+	case capi::AspectCase::RepairBarrierSet: return "RepairBarrierSet";
+	case capi::AspectCase::ConstructionRepair: return "ConstructionRepair";
+	case capi::AspectCase::Follower: return "Follower";
+	case capi::AspectCase::CollisionBase: return "CollisionBase";
+	case capi::AspectCase::EditorUniqueID: return "EditorUniqueID";
+	case capi::AspectCase::Roam: return "Roam";
+	default: return "Invalid variant";
+	}
+}
+
+
 std::vector<capi::Entity> Util::pointsInRadius(std::vector<capi::Entity> toCheck, capi::Position2D Center, float Range)
 {
 	std::vector<capi::Entity> vReturn;

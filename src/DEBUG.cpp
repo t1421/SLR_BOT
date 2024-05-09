@@ -28,6 +28,8 @@ DEBUG::DEBUG(std::string sLogName, bool _bGUI, bool _bFile, bool _bFilter)
 	Fill_DBArray("", "*", "*", "true"); // MAIN
 
 	Fill_DBArray("FireBot", "*", "*", "true");	
+
+	Fill_DBArray("FireBot", "CardPicker", "*", "false");
 	/*
 	Fill_DBArray("FireBot", "WellKiller", "-->", "false");
 	Fill_DBArray("FireBot", "WellKiller", "<--", "false");

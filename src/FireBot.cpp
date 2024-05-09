@@ -1,5 +1,7 @@
 ﻿#define DF_Debug
 
+
+
 #include "../incl/FireBot.h"
 #include "../incl/CardBaseSMJ.h"
 #include "../incl/Util.h"
@@ -14,6 +16,8 @@ void FireBot::PrepareForBattle(const capi::MapInfo& mapInfo, const capi::Deck& d
 	vAvoid.clear();
 	MaxAvoidID = 0;
 	NextCardSpawn = -1;
+	iWallReady = -1;
+
 	eNextStage = NoStage;
 	if(Bro->L->BattleTable)eStage = WaitForOP;
 	else eStage = BuildWell;
@@ -25,6 +29,14 @@ void FireBot::PrepareForBattle(const capi::MapInfo& mapInfo, const capi::Deck& d
 #ifdef MIS_Stream 
 	Bro->L_GamesPlus();
 #endif
+
+
+	////////////////////////////////////
+	eStage = PanicDef;
+	eNextStage = DisablePanicDef;
+	////////////////////////////////////
+
+
 
 	MISE;
 }
@@ -110,6 +122,8 @@ void FireBot::MatchStart(const capi::GameStartState& state)
 
 std::vector<capi::Command> FireBot::Tick(const capi::GameState& state)
 {		
+	auto v = std::vector<capi::Command>();
+	auto vTemp = std::vector<capi::Command>();
 #ifdef MIS_DEBUG
 
 	if(Bro->L->AllTick)	MISD(std::to_string(eStage) + "#" + Bro->sTime(state.current_tick) + "#" + std::to_string(state.current_tick) + "#" + std::to_string(state.players[imyPlayerIDX].power));
@@ -121,6 +135,7 @@ std::vector<capi::Command> FireBot::Tick(const capi::GameState& state)
 			MISERROR("------------------------------");
 			MISERROR("# dump     = Save tick        ");
 			MISERROR("# bt       = Print BattleTable");
+			MISERROR("# stage    = Go to next stage ");
 			MISERROR("------------------------------");
 		}
 
@@ -138,12 +153,21 @@ std::vector<capi::Command> FireBot::Tick(const capi::GameState& state)
 			EchoBattleTable(myBT);
 			EchoBattleTable(opBT);
 		}
+
+		if (Bro->sComand == "stage")
+		{
+			bStage = true;
+		}
 		Bro->sComand = "";
 	}
 #endif
 
-	auto v = std::vector<capi::Command>();
-	auto vTemp = std::vector<capi::Command>();
+	for (auto r : state.rejected_commands)
+	{
+		MISD("rejected Player: " + std::to_string(r.player));
+		MISD("reason         : " + Bro->U->switchCommandRejectionReason(r.reason));
+		MISD("command        : " + Bro->U->switchCommand(r.command));
+	}
 	
 	if (iSkipTick > 0)
 	{
@@ -151,15 +175,11 @@ std::vector<capi::Command> FireBot::Tick(const capi::GameState& state)
 		iSkipTick--;
 		return v;
 	}
+	if (iWallReady >= 0)iWallReady--;
 
 	if (state.current_tick % 100)Stage(state);
 
-	for (auto r : state.rejected_commands)
-	{
-		MISD("rejected Player: " + std::to_string(r.player));		
-		MISD("reason         : " + Bro->U->switchCommandRejectionReason(r.reason));
-		MISD("command        : " + Bro->U->switchCommand(r.command));
-	}
+	
 		
 	///////////////Timing critical ////////////////
 	//WELL KILLER
@@ -226,8 +246,12 @@ std::vector<capi::Command> FireBot::Tick(const capi::GameState& state)
 		case Fight:
 			for (auto vv : sFight(state))v.push_back(vv);
 			break;
-
-			
+		case PanicDef:
+			for (auto vv : sPanicDef(state))v.push_back(vv);
+			break;
+		case DisablePanicDef:
+			for (auto vv : sDisablePanicDef(state))v.push_back(vv);
+			break;
 	}
 
 	/////////////THREADS////////////////
@@ -243,8 +267,11 @@ std::vector<capi::Command> FireBot::Tick(const capi::GameState& state)
 			GlobalBattleTable.s = true;
 	
 
+	//Fight -> pick best unit to kill (counters)
+
+	// Recet orders -> Prduce Squat -> ofset in 4 directions (loop)
+
 	//Remove dobbel orders
-	//Finde idel units
 	//dont cast unit int avoid area
 
 	//Iff rooted skip order to move out of avoid
@@ -306,7 +333,8 @@ int FireBot::CardPicker(unsigned int opSize, unsigned int opCounter, CardPickCri
 	
 	for (unsigned int i = 0; i < SMJDeck.size(); i++)
 	{
-		if (SMJDeck[i].offenseType == opSize && SMJDeck[i].defenseType != opCounter)
+		if (   (SMJDeck[i].offenseType == opSize || opSize == 99) 
+			&& (SMJDeck[i].defenseType != opCounter || opCounter==99))
 		{
 			switch (Crit)
 			{
@@ -317,6 +345,13 @@ int FireBot::CardPicker(unsigned int opSize, unsigned int opCounter, CardPickCri
 						MISEA("Swift: " + SMJDeck[i].cardName);
 						return i;
 					}
+				break;
+			case Archer:
+				if (SMJDeck[i].unitClass == "Archer")
+				{
+					MISEA("Archer: " + SMJDeck[i].cardName);
+					return i;
+				}				
 				break;
 			case NotS:
 				if (SMJDeck[i].defenseType == 0)break;
@@ -585,6 +620,12 @@ bool FireBot::Stage(const capi::GameState& state)
 		break;
 	case SavePower:
 		if (state.players[imyPlayerIDX].power > 100 || bStage)eStage = Fight;
+		break;
+	case PanicDef:
+		if (bStage)eStage = DisablePanicDef;
+		break;
+	case DisablePanicDef:
+		if (bStage)eStage = Fight;
 		break;
 
 	case GetUnit:  //Manuel Stageing with eNextStage		
@@ -864,14 +905,14 @@ std::vector<capi::Command> FireBot::sFight(const capi::GameState& state)
 											Bro->U->Offseter(capi::to2D(A.position), capi::to2D(B.position), CastRange * -1), capi::WalkMode_Force));
 									}
 
-			if (state.current_tick % 5 == 0 || NextCardSpawn == -1)NextCardSpawn = CardPickerFromBT(CalcBattleTable(Bro->U->SquadsInRadius(opId, state.entities.squads, capi::to2D(S.entity.position), 75)), None);
+			if (state.current_tick % 5 == 0 || NextCardSpawn == -1)NextCardSpawn = CardPickerFromBT(CalcBattleTable(Bro->U->SquadsInRadius(opId, state.entities.squads, capi::to2D(S.entity.position), FightRange)), None);
 
 			if (SMJDeck[NextCardSpawn].powerCost < state.players[imyPlayerIDX].power)
 			{
 				capi::Position2D SpawnPos;
 
 				//if well near by go there
-				std::vector<capi::Entity> UnDazed = Bro->U->pointsInRadius(entitiesTOentity(myId, state.entities.power_slots, state.entities.token_slots), capi::to2D(S.entity.position), 75);
+				std::vector<capi::Entity> UnDazed = Bro->U->pointsInRadius(entitiesTOentity(myId, state.entities.power_slots, state.entities.token_slots), capi::to2D(S.entity.position), FightRange);
 				if (UnDazed.size() > 0)
 				{
 					MISD("Spawn undazed");
@@ -883,7 +924,7 @@ std::vector<capi::Command> FireBot::sFight(const capi::GameState& state)
 				{
 					MISD("Spawn Range Distance");
 					Bro->U->CloseCombi({ S.entity },
-						entitiesTOentity(opId, Bro->U->SquadsInRadius(opId, state.entities.squads, capi::to2D(S.entity.position), 75)),
+						entitiesTOentity(opId, Bro->U->SquadsInRadius(opId, state.entities.squads, capi::to2D(S.entity.position), FightRange)),
 						A, B);
 					SpawnPos = Bro->U->Offseter(capi::to2D(B.position), capi::to2D(A.position), CastRange); // ArcherRange);
 				}
@@ -892,7 +933,7 @@ std::vector<capi::Command> FireBot::sFight(const capi::GameState& state)
 				{
 					MISD("Spawn Near");
 					fDistanc = Bro->U->CloseCombi(entitiesTOentity(myId, Bro->U->SquadsInRadius(myId, state.entities.squads, capi::to2D(S.entity.position), 75)),
-						entitiesTOentity(opId, Bro->U->SquadsInRadius(opId, state.entities.squads, capi::to2D(S.entity.position), 75)), A, B);
+						entitiesTOentity(opId, Bro->U->SquadsInRadius(opId, state.entities.squads, capi::to2D(S.entity.position), FightRange)), A, B);
 					if (fDistanc > CastRange)fDistanc = CastRange;
 					SpawnPos = Bro->U->Offseter(capi::to2D(A.position), capi::to2D(B.position), fDistanc - 1, -1); //a bit offset
 				}
@@ -903,7 +944,7 @@ std::vector<capi::Command> FireBot::sFight(const capi::GameState& state)
 		if (S.entity.job.variant_case == capi::JobCase::Idle)
 		{
 			//Units Close By
-			std::vector<capi::Squad> STemp = Bro->U->SquadsInRadius(opId, state.entities.squads, capi::to2D(S.entity.position), 75);
+			std::vector<capi::Squad> STemp = Bro->U->SquadsInRadius(opId, state.entities.squads, capi::to2D(S.entity.position), FightRange);
 			if (STemp.size() > 0)
 			{
 				vReturn.push_back(MIS_CommandGroupAttack({ S.entity.id }, STemp[0].entity.id));
@@ -935,3 +976,121 @@ Card FireBot::CARD_ID_to_SMJ_CARD(capi::CardId card_id)
 	return SMJDeckOP[SMJDeckOP.size() - 1];
 	//MISE;
 }
+
+
+std::vector<capi::Command> FireBot::sPanicDef(const capi::GameState& state)
+{
+	MISS;
+	bool OnWall;
+	auto vReturn = std::vector<capi::Command>();
+	capi::Entity myOrb = entitiesTOentity(myId, state.entities.token_slots)[0];
+
+	if (iWallReady == -1)
+	{
+		//Find My Wall
+		std::vector<capi::Entity> barrier =
+			Bro->U->pointsInRadius(entitiesTOentity(0, state.entities.barrier_sets),
+				capi::to2D(myOrb.position),
+				50);
+
+		if (barrier.size() == 1)
+		{
+			//Build Wall
+			vReturn.push_back(MIS_CommandBarrierBuild(barrier[0].id));
+			iSkipTick = 10;
+			MISEA("First Build Wall");
+			return vReturn;
+		}
+		else
+		{
+			iWallReady = -2;
+		}
+	}
+		
+	//Spawn Archers
+	unsigned int iArchers = CardPicker(99, 99, Archer);
+	if (state.players[imyPlayerIDX].power > SMJDeck[iArchers].powerCost)
+	{
+		vReturn.push_back(MIS_CommandProduceSquad(iArchers, capi::to2D(myOrb.position)));
+	}
+	
+	//Archers on the Wall
+	
+	std::vector < capi::Entity> myBarrier = entitiesTOentity(myId, state.entities.barrier_modules);
+
+	//Remove Gate from Vector
+	for (unsigned int i = 0; i < myBarrier.size() ;i++)
+		for(auto A: myBarrier[i].aspects)
+            if (A.variant_case == capi::AspectCase::BarrierGate)
+            {
+                myBarrier.erase(myBarrier.begin() + i);
+                goto GateLoopOut;
+            }
+	
+    GateLoopOut:
+
+
+	if (myBarrier.size() == 0)
+	{
+		MISEA("WHERE IS MY WALL!!!");
+		return vReturn;
+	}
+
+	for (auto S : Bro->U->pointsInRadius(entitiesTOentity(myId, state.entities.squads), capi::to2D(myOrb.position), 50))
+	{
+		OnWall = false;
+		for (auto E : S.effects)
+		{
+            if (E.id % 1000000 == 554) // Effect for: Generic_FigureOnWall_IncomingDamageReduction
+                OnWall = true;			
+		}
+		if (OnWall == false)
+		{
+			capi::Entity A;
+			capi::Entity B;
+
+			Bro->U->CloseCombi({ S }, myBarrier, A, B);
+			vReturn.push_back(MIS_CommandGroupEnterWall({ S.id }, B.id));
+		}
+	}
+
+	// // Check if we have def. -> Then Stage
+	
+	MISE;
+	return vReturn;
+}
+
+
+
+
+std::vector<capi::Command> FireBot::sDisablePanicDef(const capi::GameState& state)
+{
+	MISS;
+	
+	auto vReturn = std::vector<capi::Command>();
+	/*
+	for (auto B : entitiesTOentity(myId, state.entities.barrier_sets))
+	{
+		// KILL WALL
+	}
+
+	iWallReady = 70 * 10; //ready in ~65 sec
+	*/
+
+
+	std::vector < capi::Entity> myBarrier = entitiesTOentity(myId, state.entities.barrier_modules);
+
+	//Remove Gate from Vector
+	for (auto B: myBarrier)
+		for (auto A : B.aspects)
+			if (A.variant_case == capi::AspectCase::BarrierGate)			
+				if (A.variant_union.barrier_gate.open == false)
+					vReturn.push_back(MIS_CommandBarrierGateToggle(B.id));
+			
+
+	bStage = true;
+
+	MISE;
+	return vReturn;
+}
+

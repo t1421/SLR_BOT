@@ -26,6 +26,9 @@ enum Stages
 	WaitForOP = 10,
 	GetUnit = 11,
 	SpamBotX = 12,
+
+	PanicDef = 20,
+	DisablePanicDef = 21,
 	NoStage = 99
 };
 
@@ -35,7 +38,8 @@ enum CardPickCrit
 	Swift = 1,
 	NotS = 2,
 	NotM = 3,
-	NotL = 4
+	NotL = 4,
+	Archer = 5
 };
 
 struct MIS_thread
@@ -89,6 +93,25 @@ capi::Command MIS_CommandPowerSlotBuild(capi::EntityId _ID)
 	auto PowerSlotBuild = capi::CommandPowerSlotBuild();
 	PowerSlotBuild.slot_id = _ID;
 	return capi::Command(PowerSlotBuild);
+}
+capi::Command MIS_CommandBarrierBuild(capi::EntityId _ID)
+{
+	auto BarrierBuild = capi::CommandBarrierBuild();
+	BarrierBuild.barrier_id = _ID;
+	return capi::Command(BarrierBuild);
+}
+capi::Command MIS_CommandGroupEnterWall(std::vector<capi::EntityId> _Units, capi::EntityId _ID)
+{
+	auto GroupEnterWall = capi::CommandGroupEnterWall();
+	GroupEnterWall.squads = _Units;
+	GroupEnterWall.barrier_id = _ID;
+	return capi::Command(GroupEnterWall);
+}
+capi::Command MIS_CommandBarrierGateToggle(capi::EntityId _ID)
+{
+	auto BarrierGateToggle = capi::CommandBarrierGateToggle();
+	BarrierGateToggle.barrier_id = _ID;
+	return capi::Command(BarrierGateToggle);
 }
 /////////////////
 
@@ -147,6 +170,8 @@ private:
 	std::vector< capi::EntityId> vSaveUnit;
 	Card CARD_ID_to_SMJ_CARD(capi::CardId card_id);
 
+	int iWallReady;
+
 	//STAGE
 	Stages eStage;
 	Stages eNextStage;
@@ -157,8 +182,9 @@ private:
 	std::vector<capi::Command> sGetUnit(const capi::GameState& state);
 	std::vector<capi::Command> sSpamBotX(const capi::GameState& state);
 	std::vector<capi::Command> sFight(const capi::GameState& state);
+	std::vector<capi::Command> sPanicDef(const capi::GameState& state);
+	std::vector<capi::Command> sDisablePanicDef(const capi::GameState& state);
 
-	
 	
 };
 
