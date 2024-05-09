@@ -174,6 +174,20 @@ std::string Util::switchAspect(capi::Aspect& v)
 	default: return "Invalid variant";
 	}
 }
+std::string Util::switchMountStatet(capi::MountState& v)
+{
+	capi::MountStateCase variant_case = v.variant_case;
+	switch (variant_case)	{
+	case capi::MountStateCase::Invalid: return "Invalid";
+	case capi::MountStateCase::Unmounted: return "unmounted";
+	case capi::MountStateCase::MountingSquad: return "mounting_squad";
+	case capi::MountStateCase::MountingFigure: return "mounting_figure";
+	case capi::MountStateCase::MountedSquad: return "mounted_squad";
+	case capi::MountStateCase::MountedFigure: return "mounted_figure";
+	case capi::MountStateCase::Unknown: return "unknown";
+	default: return "Invalid variant";
+	}
+}
 
 
 std::vector<capi::Entity> Util::pointsInRadius(std::vector<capi::Entity> toCheck, capi::Position2D Center, float Range)

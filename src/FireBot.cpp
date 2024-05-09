@@ -981,10 +981,10 @@ Card FireBot::CARD_ID_to_SMJ_CARD(capi::CardId card_id)
 std::vector<capi::Command> FireBot::sPanicDef(const capi::GameState& state)
 {
 	MISS;
-	bool OnWall;
+	//bool OnWall;
 	auto vReturn = std::vector<capi::Command>();
 	capi::Entity myOrb = entitiesTOentity(myId, state.entities.token_slots)[0];
-
+	
 	if (iWallReady == -1)
 	{
 		//Find My Wall
@@ -1006,14 +1006,14 @@ std::vector<capi::Command> FireBot::sPanicDef(const capi::GameState& state)
 			iWallReady = -2;
 		}
 	}
-		
+	
 	//Spawn Archers
 	unsigned int iArchers = CardPicker(99, 99, Archer);
 	if (state.players[imyPlayerIDX].power > SMJDeck[iArchers].powerCost)
 	{
 		vReturn.push_back(MIS_CommandProduceSquad(iArchers, capi::to2D(myOrb.position)));
 	}
-	
+
 	//Archers on the Wall
 	
 	std::vector < capi::Entity> myBarrier = entitiesTOentity(myId, state.entities.barrier_modules);
@@ -1025,8 +1025,7 @@ std::vector<capi::Command> FireBot::sPanicDef(const capi::GameState& state)
             {
                 myBarrier.erase(myBarrier.begin() + i);
                 goto GateLoopOut;
-            }
-	
+            }	
     GateLoopOut:
 
 
@@ -1036,23 +1035,19 @@ std::vector<capi::Command> FireBot::sPanicDef(const capi::GameState& state)
 		return vReturn;
 	}
 
-	for (auto S : Bro->U->pointsInRadius(entitiesTOentity(myId, state.entities.squads), capi::to2D(myOrb.position), 50))
-	{
-		OnWall = false;
-		for (auto E : S.effects)
-		{
-            if (E.id % 1000000 == 554) // Effect for: Generic_FigureOnWall_IncomingDamageReduction
-                OnWall = true;			
-		}
-		if (OnWall == false)
-		{
-			capi::Entity A;
-			capi::Entity B;
 
-			Bro->U->CloseCombi({ S }, myBarrier, A, B);
-			vReturn.push_back(MIS_CommandGroupEnterWall({ S.id }, B.id));
-		}
-	}
+	
+	for (auto S : Bro->U->pointsInRadius(entitiesTOentity(myId, state.entities.squads), capi::to2D(myOrb.position), 50))
+		for (auto A : S.aspects)
+			if (A.variant_case == capi::AspectCase::MountBarrier)		
+				if (A.variant_union.mount_barrier.state.variant_case == capi::MountStateCase::Unmounted)
+				{
+					capi::Entity A;
+					capi::Entity B;
+
+					Bro->U->CloseCombi({ S }, myBarrier, A, B);
+					vReturn.push_back(MIS_CommandGroupEnterWall({ S.id }, B.id));
+				}
 
 	// // Check if we have def. -> Then Stage
 	
@@ -1068,25 +1063,10 @@ std::vector<capi::Command> FireBot::sDisablePanicDef(const capi::GameState& stat
 	MISS;
 	
 	auto vReturn = std::vector<capi::Command>();
-	/*
 	for (auto B : entitiesTOentity(myId, state.entities.barrier_sets))
-	{
-		// KILL WALL
-	}
+		vReturn.push_back(MIS_CommandGroupKillEntity({ B.id }));
 
 	iWallReady = 70 * 10; //ready in ~65 sec
-	*/
-
-
-	std::vector < capi::Entity> myBarrier = entitiesTOentity(myId, state.entities.barrier_modules);
-
-	//Remove Gate from Vector
-	for (auto B: myBarrier)
-		for (auto A : B.aspects)
-			if (A.variant_case == capi::AspectCase::BarrierGate)			
-				if (A.variant_union.barrier_gate.open == false)
-					vReturn.push_back(MIS_CommandBarrierGateToggle(B.id));
-			
 
 	bStage = true;
 

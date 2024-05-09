@@ -55,6 +55,7 @@ public:
 	std::string switchAbilityEffectSpecific(capi::AbilityEffectSpecific& v);
 	std::string switchAreaShape(capi::AreaShape& v);
 	std::string switchAspect(capi::Aspect& v);
+	std::string switchMountStatet(capi::MountState& v);
 	/////////////////
 
 	/////////////////

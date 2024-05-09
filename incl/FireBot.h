@@ -113,6 +113,12 @@ capi::Command MIS_CommandBarrierGateToggle(capi::EntityId _ID)
 	BarrierGateToggle.barrier_id = _ID;
 	return capi::Command(BarrierGateToggle);
 }
+capi::Command MIS_CommandGroupKillEntity(std::vector<capi::EntityId> _Units)
+{
+	auto GroupKillEntity = capi::CommandGroupKillEntity();
+	GroupKillEntity.entities = _Units;
+	return capi::Command(GroupKillEntity);
+}
 /////////////////
 
 
