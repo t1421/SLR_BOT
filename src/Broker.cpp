@@ -20,11 +20,14 @@ broker::broker()
 	CardBaseSMJ::learnBro(this);
 	J = NULL;
 
+#ifndef MIS_Online
+
 	Util::learnBro(this);
 	U = NULL;
 
 	LOAD::learnBro(this);
 	L = NULL;
+#endif // !MIS_Online
 }
 
 #ifdef MIS_DEBUG
