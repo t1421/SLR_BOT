@@ -27,10 +27,13 @@ public:
 	bool AllTick;
 	bool BattleTable;
 	bool LowHPMover;
+	bool InstantRepair;
 	
 	unsigned int Port;
 	std::string Name;
 	std::string Settings;
+
+	std::vector<std::pair<int, int> > vStrategy;	
 
 	//BROKER
 	static broker* Bro;
@@ -42,6 +45,7 @@ protected:
 	void Load_Settings();
 private:
 	std::string entry(std::string Liste, int pos);
+	std::string entry(std::string Liste, int pos, std::string delimiter);
 	bool INI_Value_Check(std::string& check, std::string name);
 
 

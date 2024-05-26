@@ -13,6 +13,7 @@ void LOAD::Load_Settings()
 {
 	MISS;
 	std::string line;
+	int iStrategyCount = 0;
 	if(Settings=="") Settings = "Settings.ini";
 
 	std::ifstream ifFile;
@@ -32,12 +33,25 @@ void LOAD::Load_Settings()
 			if (INI_Value_Check(line, "AvoidArea"))AvoidArea = line.substr(0, 1) != "0";
 			if (INI_Value_Check(line, "BattleTable"))BattleTable = line.substr(0, 1) != "0";
 			if (INI_Value_Check(line, "LowHPMover"))LowHPMover = line.substr(0, 1) != "0";
+			if (INI_Value_Check(line, "InstantRepair"))InstantRepair = line.substr(0, 1) != "0";
+			
 
 			if (INI_Value_Check(line, "Port") && Port == 0)Port = atoi(line.c_str());
 			if (INI_Value_Check(line, "Name") && Name == "")Name = line.c_str();
 			
 			if (INI_Value_Check(line, "DrawAvoidArea"))DrawAvoidArea = line.substr(0, 1) != "0";
 			if (INI_Value_Check(line, "AllTick"))AllTick = line.substr(0, 1) != "0";
+
+			if (INI_Value_Check(line, "Strategy"))
+			{
+				iStrategyCount = 0;
+				for (char character : line)if (character == ',')iStrategyCount++;
+				for (unsigned int i = 0; i < iStrategyCount + 1; i++)
+					vStrategy.push_back(std::make_pair(
+						atoi(entry(entry(line, 0 + i, ","), 0, "|").c_str()),
+						atoi(entry(entry(line, 0 + i, ","), 1, "|").c_str())
+					));				
+			}
 			
 			
 			ifFile.clear();
@@ -65,11 +79,16 @@ void LOAD::StartUp()
 
 std::string LOAD::entry(std::string Liste, int pos)
 {
-	if (pos == 0)return Liste.substr(0, Liste.find(";"));
+	return entry(Liste, pos, ";");
+}
+
+std::string LOAD::entry(std::string Liste, int pos, std::string delimiter)
+{
+	if (pos == 0)return Liste.substr(0, Liste.find(delimiter));
 	else
 	{
-		Liste.erase(0, Liste.find(";") + 1);
-		return entry(Liste, pos - 1);
+		Liste.erase(0, Liste.find(delimiter) + 1);
+		return entry(Liste, pos - 1, delimiter);
 	}
 }
 
@@ -85,6 +104,7 @@ bool LOAD::INI_Value_Check(std::string& check, std::string name)
 		return false;
 	}
 }
+
 
 void LOAD::EchoSettings()
 {
@@ -103,9 +123,13 @@ void LOAD::EchoSettings()
 	MISERROR("# UnitEruption = " + std::to_string(UnitEruption));
 	MISERROR("# AvoidArea    = " + std::to_string(AvoidArea));
 	MISERROR("# BattleTable  = " + std::to_string(BattleTable));
+	MISERROR("# InstantRepair= " + std::to_string(InstantRepair));
 	MISERROR("########################");	
 	MISERROR("# DrawAvoidArea= " + std::to_string(DrawAvoidArea));	
 	MISERROR("# AllTick      = " + std::to_string(AllTick));
+	MISERROR("########################");
+	MISERROR("Strategy");
+	for (auto S: vStrategy)MISERROR(std::to_string(S.first) + " - " + std::to_string(S.second));
 	MISERROR("########################");
 	MISE;
 }

@@ -60,5 +60,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="settings.ini" />
+    <None Include="settings1.ini" />
+    <None Include="settings2.ini" />
   </ItemGroup>
 </Project>

@@ -189,6 +189,8 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="settings.ini" />
+    <None Include="settings1.ini" />
+    <None Include="settings2.ini" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

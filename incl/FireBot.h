@@ -119,6 +119,14 @@ capi::Command MIS_CommandGroupKillEntity(std::vector<capi::EntityId> _Units)
 	GroupKillEntity.entities = _Units;
 	return capi::Command(GroupKillEntity);
 }
+capi::Command MIS_CommandRepairBuilding(capi::EntityId _building_id)
+{
+	auto RepairBuilding = capi::CommandRepairBuilding();
+	RepairBuilding.building_id = _building_id;
+	return capi::Command(RepairBuilding);
+}
+
+
 /////////////////
 
 
@@ -173,14 +181,19 @@ private:
 	void EchoBattleTable(BattleTable BT);
 	int NextCardSpawn;
 
+	std::vector<capi::Command> InstantRepairFunction(const capi::GameState& state);
+	MIS_thread InstantRepair;
+
 	std::vector< capi::EntityId> vSaveUnit;
 	Card CARD_ID_to_SMJ_CARD(capi::CardId card_id);
 
 	int iWallReady;
+	int iMyWells;
 
 	//STAGE
 	Stages eStage;
-	Stages eNextStage;
+	int iStageValue;
+	void ChangeStrategy(Stages _Stage, int _Value);
 	bool bStage;
 	bool Stage(const capi::GameState& state);
 	std::vector<capi::Command> sWaitForOP(const capi::GameState& state);

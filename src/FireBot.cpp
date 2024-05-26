@@ -2,6 +2,8 @@
 
 
 
+
+
 #include "../incl/FireBot.h"
 #include "../incl/CardBaseSMJ.h"
 #include "../incl/Util.h"
@@ -17,11 +19,11 @@ void FireBot::PrepareForBattle(const capi::MapInfo& mapInfo, const capi::Deck& d
 	MaxAvoidID = 0;
 	NextCardSpawn = -1;
 	iWallReady = -1;
+	iMyWells = -1;
 
-	eNextStage = NoStage;
-	if(Bro->L->BattleTable)eStage = WaitForOP;
-	else eStage = BuildWell;
-	bStage = false;
+//if mapInfo.map == 1003 -> no Panic Def
+	eStage = NoStage;
+	bStage = true;
 
 	vSaveUnit.clear();
 	SMJDeck.clear();
@@ -29,14 +31,6 @@ void FireBot::PrepareForBattle(const capi::MapInfo& mapInfo, const capi::Deck& d
 #ifdef MIS_Stream 
 	Bro->L_GamesPlus();
 #endif
-
-
-	////////////////////////////////////
-	eStage = PanicDef;
-	eNextStage = DisablePanicDef;
-	////////////////////////////////////
-
-
 
 	MISE;
 }
@@ -115,6 +109,7 @@ void FireBot::MatchStart(const capi::GameStartState& state)
 	}
 	else CoolEruptionTest.s = true;
 	GlobalBattleTable.s = true;
+	InstantRepair.s = true;
 		
 	MISE;
 }
@@ -136,7 +131,9 @@ std::vector<capi::Command> FireBot::Tick(const capi::GameState& state)
 			MISERROR("# dump     = Save tick        ");
 			MISERROR("# bt       = Print BattleTable");
 			MISERROR("# stage    = Go to next stage ");
+			MISERROR("# st       = echo strategy    ");
 			MISERROR("------------------------------");
+			Bro->sComand = "";
 		}
 
 		if (Bro->sComand == "dump")
@@ -152,13 +149,23 @@ std::vector<capi::Command> FireBot::Tick(const capi::GameState& state)
 		{
 			EchoBattleTable(myBT);
 			EchoBattleTable(opBT);
+			Bro->sComand = "";
 		}
 
 		if (Bro->sComand == "stage")
 		{
 			bStage = true;
+			Bro->sComand = "";
 		}
-		Bro->sComand = "";
+
+		if (Bro->sComand == "st")
+		{
+			for (auto S : Bro->L->vStrategy)MISERROR(std::to_string(S.first) + " - " + std::to_string(S.second));
+			Bro->sComand = "";
+		}
+
+		
+		//Bro->sComand = "";
 	}
 #endif
 
@@ -177,7 +184,7 @@ std::vector<capi::Command> FireBot::Tick(const capi::GameState& state)
 	}
 	if (iWallReady >= 0)iWallReady--;
 
-	if (state.current_tick % 100)Stage(state);
+	if (state.current_tick % 10)Stage(state);
 
 	
 		
@@ -209,7 +216,7 @@ std::vector<capi::Command> FireBot::Tick(const capi::GameState& state)
 	}
 
 	/////////////THREADS////////////////
-
+	
 	//Cool eruption
 	if (Bro->L->UnitEruption && CoolEruptionTest.s)
 	{
@@ -217,12 +224,17 @@ std::vector<capi::Command> FireBot::Tick(const capi::GameState& state)
 		CoolEruptionTest.s = false; // dont start again
 	}
 	
-	if (Bro->L->BattleTable && GlobalBattleTable.s && state.current_tick % 50)
+	if (Bro->L->BattleTable && GlobalBattleTable.s && state.current_tick % 20 == 1)
 	{
 		GlobalBattleTable.fb = std::async(&FireBot::CalGlobalBattleTable, this, state);
 		GlobalBattleTable.s = false; // dont start again
 	}
 	
+	if (Bro->L->InstantRepair && InstantRepair.s && state.current_tick % 20 == 1)
+	{
+		InstantRepair.fc = std::async(&FireBot::InstantRepairFunction, this, state);
+		InstantRepair.s = false; // dont start again
+	}
 
 	////////////////Starters ////////////////////
 	
@@ -261,11 +273,24 @@ std::vector<capi::Command> FireBot::Tick(const capi::GameState& state)
 			for (auto vv : CoolEruptionTest.fc.get())v.push_back(vv);
 			CoolEruptionTest.s = true;
 		}
-	
 	if (Bro->L->BattleTable && GlobalBattleTable.s == false)
 		if (GlobalBattleTable.fb.wait_for(0ms) == std::future_status::ready)
 			GlobalBattleTable.s = true;
-	
+	if (Bro->L->InstantRepair && InstantRepair.s == false)
+		if (InstantRepair.fc.wait_for(0ms) == std::future_status::ready)
+		{
+			for (auto vv : InstantRepair.fc.get())v.push_back(vv);
+			InstantRepair.s = true;
+
+			if (Bro->sComand == "dumpx")
+			{
+				auto effect_json = nlohmann::json(v).dump();
+				std::ofstream file("DUMPX_at_" + std::to_string(state.current_tick) + ".json");
+				file << effect_json << std::endl;
+				file.close();
+				Bro->sComand = "";
+			}
+		}
 
 	//Fight -> pick best unit to kill (counters)
 
@@ -275,6 +300,7 @@ std::vector<capi::Command> FireBot::Tick(const capi::GameState& state)
 	//dont cast unit int avoid area
 
 	//Iff rooted skip order to move out of avoid
+
 
 	return v;
 }
@@ -297,6 +323,9 @@ std::vector<capi::Command> FireBot::CoolEruption(const capi::GameState& state)
 		vSquad = Bro->U->SquadsInRadius(opId, state.entities.squads, capi::to2D(U.entity.position), 10);
 		if (vSquad.size() >= 3)
 		{
+
+			/// Check if Units Is Skyfire and <300 HP -> Erupt
+
 			iUnitCount = 0;
 			iUnitCountH = 0;
 			for (auto S : vSquad)
@@ -324,6 +353,21 @@ std::vector<capi::Command> FireBot::CoolEruption(const capi::GameState& state)
 
 	MISE;
 	return vReturn;	
+}
+
+std::vector<capi::Command> FireBot::InstantRepairFunction(const capi::GameState& state)
+{
+	MISS;
+
+	auto vReturn = std::vector<capi::Command>();			
+	for (auto E : entitiesTOentity(myId, state.entities.power_slots, state.entities.token_slots))
+		for (auto A : E.aspects)
+			if (A.variant_case == capi::AspectCase::Health)
+				if (A.variant_union.health.current_hp != A.variant_union.health.cap_current_max)
+					vReturn.push_back(MIS_CommandRepairBuilding(E.id));
+	//MISD(vReturn.size());
+	MISE;
+	return vReturn;
 }
 
 int FireBot::CardPicker(unsigned int opSize, unsigned int opCounter, CardPickCrit Crit)
@@ -596,45 +640,80 @@ void FireBot::FindAvoidArea(const capi::GameState& state)
 	MISE;
 }
 
+void FireBot::ChangeStrategy(Stages _Stage, int _Value)
+{
+	Bro->L->vStrategy.insert(Bro->L->vStrategy.begin(), std::make_pair(_Stage, _Value));
+	bStage = true;
+}
+
 bool FireBot::Stage(const capi::GameState& state)
 {
 	MISS;
-	Stages inStage = eStage;
 
-	if (bStage && eNextStage != NoStage)
+	if (bStage && Bro->L->vStrategy.size() >0)
 	{
-		MISD("NextStage Switch: " + std::to_string(inStage) + "->" + std::to_string(eStage));
-		eStage = eNextStage;
-		eNextStage = NoStage;	
+		MISD("Old Stage: " + std::to_string(eStage) + "(" + std::to_string(iStageValue) + ")");
+		eStage = (Stages)Bro->L->vStrategy[0].first;
+		iStageValue = Bro->L->vStrategy[0].second;
 		bStage = false;
+		Bro->L->vStrategy.erase(Bro->L->vStrategy.begin());
+		MISD("New Stage: " + std::to_string(eStage) + "(" + std::to_string(iStageValue) + ")");
+		if(Bro->L->vStrategy.size() == 0)Bro->L->vStrategy.insert(Bro->L->vStrategy.begin(), std::make_pair(Fight, 0));
+		return true;
 	}
+
+	if (Bro->U->pointsInRadius(entitiesTOentity(opId, state.entities.squads),
+		capi::to2D(entitiesTOentity(myId, state.entities.token_slots)[0].position),
+		100).size() >= 3
+		&&
+		Bro->U->pointsInRadius(entitiesTOentity(myId, state.entities.squads),
+			capi::to2D(entitiesTOentity(myId, state.entities.token_slots)[0].position),
+			100).size() <= 1
+		)ChangeStrategy(PanicDef, 0);
+		
+		
 	
+		
+
+
+
+
+
+
 
 	switch (eStage)
 	{
 	case WaitForOP:
-		if (state.current_tick >= 100 || bStage)eStage = BuildWell;
+		if (state.current_tick >= 100)ChangeStrategy(GetUnit, 0);
 		break;
-	case BuildWell:
-		if (bStage)eStage = SavePower;
-		break;
+	
 	case SavePower:
-		if (state.players[imyPlayerIDX].power > 100 || bStage)eStage = Fight;
-		break;
-	case PanicDef:
-		if (bStage)eStage = DisablePanicDef;
-		break;
-	case DisablePanicDef:
-		if (bStage)eStage = Fight;
+		//MISD(std::to_string((int)state.players[imyPlayerIDX].power) + " > " + std::to_string(iStageValue));
+		
+		if ((int)state.players[imyPlayerIDX].power > iStageValue)bStage = true;
 		break;
 
-	case GetUnit:  //Manuel Stageing with eNextStage		
+	
+		
+	case PanicDef:
+		if (Bro->U->pointsInRadius(entitiesTOentity(opId, state.entities.squads),
+			capi::to2D(entitiesTOentity(myId, state.entities.token_slots)[0].position),
+			100).size() == 0)ChangeStrategy(DisablePanicDef, 0);
+			break;
+	case GetUnit:  //Manuel Stageing with eNextStage	
+		if (entitiesTOentity(myId, state.entities.squads).size() > 0)bStage = true;
+		break;
+
+	case DisablePanicDef:
+//		if(entitiesTOentity(myId, state.entities.barrier_sets).size() == 0)bStage = true;
+//		break;
+	case BuildWell:
 	case SpamBotX: //Never Stages xD
 	case Fight: //Never Stages xD
 		break;
 	}
 	
-	bStage = false;
+	//bStage = false;
 	//if units close to my Well / Orb -> Def.
 
 	//if nothing to do - maybe Save Power
@@ -644,10 +723,9 @@ bool FireBot::Stage(const capi::GameState& state)
 	//if Def is done -> Atack
 	//Or when power is saved
 	//or when OP build well
-
-	if(inStage != eStage)MISD("Switch: " + std::to_string(inStage) + "->" + std::to_string(eStage));
+	
 	MISE;
-	return inStage != eStage;
+	return false;;
 }
 
 
@@ -773,13 +851,22 @@ std::vector<capi::Command> FireBot::sBuildWell(const capi::GameState& state)
 	MISS;
 
 	auto vReturn = std::vector<capi::Command>();
+	
+	if (iMyWells == -1)
+		iMyWells = entitiesTOentity(myId, state.entities.power_slots).size();
+	if (iMyWells != -1 && iMyWells != entitiesTOentity(myId, state.entities.power_slots).size())
+	{
+		iMyWells = -1;
+		bStage = true;
+		MISD("!!! bStage !!!");
+		MISEA("Build");
+		return vReturn;
+	}
 
 	// We need a Unit to go to the well
 	if (entitiesTOentity(myId, state.entities.squads).size() == 0)
 	{
-		eNextStage = BuildWell;
-		eStage = GetUnit;
-		MISEA("No Units");
+		ChangeStrategy(GetUnit, 0);
 		return vReturn;
 	}
 
@@ -792,15 +879,9 @@ std::vector<capi::Command> FireBot::sBuildWell(const capi::GameState& state)
 
 	if (A.player_entity_id == myId)
 	{
-		//if (A.job.variant_case != capi::JobCase::Goto && fDistanc > CastRange)
 		vReturn.push_back(MIS_CommandGroupGoto({ A.id }, capi::to2D(B.position), capi::WalkMode_Normal));
-
 		if (fDistanc < CastRange && state.players[imyPlayerIDX].power >= 100)
-		{
-			vReturn.push_back(capi::Command(MIS_CommandPowerSlotBuild(B.id)));
-			bStage = true;
-			MISD("!!! bStage !!!")
-		}
+			vReturn.push_back(capi::Command(MIS_CommandPowerSlotBuild(B.id)));			
 	}
 	MISE;
 	return vReturn;
@@ -882,15 +963,15 @@ std::vector<capi::Command> FireBot::sFight(const capi::GameState& state)
 	//NO unit? get any unit
 	if (mySquat.size() == 0)
 	{
-		eNextStage = Fight;
-		eStage = GetUnit;
-		MISEA("No Units");
+		ChangeStrategy(GetUnit, 0);
+		MISEA("No Units change Stage");
 		return vReturn;
 	}
 	else for (auto S : mySquat)
-	{
+	{		
 		if (S.entity.job.variant_case == capi::JobCase::AttackSquad || fDistanc < CastRange * 3) // Unit in Combet pr near
 		{
+			if (CARD_ID_to_SMJ_CARD(S.card_id).attackType == 1)
 			if (std::find(vSaveUnit.begin(), vSaveUnit.end(), S.entity.id) == vSaveUnit.end())
 				for (auto F : state.entities.figures)
 					if(F.squad_id == S.entity.id)
@@ -912,7 +993,7 @@ std::vector<capi::Command> FireBot::sFight(const capi::GameState& state)
 				capi::Position2D SpawnPos;
 
 				//if well near by go there
-				std::vector<capi::Entity> UnDazed = Bro->U->pointsInRadius(entitiesTOentity(myId, state.entities.power_slots, state.entities.token_slots), capi::to2D(S.entity.position), FightRange);
+				std::vector<capi::Entity> UnDazed = Bro->U->pointsInRadius(entitiesTOentity(myId, state.entities.power_slots, state.entities.token_slots), capi::to2D(S.entity.position), 25);
 				if (UnDazed.size() > 0)
 				{
 					MISD("Spawn undazed");
@@ -965,8 +1046,6 @@ std::vector<capi::Command> FireBot::sFight(const capi::GameState& state)
 Card FireBot::CARD_ID_to_SMJ_CARD(capi::CardId card_id)
 {
 	//MISS
-	MISD("CARD_ID_to_SMJ_CARD");
-
 	//in my Deck?
 	for (auto C : SMJDeck)if (C.officialCardIds == card_id % 1000000)return C;
 	//in op Deck?
@@ -1017,12 +1096,13 @@ std::vector<capi::Command> FireBot::sPanicDef(const capi::GameState& state)
 	//Archers on the Wall
 	
 	std::vector < capi::Entity> myBarrier = entitiesTOentity(myId, state.entities.barrier_modules);
-
+	capi::Position GatePos;
 	//Remove Gate from Vector
 	for (unsigned int i = 0; i < myBarrier.size() ;i++)
 		for(auto A: myBarrier[i].aspects)
-            if (A.variant_case == capi::AspectCase::BarrierGate)
-            {
+			if (A.variant_case == capi::AspectCase::BarrierGate)
+			{
+				GatePos = myBarrier[i].position;
                 myBarrier.erase(myBarrier.begin() + i);
                 goto GateLoopOut;
             }	
@@ -1049,7 +1129,12 @@ std::vector<capi::Command> FireBot::sPanicDef(const capi::GameState& state)
 					vReturn.push_back(MIS_CommandGroupEnterWall({ S.id }, B.id));
 				}
 
-	// // Check if we have def. -> Then Stage
+	
+	// Get Idle Units to help
+	for (auto E : entitiesTOentity(myId, state.entities.squads))
+		if(Bro->U->distance(capi::to2D(E.position), capi::to2D(GatePos))>25)
+		if (E.job.variant_case == capi::JobCase::Idle)
+			vReturn.push_back(MIS_CommandGroupGoto({ E.id }, capi::to2D(GatePos), capi::WalkMode_Normal));
 	
 	MISE;
 	return vReturn;
