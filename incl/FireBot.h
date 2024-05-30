@@ -63,6 +63,15 @@ struct MIS_AvoidArea
 };
 
 
+struct MIS_RejectCheck
+{
+	capi::Command orgCommand;
+	capi::Command lastCommand;
+	unsigned int retry;
+	bool rejected;
+
+	MIS_RejectCheck(capi::Command _C) :orgCommand(_C), lastCommand(_C), retry(0), rejected(false) {};
+};
 
 
 /////////////////
@@ -157,6 +166,8 @@ private:
 	BattleTable opBT;
 	capi::Position2D myStart;
 
+	capi::MapInfo mapinfo;
+
 	unsigned int iSkipTick;
 
 	//Instand Functions
@@ -184,11 +195,18 @@ private:
 	std::vector<capi::Command> InstantRepairFunction(const capi::GameState& state);
 	MIS_thread InstantRepair;
 
+	void RemoveFromSaveUnit(const capi::GameState& state);
 	std::vector< capi::EntityId> vSaveUnit;
 	Card CARD_ID_to_SMJ_CARD(capi::CardId card_id);
 
 	int iWallReady;
 	int iMyWells;
+	int iPanicDefCheck;
+
+	std::vector<MIS_RejectCheck> RejectedComamandChecklist;
+	void CleanUpRejectedComamandChecklist();
+	std::vector<capi::Command> Handel_CardRejected_ProduceSquad(capi::Command cIN); // , std::vector<capi::Command>& addHere);
+	
 
 	//STAGE
 	Stages eStage;
