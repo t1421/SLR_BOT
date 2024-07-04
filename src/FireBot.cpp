@@ -728,7 +728,7 @@ bool FireBot::Stage(const capi::GameState& state)
 	
 		
 	case PanicDef:
-		if (Bro->U->pointsInRadius(entitiesTOentity(opId, state.entities.squads),
+		if(vETemp.size() > 0)if (Bro->U->pointsInRadius(entitiesTOentity(opId, state.entities.squads),
 			capi::to2D(vETemp[0].position),
 			100).size() == 0)ChangeStrategy(DisablePanicDef, 0);
 		if (iPanicDefCheck >= 10)
