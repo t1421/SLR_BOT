@@ -97,3 +97,11 @@ bool FireBot::WellKiller(std::vector<capi::Command>& vMain, std::vector<capi::En
 	MISE;
 	return false;
 }
+
+float FireBot::GetAspect(capi::Entity E, capi::AspectCase Asp)
+{	
+	for (auto A : E.aspects)
+		if (A.variant_case == Asp && Asp == capi::AspectCase::Health)
+			return A.variant_union.health.current_hp;
+	return 0;
+}

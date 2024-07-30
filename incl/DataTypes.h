@@ -139,4 +139,20 @@ struct BattleTable
             for (unsigned int iSize = 0; iSize < 4; iSize++)
                 SizeCounter[iSize][iCounter] = 0;
     };
+
+    unsigned int SumSize(unsigned int iSize)
+    {
+        unsigned int iReturn = 0;
+        for (unsigned int iCounter = 0; iCounter < 5; iCounter++)
+            iReturn += SizeCounter[iSize][iCounter];
+        return iReturn;
+    }
+
+    unsigned int SumCounter(unsigned int iCounter)
+    {
+        unsigned int iReturn = 0;
+        for (unsigned int iSize = 0; iSize < 4; iSize++)
+            iReturn += SizeCounter[iSize][iCounter];
+        return iReturn;
+    }
 };

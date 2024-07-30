@@ -66,3 +66,39 @@ void FireBot::EchoBattleTable(BattleTable BT)
 	}
 	MISE;
 }
+
+bool FireBot::MoreUnitsNeeded(BattleTable myBT, BattleTable opBT)
+{
+	std::vector<int> temp;
+	return MoreUnitsNeeded(myBT, opBT,temp);
+}
+
+bool FireBot::MoreUnitsNeeded(BattleTable myBT, BattleTable opBT, std::vector<int>& PowerLevel)
+{
+	MISS;
+	
+	PowerLevel.clear();
+
+	for (unsigned int iSize = 0; iSize < 4; iSize++)
+		PowerLevel.push_back(myBT.SumCounter(iSize) - opBT.SumSize(iSize));
+
+	int total = 0;
+	for (auto i : PowerLevel)
+	{
+		total += i;
+		if (i < -250)
+		{
+			MISEA("More stuff");
+			return true;
+		}
+	}
+
+	if (total < -500)
+	{
+		MISEA("More stuff2");
+		return true;
+	}
+
+	MISEA("all fine");
+	return false;
+}

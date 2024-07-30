@@ -179,6 +179,7 @@ private:
 	std::vector<capi::Command> MoveUnitsAway(const capi::GameState& state);
 	std::vector<MIS_AvoidArea *> vAvoid;
 	capi::EntityId MaxAvoidID;
+	
 
 	//
 	int CardPickerFromBT(BattleTable BT, CardPickCrit Crit, unsigned int Tier);
@@ -193,6 +194,8 @@ private:
 	MIS_thread GlobalBattleTable;
 	void EchoBattleTable(BattleTable BT);
 	int NextCardSpawn;
+	bool MoreUnitsNeeded(BattleTable myBT, BattleTable opBT);
+	bool MoreUnitsNeeded(BattleTable myBT, BattleTable opBT, std::vector<int> &PowerLevel);
 
 	std::vector<capi::Command> InstantRepairFunction(const capi::GameState& state);
 	MIS_thread InstantRepair;
@@ -210,6 +213,8 @@ private:
 	void CleanUpRejectedComamandChecklist();
 	std::vector<capi::Command> Handel_CardRejected_ProduceSquad(capi::Command cIN); // , std::vector<capi::Command>& addHere);
 	
+	std::vector<capi::Command>  IdleToFight(const capi::GameState& state);
+	float GetAspect(capi::Entity E, capi::AspectCase A);
 
 	//STAGE
 	Stages eStage;

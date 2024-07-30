@@ -24,3 +24,30 @@ void FireBot::ChangeStrategy(Stages _Stage, int _Value)
 	Bro->L->vStrategy.insert(Bro->L->vStrategy.begin(), std::make_pair(_Stage, _Value));
 	bStage = true;
 }
+
+
+std::vector<capi::Command>  FireBot::IdleToFight(const capi::GameState& state)
+{
+	auto vReturn = std::vector<capi::Command>();
+	capi::Entity A;
+	capi::Entity B;
+
+	for(auto S: Bro->U->FilterSquad(myId, state.entities.squads))
+		if (S.entity.job.variant_case == capi::JobCase::Idle)
+		{
+			//Units Close By
+			std::vector<capi::Squad> STemp = Bro->U->SquadsInRadius(opId, state.entities.squads, capi::to2D(S.entity.position), FightRange);
+			if (STemp.size() > 0)
+			{
+				vReturn.push_back(MIS_CommandGroupAttack({ S.entity.id }, STemp[0].entity.id));
+			}
+			else
+			{
+				Bro->U->CloseCombi({ S.entity },
+					entitiesTOentity(opId, state.entities.power_slots, state.entities.token_slots, state.entities.squads), A, B);
+				vReturn.push_back(MIS_CommandGroupGoto({ S.entity.id }, capi::to2D(B.position), capi::WalkMode_Normal));
+			}
+		}
+
+	return vReturn;
+}

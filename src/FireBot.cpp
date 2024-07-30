@@ -428,7 +428,11 @@ bool FireBot::Stage(const capi::GameState& state)
 		break;
 	case BuildWell:
 	case SpamBotX: //Never Stages xD
-	case Fight: //Never Stages xD
+	case Fight: 
+		if (entitiesTOentity(myId, state.entities.squads).size() == 0)ChangeStrategy(DefaultDef, 150);
+		for (auto B : entitiesTOentity(myId, state.entities.power_slots, state.entities.token_slots))
+			if(Bro->U->SquadsInRadius(opId, state.entities.squads, capi::to2D(B.position), 25).size() > 0)
+				ChangeStrategy(DefaultDef, 75);
 		break;
 	}
 	
@@ -637,21 +641,8 @@ std::vector<capi::Command> FireBot::sFight(const capi::GameState& state)
 			}
 		}
 
-		if (S.entity.job.variant_case == capi::JobCase::Idle)
-		{
-			//Units Close By
-			std::vector<capi::Squad> STemp = Bro->U->SquadsInRadius(opId, state.entities.squads, capi::to2D(S.entity.position), FightRange);
-			if (STemp.size() > 0)
-			{
-				vReturn.push_back(MIS_CommandGroupAttack({ S.entity.id }, STemp[0].entity.id));
-			}
-			else
-			{
-				Bro->U->CloseCombi({ S.entity },
-					entitiesTOentity(opId, state.entities.power_slots, state.entities.token_slots, state.entities.squads), A, B);
-				vReturn.push_back(MIS_CommandGroupGoto({ S.entity.id }, capi::to2D(B.position), capi::WalkMode_Normal));
-			}
-		}
+
+		for (auto vv : IdleToFight(state))vReturn.push_back(vv);
 	}
 	MISE;
 	return vReturn;
@@ -790,13 +781,60 @@ std::vector<capi::Command> FireBot::sDefaultDef(const capi::GameState& state)
 	MISS;
 
 	auto vReturn = std::vector<capi::Command>();
+	capi::Entity A;
+	capi::Entity B;
+	BattleTable myBT_Area;
+	BattleTable opBT_Area;
+	float fDisntanc;
 
-	//fall back to Orb / Well range if range > 50
-	//if no OP in range 50 move on well for healing (check range >10)
-	//Wait for X energy, but spawn if OP Units + 1 >= MY Units (Battletabel)
+	std::vector < capi::Squad> opUnits;
+	std::vector < capi::Squad> myUnits;
 
-	bStage = true;
+	auto eBase = entitiesTOentity(myId, state.entities.power_slots, state.entities.token_slots);
 
+	//If units fare between 50 and 100 Pull bakc
+	// >100 will be send on a atack later
+	for (auto eSquat : entitiesTOentity(myId, state.entities.squads))
+	{
+		fDisntanc = Bro->U->CloseCombi({ eSquat }, eBase, A, B);
+		if (fDisntanc > 50 && fDisntanc < 100)
+			vReturn.push_back(MIS_CommandGroupGoto({ A.id }, capi::to2D(B.position), capi::WalkMode_Normal));
+	}
+	
+	for (auto EE : eBase)
+	{
+		//when no OP is close the get all units in range to get closer + NEXT
+		opUnits = Bro->U->SquadsInRadius(opId, state.entities.squads, capi::to2D(EE.position), 50);
+		myUnits = Bro->U->SquadsInRadius(myId, state.entities.squads, capi::to2D(EE.position), 50);
+		if (opUnits.size() == 0)
+		{
+			for (auto EEE : myUnits)
+				vReturn.push_back(MIS_CommandGroupGoto({ EEE.entity.id }, capi::to2D(EE.position), capi::WalkMode_Normal));
+
+			continue;
+		}
+
+		//If OP is close, calk battel tabels and may spwan renforcmenc
+		//or when base has low HP
+		else
+		{
+			myBT_Area = CalcBattleTable(myUnits);
+			opBT_Area = CalcBattleTable(opUnits);
+
+			if (MoreUnitsNeeded(myBT_Area, opBT_Area) || 
+				GetAspect(EE, capi::AspectCase::Health) < 1500)
+			{
+				vReturn.push_back(
+					MIS_CommandProduceSquad(
+						CardPickerFromBT(opBT_Area, None, (int)state.players[imyPlayerIDX].orbs.all),
+						capi::to2D(EE.position)));
+			}
+		}
+	}
+
+	//Ideal Units do stuff
+	for (auto vv : IdleToFight(state))vReturn.push_back(vv);
+				
 	MISE;
 	return vReturn;
 }
