@@ -184,6 +184,12 @@
     <ClInclude Include="incl\DataTypes.h" />
     <ClInclude Include="incl\DEBUG.h" />
     <ClInclude Include="incl\FireBot.h" />
+    <ClInclude Include="incl\FireBot_AvoidArea.h" />
+    <ClInclude Include="incl\FireBot_BattleTable.h" />
+    <ClInclude Include="incl\FireBot_CardPicker.h" />
+    <ClInclude Include="incl\FireBot_RejectedComamand.h" />
+    <ClInclude Include="incl\FireBot_Thread.h" />
+    <ClInclude Include="incl\FireBot_Util.h" />
     <ClInclude Include="incl\LOAD.h" />
     <ClInclude Include="incl\Util.h" />
   </ItemGroup>

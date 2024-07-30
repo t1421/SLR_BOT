@@ -57,6 +57,24 @@
     <ClInclude Include="incl\DataTypes.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
+    <ClInclude Include="incl\FireBot_Thread.h">
+      <Filter>Quelldateien</Filter>
+    </ClInclude>
+    <ClInclude Include="incl\FireBot_AvoidArea.h">
+      <Filter>Quelldateien</Filter>
+    </ClInclude>
+    <ClInclude Include="incl\FireBot_RejectedComamand.h">
+      <Filter>Quelldateien</Filter>
+    </ClInclude>
+    <ClInclude Include="incl\FireBot_BattleTable.h">
+      <Filter>Quelldateien</Filter>
+    </ClInclude>
+    <ClInclude Include="incl\FireBot_CardPicker.h">
+      <Filter>Quelldateien</Filter>
+    </ClInclude>
+    <ClInclude Include="incl\FireBot_Util.h">
+      <Filter>Quelldateien</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="settings.ini" />

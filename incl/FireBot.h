@@ -15,10 +15,8 @@
 using namespace std::chrono_literals;
 
 enum Stages
-{
-	Defend = 0,
+{	
 	BuildWell = 1,
-	BuildOrb = 2,
 	Attack = 3,
 	Fight = 4,
 	SavePower = 5,
@@ -29,6 +27,10 @@ enum Stages
 
 	PanicDef = 20,
 	DisablePanicDef = 21,
+	DefaultDef = 22,
+
+	Tier2 = 30,
+
 	NoStage = 99
 };
 
@@ -179,8 +181,8 @@ private:
 	capi::EntityId MaxAvoidID;
 
 	//
-	int CardPickerFromBT(BattleTable BT, CardPickCrit Crit);
-	int CardPicker(unsigned int opSize, unsigned int opCounter, CardPickCrit Crit);
+	int CardPickerFromBT(BattleTable BT, CardPickCrit Crit, unsigned int Tier);
+	int CardPicker(unsigned int opSize, unsigned int opCounter, CardPickCrit Crit, unsigned int Tier);
 
 	std::vector<capi::Command> CoolEruption(const capi::GameState& state);
 	MIS_thread CoolEruptionTest;
@@ -202,6 +204,7 @@ private:
 	int iWallReady;
 	int iMyWells;
 	int iPanicDefCheck;
+	int iTier2Ready;
 
 	std::vector<MIS_RejectCheck> RejectedComamandChecklist;
 	void CleanUpRejectedComamandChecklist();
@@ -221,6 +224,8 @@ private:
 	std::vector<capi::Command> sFight(const capi::GameState& state);
 	std::vector<capi::Command> sPanicDef(const capi::GameState& state);
 	std::vector<capi::Command> sDisablePanicDef(const capi::GameState& state);
+	std::vector<capi::Command> sTier2(const capi::GameState& state);
+	std::vector<capi::Command> sDefaultDef(const capi::GameState& state);
 
 	
 };

@@ -2,7 +2,6 @@
 
 
 // Memory Leak :-|
-// Ofset rjected command
 //What to do vs a WALL!!
 
 
@@ -11,7 +10,24 @@
 #include "../incl/Util.h"
 #include "../incl/LOAD.h"
 
+#include "../incl/FireBot_Thread.h"
+#include "../incl/FireBot_AvoidArea.h"
+#include "../incl/FireBot_RejectedComamand.h"
+#include "../incl/FireBot_BattleTable.h"
+#include "../incl/FireBot_CardPicker.h"
+#include "../incl/FireBot_Util.h"
+
 broker* (FireBot::Bro) = NULL;
+
+bool run_FireBot(broker* Bro, unsigned short port, std::string sName)
+{
+	MISS;
+	FireBot::learnBro(Bro);
+	auto bot = FireBot(sName);
+	run(bot, port);
+	MISE;
+	return true;
+}
 
 void FireBot::PrepareForBattle(const capi::MapInfo& mapInfo, const capi::Deck& deck)
 {
@@ -24,6 +40,7 @@ void FireBot::PrepareForBattle(const capi::MapInfo& mapInfo, const capi::Deck& d
 	iWallReady = -1;
 	iMyWells = -1;
 	iPanicDefCheck = 0;
+	iTier2Ready = -1;
 
 //if mapInfo.map == 1003 -> no Panic Def
 	eStage = NoStage;
@@ -120,7 +137,6 @@ void FireBot::MatchStart(const capi::GameStartState& state)
 	MISE;
 }
 
-
 std::vector<capi::Command> FireBot::Tick(const capi::GameState& state)
 {		
 	auto v = std::vector<capi::Command>();
@@ -204,6 +220,7 @@ std::vector<capi::Command> FireBot::Tick(const capi::GameState& state)
 	}
 	if (iWallReady >= 0)iWallReady--;
 	if (iPanicDefCheck < 0)iPanicDefCheck++;
+	if (iTier2Ready > 0)iTier2Ready--;
 
 	if (state.current_tick % 10)Stage(state);
 
@@ -282,6 +299,12 @@ std::vector<capi::Command> FireBot::Tick(const capi::GameState& state)
 		case DisablePanicDef:
 			for (auto vv : sDisablePanicDef(state))v.push_back(vv);
 			break;
+		case Tier2:
+			for (auto vv : sTier2(state))v.push_back(vv);
+			break;
+		case DefaultDef:
+			for (auto vv : sDefaultDef(state))v.push_back(vv);
+			break;
 	}
 
 
@@ -297,9 +320,11 @@ std::vector<capi::Command> FireBot::Tick(const capi::GameState& state)
 			for (auto vv : CoolEruptionTest.fc.get())v.push_back(vv);
 			CoolEruptionTest.s = true;
 		}
+
 	if (Bro->L->BattleTable && GlobalBattleTable.s == false)
 		if (GlobalBattleTable.fb.wait_for(0ms) == std::future_status::ready)
 			GlobalBattleTable.s = true;
+
 	if (Bro->L->InstantRepair && InstantRepair.s == false)
 		if (InstantRepair.fc.wait_for(0ms) == std::future_status::ready)
 		{
@@ -332,348 +357,6 @@ std::vector<capi::Command> FireBot::Tick(const capi::GameState& state)
 	return v;
 }
 
-std::vector<capi::Command> FireBot::CoolEruption(const capi::GameState& state)
-{
-	MISS;
-
-	auto vReturn = std::vector<capi::Command>();
-
-	unsigned int iUnitCount;
-	unsigned int iUnitCountH;
-
-	std::vector<capi::Squad> vSquad;
-	for (auto U : state.entities.squads)
-	{
-		
-		if (U.entity.player_entity_id != opId)continue;
-
-		vSquad = Bro->U->SquadsInRadius(opId, state.entities.squads, capi::to2D(U.entity.position), 10);
-		if (vSquad.size() >= 3)
-		{
-
-			/// Check if Units Is Skyfire and <300 HP -> Erupt
-
-			iUnitCount = 0;
-			iUnitCountH = 0;
-			for (auto S : vSquad)
-			{
-				iUnitCount++;
-				for (auto A : S.entity.aspects)
-				{
-					if (A.variant_case == capi::AspectCase::Health)
-						if (A.variant_union.health.current_hp <= 300)iUnitCountH++;
-				}
-			}
-			if (iUnitCountH >= 1 && iUnitCount >= 3
-				|| iUnitCountH >= 2 && iUnitCount >= 2)
-			{
-				MISD("FIRE !!!!");
-
-				auto spell = capi::CommandCastSpellGod();
-				spell.card_position = EruptionPos;
-				spell.target = capi::SingleTargetLocation(capi::to2D(U.entity.position));
-				vReturn.push_back(capi::Command(spell));
-				break; //only for one unit not all 3
-			}
-		}
-	}
-
-	MISE;
-	return vReturn;	
-}
-
-std::vector<capi::Command> FireBot::InstantRepairFunction(const capi::GameState& state)
-{
-	MISS;
-
-	auto vReturn = std::vector<capi::Command>();			
-	for (auto E : entitiesTOentity(myId, state.entities.power_slots, state.entities.token_slots))
-		for (auto A : E.aspects)
-			if (A.variant_case == capi::AspectCase::Health)
-				if (A.variant_union.health.current_hp != A.variant_union.health.cap_current_max)
-					vReturn.push_back(MIS_CommandRepairBuilding(E.id));
-	//MISD(vReturn.size());
-	MISE;
-	return vReturn;
-}
-
-int FireBot::CardPicker(unsigned int opSize, unsigned int opCounter, CardPickCrit Crit)
-{
-	MISS;
-	
-	
-	for (unsigned int i = 0; i < SMJDeck.size(); i++)
-	{
-		if (   (SMJDeck[i].offenseType == opSize || opSize == 99) 
-			&& (SMJDeck[i].defenseType != opCounter || opCounter==99))
-		{
-			switch (Crit)
-			{
-			case Swift:
-				for (Ability A : SMJDeck[i].abilities)
-					if (A.abilityIdentifier == "Swift")
-					{
-						MISEA("Swift: " + SMJDeck[i].cardName);
-						return i;
-					}
-				break;
-			case Archer:
-				if (SMJDeck[i].unitClass == "Archer")
-				{
-					MISEA("Archer: " + SMJDeck[i].cardName);
-					return i;
-				}				
-				break;
-			case NotS:
-				if (SMJDeck[i].defenseType == 0)break;
-			case NotM:
-				if (SMJDeck[i].defenseType == 1)break;
-			case NotL:
-				if (SMJDeck[i].defenseType == 2)break;
-
-			case None:
-			default:
-				MISEA("Default: " + SMJDeck[i].cardName)
-				return i;
-			}
-			
-		}				
-	}
-		
-	MISEA("No Card");
-	return -1;
-}
-
-int FireBot::CardPickerFromBT(BattleTable BT, CardPickCrit Crit)
-{
-	MISS;
-	int iReturn = -1;
-	unsigned int MaxSize = 0;
-	unsigned int MaxCounter = 0;
-	unsigned int MaxHealth = 0;
-
-	for (unsigned int iCounter = 0; iCounter < 5; iCounter++)
-		for (unsigned int iSize = 0; iSize < 4; iSize++)
-			if (MaxHealth < BT.SizeCounter[iSize][iCounter])
-			{
-				MaxSize = iSize;
-				MaxCounter = iCounter;
-				MaxHealth = BT.SizeCounter[iSize][iCounter];							
-			}
-
-	//Maybe check my own Battle Tabble if i have egnaut units of that type???
-
-	if ((iReturn = CardPicker(MaxSize, MaxCounter, Crit)) == -1)    //Perfect Counter
-		if ((iReturn = CardPicker(MaxSize, 9, Crit)) == -1)   //Counter of any Size
-			if ((iReturn = CardPicker(MaxSize, MaxCounter, None)) == -1)    //Perfect Counter, not Crits
-				if ((iReturn = CardPicker(MaxSize, 9, None)) == -1)   //Counter of any Size, not Crits
-					iReturn = -1; // I dont have a counter card???
-
-	// If size is XL do XYZ
-
-
-	if (iReturn == -1)
-	{
-		unsigned int iAvoidSize = MaxSize;
-		MaxSize = 0;
-		MaxCounter = 0;
-		MaxHealth = 0;
-		for (unsigned int iCounter = 0; iCounter < 5; iCounter++)
-			for (unsigned int iSize = 0; iSize < 4; iSize++)
-				if (MaxHealth < BT.SizeCounter[iSize][iCounter] && iAvoidSize != iSize)
-				{
-					MaxSize = iSize;
-					MaxCounter = iCounter;
-					MaxHealth = BT.SizeCounter[iSize][iCounter];
-				}
-		if ((iReturn = CardPicker(MaxSize, MaxCounter, Crit)) == -1)    //Perfect Counter
-			if ((iReturn = CardPicker(MaxSize, 9, Crit)) == -1)   //Counter of any Size
-				if ((iReturn = CardPicker(MaxSize, MaxCounter, None)) == -1)    //Perfect Counter, not Crits
-					if ((iReturn = CardPicker(MaxSize, 9, None)) == -1)   //Counter of any Size, not Crits
-						iReturn = -1; // I dont have a counter card???
-	}
-
-
-	if (iReturn == -1)iReturn = 0; // Play card 1
-	MISE;
-	return iReturn;
-}
-
-
-
-bool run_FireBot(broker* Bro, unsigned short port, std::string sName)
-{
-	MISS;
-	FireBot::learnBro(Bro);
-	auto bot = FireBot(sName);
-	run(bot, port);
-	MISE;
-	return true;
-}
-
-bool FireBot::WellKiller(std::vector<capi::Command> &vMain, std::vector<capi::Entity> Wells)
-{
-	MISS;	
-	for (auto W : Wells)
-	{
-		for (auto A : W.aspects)
-		{
-			//if (std::get_if<capi::AspectHealth>(&A.v))
-			if (A.variant_case==capi::AspectCase::Health)
-			{
-				if (A.variant_union.health.current_hp <= 300)
-				{
-					MISD("FIRE !!!!");
-					auto spell = capi::CommandCastSpellGod();
-					spell.card_position = EruptionPos;
-					// Spot on, maye chaneg to offset so i can hit units
-					spell.target = capi::SingleTargetLocation(capi::to2D(W.position));
-					vMain.push_back(capi::Command(spell));
-					return true;
-				}
-			}
-		}
-	}
-	MISE;
-	return false;
-}
-
-void FireBot::FindAvoidArea(const capi::GameState& state)
-{
-	MISS;
-
-	for (auto O : state.entities.ability_world_objects)
-	{
-		//Only OP objects and only New ons
-		if (   O.entity.player_entity_id.value() != opId
-			|| O.entity.id <= MaxAvoidID)continue;
-		
-		MaxAvoidID = O.entity.id;
-
-		for (auto E : O.entity.effects)
-		{
-			if (E.id % 1000000 == 1620) 
-			{
-				MISD("Add Glyth til " + std::to_string(E.end_tick.value()));
-				vAvoid.push_back(new MIS_AvoidArea(
-					E.end_tick.value(),
-					capi::to2D(O.entity.position),
-					E.specific.variant_union.spell_on_entity_nearby.radius));
-			}
-			if (E.id % 1000000 == 1694)
-			{
-				MISD("Add Root til " + std::to_string(E.end_tick.value()));
-				vAvoid.push_back(new MIS_AvoidArea(
-					E.end_tick.value(),
-					capi::to2D(O.entity.position),
-					E.specific.variant_union.aura.radius));					
-			}
-			if (E.id % 1000000 == 290)
-			{
-				MISD("Add Could snap til " + std::to_string(E.end_tick.value()));
-				vAvoid.push_back(new MIS_AvoidArea(
-					E.end_tick.value(),
-					capi::to2D(O.entity.position),
-					20));
-			}
-			if (E.id % 1000000 == 1471 || 
-				E.id % 1000000 == 4427)
-			{
-				MISD("Add Aura of Coruption til " + std::to_string(E.end_tick.value()));
-				vAvoid.push_back(new MIS_AvoidArea(
-					E.end_tick.value(),
-					capi::to2D(O.entity.position),
-					30));
-			}
-			if (E.id % 1000000 == 1006)
-			{
-				MISD("Add Paralyse til " + std::to_string(E.end_tick.value()));
-				vAvoid.push_back(new MIS_AvoidArea(
-					E.end_tick.value(),
-					capi::to2D(O.entity.position),
-					20));
-			}
-
-			if (E.id % 1000000 == 11003)
-			{
-				MISD("Add Bandid Minfield til " + std::to_string(E.end_tick.value()));
-
-				capi::Position2D EndPos;
-				EndPos.x = capi::to2D(O.entity.position).x +
-					E.specific.variant_union.moving_interval_cast.direction_step.x * 100;
-				EndPos.y = capi::to2D(O.entity.position).y +
-					E.specific.variant_union.moving_interval_cast.direction_step.y * 100;
-
-				for (unsigned int i = 0; i < 4; i++)
-				{
-					vAvoid.push_back(new MIS_AvoidArea(
-						E.end_tick.value(),
-						Bro->U->Offseter(capi::to2D(O.entity.position),
-							EndPos, 6 * i),
-						10));
-				}
-				
-			}
-			if (E.id % 1000000 == 1740)
-			{
-				MISD("Add Wild Fire til " + std::to_string(E.end_tick.value()));
-
-				capi::Position2D EndPos;
-				EndPos.x = capi::to2D(O.entity.position).x +
-					E.specific.variant_union.moving_interval_cast.direction_step.x * 100;
-				EndPos.y = capi::to2D(O.entity.position).y +
-					E.specific.variant_union.moving_interval_cast.direction_step.y * 100;
-
-				int iRange = abs(Bro->U->distance(capi::to2D(O.entity.position), 
-					EndPos));
-				if (iRange <= 15)iRange = 15;
-
-				for (unsigned int i = 0; i < 4; i++)
-				{
-					for (int j = -1; j < 2; j++)
-					{
-						vAvoid.push_back(new MIS_AvoidArea( //Tick1 L
-							E.end_tick.value(),
-							Bro->U->Offseter(
-								capi::to2D(O.entity.position),
-								EndPos, 
-								iRange / 4.0f * i, 
-								5.0f * j),
-							5));						
-					}
-				}				
-			}
-
-
-			if (E.id % 1000000 == 1775)
-			{
-				MISD("Add Hurrican " + std::to_string(E.end_tick.value()));				
-
-				for (unsigned int i = 0; i < 8; i++)
-				{
-					vAvoid.push_back(new MIS_AvoidArea( 
-						E.end_tick.value(),
-						Bro->U->Offseter(E.specific.variant_union.damage_area.shape.variant_union.wide_line.start,
-							E.specific.variant_union.damage_area.shape.variant_union.wide_line.end,
-						    50 / 8 * i),
-						5));
-				}
-				
-			}
-
-		}
-	}
-
-	MISE;
-}
-
-void FireBot::ChangeStrategy(Stages _Stage, int _Value)
-{
-	if (Bro->L->vStrategy.size() > 0) if( Bro->L->vStrategy[0].first == _Stage)return;
-	Bro->L->vStrategy.insert(Bro->L->vStrategy.begin(), std::make_pair(_Stage, _Value));
-	bStage = true;
-}
-
 bool FireBot::Stage(const capi::GameState& state)
 {
 	MISS;
@@ -704,13 +387,6 @@ bool FireBot::Stage(const capi::GameState& state)
 		)ChangeStrategy(PanicDef, 0);
 		
 		
-	
-		
-
-
-
-
-
 
 
 	switch (eStage)
@@ -720,12 +396,9 @@ bool FireBot::Stage(const capi::GameState& state)
 		break;
 	
 	case SavePower:
-		//MISD(std::to_string((int)state.players[imyPlayerIDX].power) + " > " + std::to_string(iStageValue));
-		
+	case DefaultDef:
 		if ((int)state.players[imyPlayerIDX].power > iStageValue)bStage = true;
 		break;
-
-	
 		
 	case PanicDef:
 		if(vETemp.size() > 0)if (Bro->U->pointsInRadius(entitiesTOentity(opId, state.entities.squads),
@@ -734,20 +407,25 @@ bool FireBot::Stage(const capi::GameState& state)
 		if (iPanicDefCheck >= 10)
 		{
 			iPanicDefCheck = -600;
-			ChangeStrategy(Defend, 0);
+			ChangeStrategy(Fight, 0);
 			MISD("Disable PanicDef");
 		}
 			break;
 	case GetUnit:  //Manuel Stageing with eNextStage	
 		if (entitiesTOentity(myId, state.entities.squads).size() > 0)bStage = true;
 		break;
-	case Defend:
-		ChangeStrategy(Fight, 0);
-		break;
 		
 	case DisablePanicDef:
 //		if(entitiesTOentity(myId, state.entities.barrier_sets).size() == 0)bStage = true;
 //		break;
+	case Tier2:
+		if((int)state.players[imyPlayerIDX].orbs.all >= 2)bStage = true;
+		if (iTier2Ready == 0)
+		{
+			iTier2Ready--;
+			bStage = true;
+		}
+		break;
 	case BuildWell:
 	case SpamBotX: //Never Stages xD
 	case Fight: //Never Stages xD
@@ -769,124 +447,7 @@ bool FireBot::Stage(const capi::GameState& state)
 	return false;;
 }
 
-
-void FireBot::RemoveFromMIS_AvoidArea(capi::Tick curTick)
-{
-	MISS;
-	for (std::vector<MIS_AvoidArea*>::iterator it = vAvoid.begin(); it != vAvoid.end();)
-	{
-		if ((*it)->endTick <= curTick)
-		{
-			it = vAvoid.erase(it);
-		}
-		else  ++it;
-	}
-	MISE;
-}
-
-void FireBot::RemoveFromSaveUnit(const capi::GameState& state)
-{
-	MISS;
-	bool bDel;
-	std::vector < capi::Entity> MyUnits = entitiesTOentity(myId, state.entities.squads);
-	for (std::vector<capi::EntityId>::iterator it = vSaveUnit.begin(); it != vSaveUnit.end();)
-	{
-		bDel = true;
-		for (auto U : MyUnits)if ((*it) == U.id) bDel = false;
-	
-		if (bDel)it = vSaveUnit.erase(it);
-		else  ++it;
-	}
-	MISE;
-}
-
-std::vector<capi::Command> FireBot::MoveUnitsAway(const capi::GameState& state)
-{
-	MISS;
-
-	auto vReturn = std::vector<capi::Command>();
-
-	for(auto A: vAvoid)
-	{
-		for (auto EE : Bro->U->pointsInRadius(entitiesTOentity(myId, state.entities.squads), A->pos, A->radius * 1.1))
-		{
-			MISD("MOVE Units");
-			auto move = capi::CommandGroupGoto();
-			move.squads = { EE.id };
-			move.positions = { (Bro->U->Offseter(capi::to2D(EE.position), A->pos, A->radius * -1 * 1.2)) };
-			move.walk_mode = capi::WalkMode_Normal;
-			vReturn.push_back(capi::Command(move));
-		}
-	}
-
-	MISE;
-	return vReturn;
-}
-
-
-BattleTable FireBot::CalcBattleTable(std::vector<capi::Squad> squads)
-{
-	MISS;
-	BattleTable BTreturn;
-	BTreturn.Init();
-	Card TempCard;
-	for (auto S : squads)
-	{
-		TempCard = Bro->J->CardFromJson(S.card_id % 1000000);
-		if (TempCard.offenseType < 0)TempCard.offenseType = 4; //fall back;
-		if (TempCard.defenseType < 0)TempCard.defenseType = 4; //fall back;
-		BTreturn.SizeCounter[TempCard.defenseType][TempCard.offenseType] += TempCard.health;
-
-		if (TempCard.movementType == 1)BTreturn.Flyer++;
-	}
-	MISE;
-	return BTreturn;
-}
-
-bool FireBot::CalGlobalBattleTable(const capi::GameState& state)
-{
-	MISS;
-	std::vector<capi::Squad> mySquads;
-	std::vector<capi::Squad> opSquads;
-
-	for (auto S : state.entities.squads)
-	{
-		if (S.entity.player_entity_id == myId)mySquads.push_back(S);
-		else if (S.entity.player_entity_id == opId)opSquads.push_back(S);
-	}
-
-	myBT = CalcBattleTable(mySquads);
-	opBT = CalcBattleTable(opSquads);
-
-	MISE;
-	return true;
-}
-
-void FireBot::EchoBattleTable(BattleTable BT)
-{
-	MISS;
-	std::stringstream ssLine;
-	MISERROR("SIZE ->  #      S #      M #      L #     XL #");
-	MISERROR("COUNTER  #####################################");
-	for (unsigned int iCounter = 0; iCounter < 5; iCounter++)
-	{
-		ssLine.str("");
-		if (iCounter == 0)     ssLine << "       S #";
-		else if (iCounter == 1)ssLine << "       M #";
-		else if (iCounter == 2)ssLine << "       L #";
-		else if (iCounter == 3)ssLine << "      Xl #";
-		else if (iCounter == 4)ssLine << "       ? #";
-
-		for (unsigned int iSize = 0; iSize < 4; iSize++)
-		{
-			ssLine<< std::fixed << std::setw(7) << std::setfill(' ') << std::setprecision(0) << BT.SizeCounter[iSize][iCounter]<< " #";
-		}
-		MISERROR(ssLine.str());
-	}
-	MISE;
-}
-
-
+/// STAGES ///
 std::vector<capi::Command> FireBot::sWaitForOP(const capi::GameState& state)
 {
 	MISS;
@@ -894,7 +455,7 @@ std::vector<capi::Command> FireBot::sWaitForOP(const capi::GameState& state)
 	if (state.entities.squads.size() == 0)return vReturn;
 	CalGlobalBattleTable(state);
 
-	vReturn.push_back(MIS_CommandProduceSquad(CardPickerFromBT(opBT, Swift), 
+	vReturn.push_back(MIS_CommandProduceSquad(CardPickerFromBT(opBT, Swift, (int)state.players[imyPlayerIDX].orbs.all),
 		capi::to2D(entitiesTOentity(myId, state.entities.token_slots)[0].position))); // Index 0 OK becaus opener
 
 	iSkipTick = 50; // Wait till spwn is done
@@ -947,7 +508,7 @@ std::vector<capi::Command> FireBot::sGetUnit(const capi::GameState& state)
 {
 	MISS;
 	auto vReturn = std::vector<capi::Command>();
-	int iCard = CardPickerFromBT(opBT, None);
+	int iCard = CardPickerFromBT(opBT, None, (int)state.players[imyPlayerIDX].orbs.all);
 
 	if (SMJDeck[iCard].powerCost > state.players[imyPlayerIDX].power)
 	{
@@ -971,8 +532,6 @@ std::vector<capi::Command> FireBot::sGetUnit(const capi::GameState& state)
 	MISE;
 }
 
-
-
 std::vector<capi::Command> FireBot::sSpamBotX(const capi::GameState& state)
 {
 	MISS;
@@ -981,7 +540,7 @@ std::vector<capi::Command> FireBot::sSpamBotX(const capi::GameState& state)
 
 	capi::Entity A;
 	capi::Entity B;	
-	int iCard = CardPickerFromBT(opBT, None);	
+	int iCard = CardPickerFromBT(opBT, None, (int)state.players[imyPlayerIDX].orbs.all);
 
 	float fDistanc = Bro->U->CloseCombi(entitiesTOentity(myId, state.entities.squads, state.entities.buildings, state.entities.power_slots, state.entities.token_slots),
 		entitiesTOentity(opId, state.entities.power_slots, state.entities.token_slots), A, B);
@@ -1042,7 +601,7 @@ std::vector<capi::Command> FireBot::sFight(const capi::GameState& state)
 											Bro->U->Offseter(capi::to2D(A.position), capi::to2D(B.position), CastRange * -1), capi::WalkMode_Force));
 									}
 
-			if (state.current_tick % 5 == 0 || NextCardSpawn == -1)NextCardSpawn = CardPickerFromBT(CalcBattleTable(Bro->U->SquadsInRadius(opId, state.entities.squads, capi::to2D(S.entity.position), FightRange)), None);
+			if (state.current_tick % 5 == 0 || NextCardSpawn == -1)NextCardSpawn = CardPickerFromBT(CalcBattleTable(Bro->U->SquadsInRadius(opId, state.entities.squads, capi::to2D(S.entity.position), FightRange)), None, (int)state.players[imyPlayerIDX].orbs.all);
 
 			if (SMJDeck[NextCardSpawn].powerCost < state.players[imyPlayerIDX].power)
 			{
@@ -1098,21 +657,6 @@ std::vector<capi::Command> FireBot::sFight(const capi::GameState& state)
 	return vReturn;
 }
 
-
-Card FireBot::CARD_ID_to_SMJ_CARD(capi::CardId card_id)
-{
-	//MISS
-	//in my Deck?
-	for (auto C : SMJDeck)if (C.officialCardIds == card_id % 1000000)return C;
-	//in op Deck?
-	for (auto C : SMJDeckOP)if (C.officialCardIds == card_id % 1000000)return C;
-	//Add to OP Deck;
-	SMJDeckOP.push_back(Bro->J->CardFromJson(card_id % 1000000));
-	return SMJDeckOP[SMJDeckOP.size() - 1];
-	//MISE;
-}
-
-
 std::vector<capi::Command> FireBot::sPanicDef(const capi::GameState& state)
 {
 	MISS;
@@ -1147,7 +691,7 @@ std::vector<capi::Command> FireBot::sPanicDef(const capi::GameState& state)
 	}
 	
 	//Spawn Archers
-	unsigned int iArchers = CardPicker(99, 99, Archer);
+	unsigned int iArchers = CardPicker(99, 99, Archer, (int)state.players[imyPlayerIDX].orbs.all);
 	if (state.players[imyPlayerIDX].power > SMJDeck[iArchers].powerCost)
 	{
 		vReturn.push_back(MIS_CommandProduceSquad(iArchers, capi::to2D(myOrb[0].position)));
@@ -1201,9 +745,6 @@ std::vector<capi::Command> FireBot::sPanicDef(const capi::GameState& state)
 	return vReturn;
 }
 
-
-
-
 std::vector<capi::Command> FireBot::sDisablePanicDef(const capi::GameState& state)
 {
 	MISS;
@@ -1221,57 +762,40 @@ std::vector<capi::Command> FireBot::sDisablePanicDef(const capi::GameState& stat
 	return vReturn;
 }
 
-
-void FireBot::CleanUpRejectedComamandChecklist()
+std::vector<capi::Command> FireBot::sTier2(const capi::GameState& state)
 {
 	MISS;
-	for (std::vector<MIS_RejectCheck>::iterator it = RejectedComamandChecklist.begin(); it != RejectedComamandChecklist.end();)
-		if ((*it).rejected == false )it = RejectedComamandChecklist.erase(it);
-		else  ++it;
+
+	auto vReturn = std::vector<capi::Command>();
+
+	//Tier 2 good idea? or wait -> Def + 50 Power
+	//Battle Tabel + Power (+ Void)
+
+	//find T2 Spot
+
+	//Build T2 if still good idea
+
+	//check if orb is in cosntruction, if yes STAGE
+
+	iTier2Ready = 400;
+
+	bStage = true;
+
 	MISE;
+	return vReturn;
 }
 
-std::vector<capi::Command> FireBot::Handel_CardRejected_ProduceSquad(capi::Command cIN) //, std::vector<capi::Command>& addHere)
+std::vector<capi::Command> FireBot::sDefaultDef(const capi::GameState& state)
 {
-	MISS;	
+	MISS;
 
-	std::vector<capi::Command> vReturn;
+	auto vReturn = std::vector<capi::Command>();
 
-	for (unsigned int i = 0 ; i < RejectedComamandChecklist.size();i++)
-	{
-		if (RejectedComamandChecklist[i].lastCommand.variant_case == cIN.variant_case)
-		{
-			if (RejectedComamandChecklist[i].lastCommand.variant_union.produce_squad.card_position == cIN.variant_union.produce_squad.card_position
-				&& RejectedComamandChecklist[i].lastCommand.variant_union.produce_squad.xy.x == cIN.variant_union.produce_squad.xy.x
-				&& RejectedComamandChecklist[i].lastCommand.variant_union.produce_squad.xy.y == cIN.variant_union.produce_squad.xy.y)
-			{
-				RejectedComamandChecklist[i].rejected = true;
-				RejectedComamandChecklist[i].lastCommand = RejectedComamandChecklist[i].orgCommand;
-				switch (RejectedComamandChecklist[i].retry)
-				{
-				case 0:
-					RejectedComamandChecklist[i].lastCommand.variant_union.produce_squad.xy.x += 10;
-					break;
-				case 1:
-					RejectedComamandChecklist[i].lastCommand.variant_union.produce_squad.xy.y += 10;
-					break;
-				case 2:
-					RejectedComamandChecklist[i].lastCommand.variant_union.produce_squad.xy.x -= 10;
-					break;
-				case 3:
-					RejectedComamandChecklist[i].lastCommand.variant_union.produce_squad.xy.y -= 10;
-					break;
-				default:
-					RejectedComamandChecklist[i].rejected = false;
-					break;
-				}
-				RejectedComamandChecklist[i].retry++;
+	//fall back to Orb / Well range if range > 50
+	//if no OP in range 50 move on well for healing (check range >10)
+	//Wait for X energy, but spawn if OP Units + 1 >= MY Units (Battletabel)
 
-				if (RejectedComamandChecklist[i].rejected)vReturn.push_back(RejectedComamandChecklist[i].lastCommand);
-			}
-		}
-		
-	}
+	bStage = true;
 
 	MISE;
 	return vReturn;
