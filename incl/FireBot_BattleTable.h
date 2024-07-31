@@ -88,17 +88,17 @@ bool FireBot::MoreUnitsNeeded(BattleTable myBT, BattleTable opBT, std::vector<in
 		total += i;
 		if (i < -250)
 		{
-			MISEA("More stuff");
+			//MISEA("More stuff");
 			return true;
 		}
 	}
 
 	if (total < -500)
 	{
-		MISEA("More stuff2");
+		//MISEA("More stuff2");
 		return true;
 	}
 
-	MISEA("all fine");
+	MISE;
 	return false;
 }

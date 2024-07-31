@@ -26,17 +26,17 @@ void FireBot::ChangeStrategy(Stages _Stage, int _Value)
 }
 
 
-std::vector<capi::Command>  FireBot::IdleToFight(const capi::GameState& state)
+std::vector<capi::Command>  FireBot::IdleToFight()
 {
 	auto vReturn = std::vector<capi::Command>();
 	capi::Entity A;
 	capi::Entity B;
 
-	for(auto S: Bro->U->FilterSquad(myId, state.entities.squads))
+	for(auto S: Bro->U->FilterSquad(myId, lState.entities.squads))
 		if (S.entity.job.variant_case == capi::JobCase::Idle)
 		{
 			//Units Close By
-			std::vector<capi::Squad> STemp = Bro->U->SquadsInRadius(opId, state.entities.squads, capi::to2D(S.entity.position), FightRange);
+			std::vector<capi::Squad> STemp = Bro->U->SquadsInRadius(opId, lState.entities.squads, capi::to2D(S.entity.position), FightRange);
 			if (STemp.size() > 0)
 			{
 				vReturn.push_back(MIS_CommandGroupAttack({ S.entity.id }, STemp[0].entity.id));
@@ -44,7 +44,7 @@ std::vector<capi::Command>  FireBot::IdleToFight(const capi::GameState& state)
 			else
 			{
 				Bro->U->CloseCombi({ S.entity },
-					entitiesTOentity(opId, state.entities.power_slots, state.entities.token_slots, state.entities.squads), A, B);
+					entitiesTOentity(opId, lState.entities.power_slots, lState.entities.token_slots, lState.entities.squads), A, B);
 				vReturn.push_back(MIS_CommandGroupGoto({ S.entity.id }, capi::to2D(B.position), capi::WalkMode_Normal));
 			}
 		}

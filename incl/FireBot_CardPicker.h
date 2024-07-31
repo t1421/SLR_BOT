@@ -103,6 +103,6 @@ int FireBot::CardPickerFromBT(BattleTable BT, CardPickCrit Crit, unsigned int Ti
 
 
 	if (iReturn == -1)iReturn = 0; // Play card 1
-	MISEA(+ std::to_string(iReturn));
+	MISE;
 	return iReturn;
 }

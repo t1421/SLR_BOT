@@ -12,6 +12,7 @@
 
 #include <future>
 #include <chrono>
+#include <string>
 using namespace std::chrono_literals;
 
 enum Stages
@@ -33,6 +34,29 @@ enum Stages
 
 	NoStage = 99
 };
+
+std::string SwitchStagesText(Stages S)
+{
+	switch (S) {
+	case 1: return "BuildWell";
+	case 3: return "Attack";
+	case 4: return "Fight";
+	case 5: return "SavePower";
+
+	case 10: return "WaitForOP";
+	case 11: return "GetUnit";
+	case 12: return "SpamBotX";
+
+	case 20: return "PanicDef";
+	case 21: return "DisablePanicDef";
+	case 22: return "DefaultDef";
+
+	case 30: return "Tier2";
+
+	case 99: return "NoStage";
+	default: return "Undefined in SwitchStagesText";
+	}
+}
 
 enum CardPickCrit
 {
@@ -158,6 +182,8 @@ public:
 	static void learnBro(broker* _Bro) { Bro = _Bro; }
 
 private:
+	capi::GameState lState;
+
 	std::vector<Card> SMJDeck;
 	std::vector<Card> SMJDeckOP;
 	capi::EntityId myId;
@@ -174,9 +200,9 @@ private:
 
 	//Instand Functions
 	bool WellKiller(std::vector<capi::Command> &vMain, std::vector<capi::Entity> Wells);
-	void FindAvoidArea(const capi::GameState& state);
+	void FindAvoidArea();
 	void RemoveFromMIS_AvoidArea(capi::Tick curTick);
-	std::vector<capi::Command> MoveUnitsAway(const capi::GameState& state);
+	std::vector<capi::Command> MoveUnitsAway();
 	std::vector<MIS_AvoidArea *> vAvoid;
 	capi::EntityId MaxAvoidID;
 	
@@ -200,7 +226,7 @@ private:
 	std::vector<capi::Command> InstantRepairFunction(const capi::GameState& state);
 	MIS_thread InstantRepair;
 
-	void RemoveFromSaveUnit(const capi::GameState& state);
+	void RemoveFromSaveUnit();
 	std::vector< capi::EntityId> vSaveUnit;
 	Card CARD_ID_to_SMJ_CARD(capi::CardId card_id);
 
@@ -213,7 +239,7 @@ private:
 	void CleanUpRejectedComamandChecklist();
 	std::vector<capi::Command> Handel_CardRejected_ProduceSquad(capi::Command cIN); // , std::vector<capi::Command>& addHere);
 	
-	std::vector<capi::Command>  IdleToFight(const capi::GameState& state);
+	std::vector<capi::Command>  IdleToFight();
 	float GetAspect(capi::Entity E, capi::AspectCase A);
 
 	//STAGE
@@ -221,16 +247,16 @@ private:
 	int iStageValue;
 	void ChangeStrategy(Stages _Stage, int _Value);
 	bool bStage;
-	bool Stage(const capi::GameState& state);
-	std::vector<capi::Command> sWaitForOP(const capi::GameState& state);
-	std::vector<capi::Command> sBuildWell(const capi::GameState& state);
-	std::vector<capi::Command> sGetUnit(const capi::GameState& state);
-	std::vector<capi::Command> sSpamBotX(const capi::GameState& state);
-	std::vector<capi::Command> sFight(const capi::GameState& state);
-	std::vector<capi::Command> sPanicDef(const capi::GameState& state);
-	std::vector<capi::Command> sDisablePanicDef(const capi::GameState& state);
-	std::vector<capi::Command> sTier2(const capi::GameState& state);
-	std::vector<capi::Command> sDefaultDef(const capi::GameState& state);
+	bool Stage();
+	std::vector<capi::Command> sWaitForOP();
+	std::vector<capi::Command> sBuildWell();
+	std::vector<capi::Command> sGetUnit();
+	std::vector<capi::Command> sSpamBotX();
+	std::vector<capi::Command> sFight();
+	std::vector<capi::Command> sPanicDef();
+	std::vector<capi::Command> sDisablePanicDef();
+	std::vector<capi::Command> sTier2();
+	std::vector<capi::Command> sDefaultDef();
 
 	
 };

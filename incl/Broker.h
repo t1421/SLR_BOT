@@ -4,6 +4,7 @@
 #define CastRange 14.5
 #define ArcherRange 29
 #define FightRange 100
+#define HealRange 10
 
 
 #ifdef MIS_DEBUG

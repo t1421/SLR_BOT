@@ -5,11 +5,11 @@
 #include "../incl/Util.h"
 #include "../incl/LOAD.h"
 
-void FireBot::FindAvoidArea(const capi::GameState& state)
+void FireBot::FindAvoidArea()
 {
 	MISS;
 
-	for (auto O : state.entities.ability_world_objects)
+	for (auto O : lState.entities.ability_world_objects)
 	{
 		//Only OP objects and only New ons
 		if (O.entity.player_entity_id.value() != opId
@@ -148,11 +148,11 @@ void FireBot::RemoveFromMIS_AvoidArea(capi::Tick curTick)
 	MISE;
 }
 
-void FireBot::RemoveFromSaveUnit(const capi::GameState& state)
+void FireBot::RemoveFromSaveUnit()
 {
 	MISS;
 	bool bDel;
-	std::vector < capi::Entity> MyUnits = entitiesTOentity(myId, state.entities.squads);
+	std::vector < capi::Entity> MyUnits = entitiesTOentity(myId, lState.entities.squads);
 	for (std::vector<capi::EntityId>::iterator it = vSaveUnit.begin(); it != vSaveUnit.end();)
 	{
 		bDel = true;
@@ -164,7 +164,7 @@ void FireBot::RemoveFromSaveUnit(const capi::GameState& state)
 	MISE;
 }
 
-std::vector<capi::Command> FireBot::MoveUnitsAway(const capi::GameState& state)
+std::vector<capi::Command> FireBot::MoveUnitsAway()
 {
 	MISS;
 
@@ -172,7 +172,7 @@ std::vector<capi::Command> FireBot::MoveUnitsAway(const capi::GameState& state)
 
 	for (auto A : vAvoid)
 	{
-		for (auto EE : Bro->U->pointsInRadius(entitiesTOentity(myId, state.entities.squads), A->pos, A->radius * 1.1))
+		for (auto EE : Bro->U->pointsInRadius(entitiesTOentity(myId, lState.entities.squads), A->pos, A->radius * 1.1))
 		{
 			MISD("MOVE Units");
 			auto move = capi::CommandGroupGoto();
