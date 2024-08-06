@@ -31,6 +31,7 @@ enum Stages
 	DefaultDef = 22,
 
 	Tier2 = 30,
+	Tier1 = 31,
 
 	NoStage = 99
 };
@@ -52,6 +53,7 @@ std::string SwitchStagesText(Stages S)
 	case 22: return "DefaultDef";
 
 	case 30: return "Tier2";
+	case 31: return "Tier1";
 
 	case 99: return "NoStage";
 	default: return "Undefined in SwitchStagesText";
@@ -233,7 +235,7 @@ private:
 	int iWallReady;
 	int iMyWells;
 	int iPanicDefCheck;
-	int iTier2Ready;
+	int iTierReady;
 
 	std::vector<MIS_RejectCheck> RejectedComamandChecklist;
 	void CleanUpRejectedComamandChecklist();
@@ -255,6 +257,7 @@ private:
 	std::vector<capi::Command> sFight();
 	std::vector<capi::Command> sPanicDef();
 	std::vector<capi::Command> sDisablePanicDef();
+	std::vector<capi::Command> sTier1();
 	std::vector<capi::Command> sTier2();
 	std::vector<capi::Command> sDefaultDef();
 

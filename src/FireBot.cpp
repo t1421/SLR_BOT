@@ -40,7 +40,7 @@ void FireBot::PrepareForBattle(const capi::MapInfo& mapInfo, const capi::Deck& d
 	iWallReady = -1;
 	iMyWells = -1;
 	iPanicDefCheck = 0;
-	iTier2Ready = -1;
+	iTierReady = -1;
 
 //if mapInfo.map == 1003 -> no Panic Def
 	eStage = NoStage;
@@ -221,7 +221,7 @@ std::vector<capi::Command> FireBot::Tick(const capi::GameState& state)
 	}
 	if (iWallReady >= 0)iWallReady--;
 	if (iPanicDefCheck < 0)iPanicDefCheck++;
-	if (iTier2Ready > 0)iTier2Ready--;
+	if (iTierReady > 0)iTierReady--;
 
 	if (state.current_tick % 10)Stage();
 
@@ -303,6 +303,9 @@ std::vector<capi::Command> FireBot::Tick(const capi::GameState& state)
 		case Tier2:
 			for (auto vv : sTier2())v.push_back(vv);
 			break;
+		case Tier1:
+			for (auto vv : sTier1())v.push_back(vv);
+			break;
 		case DefaultDef:
 			for (auto vv : sDefaultDef())v.push_back(vv);
 			break;
@@ -374,26 +377,54 @@ bool FireBot::Stage()
 		return true;
 	}
 
-	std::vector<capi::Entity> vETemp = entitiesTOentity(myId, lState.entities.token_slots);
+	///////////////////////////////////////////////
+	/// Panic Stage based on staging <ANY> to 1 ///
+	///////////////////////////////////////////////
+
+	//Panic Def when mig army atck mmain base
+	std::vector<capi::Entity> vMY_Tokens = entitiesTOentity(myId, lState.entities.token_slots);
 	if (
 		mapinfo.map == 1003 && // only for event
 		iPanicDefCheck >= 0 &&
-		vETemp.size() >0) 
+		vMY_Tokens.size() >0)
 		if(	Bro->U->pointsInRadius(entitiesTOentity(opId, lState.entities.squads),
-				capi::to2D(vETemp[0].position),
+				capi::to2D(vMY_Tokens[0].position),
 				100).size() >= 3
 		&&	Bro->U->pointsInRadius(entitiesTOentity(myId, lState.entities.squads),
-				capi::to2D(vETemp[0].position),
+				capi::to2D(vMY_Tokens[0].position),
 				100).size() <= 1
 		)ChangeStrategy(PanicDef, 0);
+
+	//OP builds wall
+	if (entitiesTOentity(opId, lState.entities.barrier_modules).size() > 1 && 
+		(int)lState.players[imyPlayerIDX].orbs.all == 1)
+	{
+		ChangeStrategy(Tier2, 0); // Def for 125 energy
+		ChangeStrategy(DefaultDef, 125); // Def for 125 energy		
+	}
+
+	//I lost my Orb !!!!
+	if ((int)lState.players[imyPlayerIDX].orbs.all == 0 && lState.current_tick > 1000)
+	{
+		ChangeStrategy(Tier1, 0);
+	}
+
+	//Good moment for Tier up
+	// Total Power NOW + Power in Units (+ VOID * 0,5?) -> ME VS OP
+	// My total Power Pool > X
+	// Current Tick > Y
+
+	//When Take another Power well??? (Max 6? or 40% wells of the map?)
 		
 		
-
-
+	///////////////////////////////////////////////////////
+	/// Default Stage based on currend Stage 1 to <ANY> ///
+	///////////////////////////////////////////////////////
 	switch (eStage)
 	{
 	case WaitForOP:
 		if (lState.current_tick >= 100)ChangeStrategy(GetUnit, 0);
+		if (entitiesTOentity(myId, lState.entities.squads).size() > 0)bStage = true;
 		break;
 	
 	case SavePower:
@@ -402,33 +433,48 @@ bool FireBot::Stage()
 		break;
 		
 	case PanicDef:
-		if(vETemp.size() > 0)if (Bro->U->pointsInRadius(entitiesTOentity(opId, lState.entities.squads),
-			capi::to2D(vETemp[0].position),
+		if(vMY_Tokens.size() > 0)if (Bro->U->pointsInRadius(entitiesTOentity(opId, lState.entities.squads),
+			capi::to2D(vMY_Tokens[0].position),
 			100).size() == 0)ChangeStrategy(DisablePanicDef, 0);
 		if (iPanicDefCheck >= 10)
 		{
 			iPanicDefCheck = -600;
-			ChangeStrategy(Fight, 0);
+			//ChangeStrategy(Fight, 0);
+			bStage = true;
 			MISD("Disable PanicDef");
 		}
 			break;
-	case GetUnit:  //Manuel Stageing with eNextStage	
+	case GetUnit: 
 		if (entitiesTOentity(myId, lState.entities.squads).size() > 0)bStage = true;
 		break;
 		
 	case DisablePanicDef:
-//		if(entitiesTOentity(myId, state.entities.barrier_sets).size() == 0)bStage = true;
-//		break;
+		if(entitiesTOentity(myId, lState.entities.barrier_sets).size() == 0)bStage = true;
+		break;
 	case Tier2:
 		if((int)lState.players[imyPlayerIDX].orbs.all >= 2)bStage = true;
-		if (iTier2Ready == 0)
+		if (iTierReady == 0) // if orb is not build after 400 -> stage
 		{
-			iTier2Ready--;
+			iTierReady--;
+			bStage = true;
+		}
+		break;
+	case Tier1:
+		if ((int)lState.players[imyPlayerIDX].orbs.all >= 1)bStage = true;
+		if (iTierReady == 0) // if orb is not build after 400 -> stage
+		{
+			iTierReady--;
 			bStage = true;
 		}
 		break;
 	case BuildWell:
-	case SpamBotX: //Never Stages xD
+		if (iMyWells != -1 && iMyWells != entitiesTOentity(myId, lState.entities.power_slots).size())
+		{
+			iMyWells = -1;
+			bStage = true;
+		}
+		break;
+	case SpamBotX: 
 	case Fight: 
 		if (entitiesTOentity(myId, lState.entities.squads).size() == 0)ChangeStrategy(DefaultDef, 150);
 		for (auto B : entitiesTOentity(myId, lState.entities.power_slots, lState.entities.token_slots))
@@ -464,7 +510,7 @@ std::vector<capi::Command> FireBot::sWaitForOP()
 		capi::to2D(entitiesTOentity(myId, lState.entities.token_slots)[0].position))); // Index 0 OK becaus opener
 
 	iSkipTick = 50; // Wait till spwn is done
-	bStage = true;
+
 	MISE;
 }
 
@@ -474,16 +520,7 @@ std::vector<capi::Command> FireBot::sBuildWell()
 
 	auto vReturn = std::vector<capi::Command>();
 	
-	if (iMyWells == -1)
-		iMyWells = entitiesTOentity(myId, lState.entities.power_slots).size();
-	if (iMyWells != -1 && iMyWells != entitiesTOentity(myId, lState.entities.power_slots).size())
-	{
-		iMyWells = -1;
-		bStage = true;
-		MISD("!!! bStage !!!");
-		MISEA("Build");
-		return vReturn;
-	}
+	if (iMyWells == -1)	iMyWells = entitiesTOentity(myId, lState.entities.power_slots).size();
 
 	// We need a Unit to go to the well
 	if (entitiesTOentity(myId, lState.entities.squads).size() == 0)
@@ -533,7 +570,7 @@ std::vector<capi::Command> FireBot::sGetUnit()
 		Bro->U->Offseter(capi::to2D(A.position), capi::to2D(B.position), CastRange)));
 
 	iSkipTick = 50; // Wait till spwn is done
-	bStage = true;
+
 	MISE;
 }
 
@@ -582,7 +619,7 @@ std::vector<capi::Command> FireBot::sFight()
 	capi::Entity A;
 	capi::Entity B;
 	float fDistanc = Bro->U->CloseCombi(entitiesTOentity(myId, lState.entities.squads),
-		entitiesTOentity(opId, lState.entities.power_slots, lState.entities.token_slots, lState.entities.squads, lState.entities.buildings), A, B);
+		entitiesTOentity(opId, lState.entities.power_slots, lState.entities.token_slots, lState.entities.squads, lState.entities.buildings, lState.entities.barrier_modules), A, B);
 
 	//NO unit? get any unit
 	if (mySquat.size() == 0)
@@ -761,8 +798,6 @@ std::vector<capi::Command> FireBot::sDisablePanicDef()
 	iWallReady = 70 * 10; //ready in ~65 sec
 	iPanicDefCheck = 0;
 
-	bStage = true;
-
 	MISE;
 	return vReturn;
 }
@@ -782,7 +817,7 @@ std::vector<capi::Command> FireBot::sTier2()
 
 	//check if orb is in cosntruction, if yes STAGE
 
-	iTier2Ready = 400;
+	iTierReady = 400;
 
 	bStage = true;
 
@@ -850,6 +885,22 @@ std::vector<capi::Command> FireBot::sDefaultDef()
 	//Ideal Units do stuff
 	for (auto vv : IdleToFight())vReturn.push_back(vv);
 				
+	MISE;
+	return vReturn;
+}
+
+std::vector<capi::Command> FireBot::sTier1()
+{
+	MISS;
+
+	auto vReturn = std::vector<capi::Command>();
+
+	//Where did i lost it?
+	//Can i kill OP units there and rebuild?
+	//-> Yes DO IT
+	//-> No run away with one unit(SWITF?) (Top 3 closest, but most fare awai from OP Enteties)
+	//Rebuild and def til ???
+
 	MISE;
 	return vReturn;
 }
