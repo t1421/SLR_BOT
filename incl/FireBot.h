@@ -32,6 +32,7 @@ enum Stages
 
 	Tier2 = 30,
 	Tier1 = 31,
+	SkipTier2 = 32,
 
 	NoStage = 99
 };
@@ -54,6 +55,7 @@ std::string SwitchStagesText(Stages S)
 
 	case 30: return "Tier2";
 	case 31: return "Tier1";
+	case 32: return "SkipTier2";
 
 	case 99: return "NoStage";
 	default: return "Undefined in SwitchStagesText";
@@ -162,7 +164,13 @@ capi::Command MIS_CommandRepairBuilding(capi::EntityId _building_id)
 	RepairBuilding.building_id = _building_id;
 	return capi::Command(RepairBuilding);
 }
-
+capi::Command MIS_CommandTokenSlotBuild(capi::EntityId _ID)
+{
+	auto TokenSlotBuild = capi::CommandTokenSlotBuild();
+	TokenSlotBuild.slot_id = _ID;
+	TokenSlotBuild.color = capi::CreateOrbColor_Fire;
+	return capi::Command(TokenSlotBuild);
+}
 
 /////////////////
 
@@ -232,10 +240,13 @@ private:
 	std::vector< capi::EntityId> vSaveUnit;
 	Card CARD_ID_to_SMJ_CARD(capi::CardId card_id);
 
+	bool goTier2();
+
 	int iWallReady;
 	int iMyWells;
 	int iPanicDefCheck;
 	int iTierReady;
+	int iTier2Tick;
 
 	std::vector<MIS_RejectCheck> RejectedComamandChecklist;
 	void CleanUpRejectedComamandChecklist();

@@ -20,6 +20,7 @@ Card FireBot::CARD_ID_to_SMJ_CARD(capi::CardId card_id)
 
 void FireBot::ChangeStrategy(Stages _Stage, int _Value)
 {
+	MISD("ChangeStrategy: " + std::to_string(_Stage) + "(" + std::to_string(_Value) + ") " + SwitchStagesText(_Stage));
 	if (Bro->L->vStrategy.size() > 0) if (Bro->L->vStrategy[0].first == _Stage)return;
 	Bro->L->vStrategy.insert(Bro->L->vStrategy.begin(), std::make_pair(_Stage, _Value));
 	bStage = true;
@@ -44,7 +45,7 @@ std::vector<capi::Command>  FireBot::IdleToFight()
 			else
 			{
 				Bro->U->CloseCombi({ S.entity },
-					entitiesTOentity(opId, lState.entities.power_slots, lState.entities.token_slots, lState.entities.squads), A, B);
+					entitiesTOentity(opId, lState.entities.power_slots, lState.entities.token_slots, lState.entities.squads, lState.entities.barrier_modules), A, B);
 				vReturn.push_back(MIS_CommandGroupGoto({ S.entity.id }, capi::to2D(B.position), capi::WalkMode_Normal));
 			}
 		}
