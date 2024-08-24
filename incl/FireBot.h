@@ -69,7 +69,9 @@ enum CardPickCrit
 	NotS = 2,
 	NotM = 3,
 	NotL = 4,
-	Archer = 5
+	Archer = 5,
+	IgnorTier = 6,
+	Siege = 7
 };
 
 struct MIS_thread
@@ -218,8 +220,8 @@ private:
 	
 
 	//
-	int CardPickerFromBT(BattleTable BT, CardPickCrit Crit, unsigned int Tier);
-	int CardPicker(unsigned int opSize, unsigned int opCounter, CardPickCrit Crit, unsigned int Tier);
+	int CardPickerFromBT(BattleTable BT, CardPickCrit Crit); // , unsigned int Tier);
+	int CardPicker(unsigned int opSize, unsigned int opCounter, CardPickCrit Crit); // , unsigned int Tier);
 
 	std::vector<capi::Command> CoolEruption(const capi::GameState& state);
 	MIS_thread CoolEruptionTest;

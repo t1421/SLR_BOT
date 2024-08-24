@@ -13,12 +13,20 @@ std::vector<capi::Command> FireBot::CoolEruption(const capi::GameState& state)
 
 	unsigned int iUnitCount;
 	unsigned int iUnitCountH;
+	bool flyer;
 
 	std::vector<capi::Squad> vSquad;
-	for (auto U : state.entities.squads)
+	for (auto U : Bro->U->FilterSquad(opId, state.entities.squads))
 	{
-
-		if (U.entity.player_entity_id != opId)continue;
+		if (Bro->J->CardFromJson(U.card_id).movementType == 1)
+		{
+			if(
+			MoreUnitsNeeded(CalcBattleTable(Bro->U->SquadsInRadius(myId, lState.entities.squads, capi::to2D(U.entity.position), 25)),
+				CalcBattleTable(Bro->U->SquadsInRadius(opId, lState.entities.squads, capi::to2D(U.entity.position), 25))))
+				flyer = true;
+			else flyer = false;
+		}
+		else flyer = false;
 
 		vSquad = Bro->U->SquadsInRadius(opId, state.entities.squads, capi::to2D(U.entity.position), 10);
 		if (vSquad.size() >= 3)
@@ -32,13 +40,14 @@ std::vector<capi::Command> FireBot::CoolEruption(const capi::GameState& state)
 			{
 				iUnitCount++;
 				for (auto A : S.entity.aspects)
-				{
+				{ 
 					if (A.variant_case == capi::AspectCase::Health)
 						if (A.variant_union.health.current_hp <= 300)iUnitCountH++;
 				}
 			}
 			if (iUnitCountH >= 1 && iUnitCount >= 3
-				|| iUnitCountH >= 2 && iUnitCount >= 2)
+				|| iUnitCountH >= 2 && iUnitCount >= 2
+				|| iUnitCountH >= 1 && flyer)
 			{
 				MISD("FIRE !!!!");
 

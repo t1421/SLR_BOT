@@ -63,6 +63,7 @@ int main(int argc, char** argv)
 		//printf("No JSON - i cant work like this :-(\n");
 		return -1;
 	}
+	J->FIX_Cards();
 
 	L->EchoSettings();
 

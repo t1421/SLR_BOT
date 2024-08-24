@@ -5,16 +5,22 @@
 #include "../incl/Util.h"
 #include "../incl/LOAD.h"
 
-int FireBot::CardPicker(unsigned int opSize, unsigned int opCounter, CardPickCrit Crit, unsigned int Tier)
+int FireBot::CardPicker(unsigned int opSize, unsigned int opCounter, CardPickCrit Crit) // , unsigned int Tier)
 {
 	MISS;
 
+	int tier = entitiesTOentity(myId, lState.entities.token_slots).size();
+	if (tier == 2 && iTierReady != -1) tier = 1;
 
 	for (unsigned int i = 0; i < SMJDeck.size(); i++)
 	{
 		if ((SMJDeck[i].offenseType == opSize || opSize == 99)
-			&& (SMJDeck[i].defenseType != opCounter || opCounter == 99))
+			&& (SMJDeck[i].defenseType != opCounter || opCounter == 99)	)
 		{
+			
+			//If not in my Tier then skip
+			if(Crit != IgnorTier && SMJDeck[i].orbsTotal < tier) continue; 
+
 			switch (Crit)
 			{
 			case Swift:
@@ -52,7 +58,7 @@ int FireBot::CardPicker(unsigned int opSize, unsigned int opCounter, CardPickCri
 	return -1;
 }
 
-int FireBot::CardPickerFromBT(BattleTable BT, CardPickCrit Crit, unsigned int Tier)
+int FireBot::CardPickerFromBT(BattleTable BT, CardPickCrit Crit) // , unsigned int Tier)
 {
 	MISS;
 	int iReturn = -1;
@@ -71,10 +77,13 @@ int FireBot::CardPickerFromBT(BattleTable BT, CardPickCrit Crit, unsigned int Ti
 
 	//Maybe check my own Battle Tabble if i have egnaut units of that type???
 
-	if ((iReturn = CardPicker(MaxSize, MaxCounter, Crit, Tier)) == -1)    //Perfect Counter
-		if ((iReturn = CardPicker(MaxSize, 9, Crit, Tier)) == -1)   //Counter of any Size
-			if ((iReturn = CardPicker(MaxSize, MaxCounter, None, Tier)) == -1)    //Perfect Counter, not Crits
-				if ((iReturn = CardPicker(MaxSize, 9, None, Tier)) == -1)   //Counter of any Size, not Crits
+	// Stuff vs Flyer
+	if (BT.Flyer && Crit == None)Crit = Archer;
+
+	if ((iReturn = CardPicker(MaxSize, MaxCounter, Crit)) == -1)    //Perfect Counter
+		if ((iReturn = CardPicker(MaxSize, 9, Crit)) == -1)   //Counter of any Size
+			if ((iReturn = CardPicker(MaxSize, MaxCounter, None)) == -1)    //Perfect Counter, not Crits
+				if ((iReturn = CardPicker(MaxSize, 9, None)) == -1)   //Counter of any Size, not Crits
 					iReturn = -1; // I dont have a counter card???
 
 	// If size is XL do XYZ
@@ -94,10 +103,20 @@ int FireBot::CardPickerFromBT(BattleTable BT, CardPickCrit Crit, unsigned int Ti
 					MaxCounter = iCounter;
 					MaxHealth = BT.SizeCounter[iSize][iCounter];
 				}
-		if ((iReturn = CardPicker(MaxSize, MaxCounter, Crit, Tier)) == -1)    //Perfect Counter
-			if ((iReturn = CardPicker(MaxSize, 9, Crit, Tier)) == -1)   //Counter of any Size
-				if ((iReturn = CardPicker(MaxSize, MaxCounter, None, Tier)) == -1)    //Perfect Counter, not Crits
-					if ((iReturn = CardPicker(MaxSize, 9, None, Tier)) == -1)   //Counter of any Size, not Crits
+		if ((iReturn = CardPicker(MaxSize, MaxCounter, Crit)) == -1)    //Perfect Counter
+			if ((iReturn = CardPicker(MaxSize, 9, Crit)) == -1)   //Counter of any Size
+				if ((iReturn = CardPicker(MaxSize, MaxCounter, None)) == -1)    //Perfect Counter, not Crits
+					if ((iReturn = CardPicker(MaxSize, 9, None)) == -1)   //Counter of any Size, not Crits
+						iReturn = -1; // I dont have a counter card???
+	}
+
+	//Still nothing -> try with any Tier
+	if (iReturn == -1)
+	{
+		if ((iReturn = CardPicker(MaxSize, MaxCounter, Crit)) == -1)    //Perfect Counter
+			if ((iReturn = CardPicker(MaxSize, 9, Crit)) == -1)   //Counter of any Size
+				if ((iReturn = CardPicker(MaxSize, MaxCounter, IgnorTier)) == -1)    //Perfect Counter, not Crits
+					if ((iReturn = CardPicker(MaxSize, 9, IgnorTier)) == -1)   //Counter of any Size, not Crits
 						iReturn = -1; // I dont have a counter card???
 	}
 

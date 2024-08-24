@@ -222,7 +222,11 @@ std::vector<capi::Command> FireBot::Tick(const capi::GameState& state)
 	}
 	if (iWallReady >= 0)iWallReady--;
 	if (iPanicDefCheck < 0)iPanicDefCheck++;
-	if (iTierReady > 0)iTierReady--;
+	if (iTierReady > 0)
+	{
+		iTierReady--;
+		if (entitiesTOentity(myId, lState.entities.token_slots).size() == 2)iTierReady = -1;
+	}
 
 	if (state.current_tick % 10)Stage();
 
@@ -523,7 +527,7 @@ std::vector<capi::Command> FireBot::sWaitForOP()
 	if (lState.entities.squads.size() == 0)return vReturn;
 	CalGlobalBattleTable(lState);
 
-	vReturn.push_back(MIS_CommandProduceSquad(CardPickerFromBT(opBT, Swift, entitiesTOentity(myId, lState.entities.token_slots).size()),
+	vReturn.push_back(MIS_CommandProduceSquad(CardPickerFromBT(opBT, Swift),
 		capi::to2D(entitiesTOentity(myId, lState.entities.token_slots)[0].position))); // Index 0 OK becaus opener
 
 	iSkipTick = 50; // Wait till spwn is done
@@ -568,7 +572,7 @@ std::vector<capi::Command> FireBot::sGetUnit()
 {
 	MISS;
 	auto vReturn = std::vector<capi::Command>();
-	int iCard = CardPickerFromBT(opBT, None, entitiesTOentity(myId, lState.entities.token_slots).size());
+	int iCard = CardPickerFromBT(opBT, None);
 
 	if (SMJDeck[iCard].powerCost > lState.players[imyPlayerIDX].power)
 	{
@@ -601,7 +605,7 @@ std::vector<capi::Command> FireBot::sSpamBotX()
 
 	capi::Entity A;
 	capi::Entity B;	
-	int iCard = CardPickerFromBT(opBT, None, entitiesTOentity(myId, lState.entities.token_slots).size());
+	int iCard = CardPickerFromBT(opBT, None);
 
 	float fDistanc = Bro->U->CloseCombi(entitiesTOentity(myId, lState.entities.squads, lState.entities.buildings, lState.entities.power_slots, lState.entities.token_slots),
 		entitiesTOentity(opId, lState.entities.power_slots, lState.entities.token_slots), A, B);
@@ -675,7 +679,7 @@ std::vector<capi::Command> FireBot::sFight()
 			MoreUnitsNeeded(myBT_Area, opBT_Area, PowerLevel);
 			if(std::accumulate(PowerLevel.begin(), PowerLevel.end(), 0) < -1250)ChangeStrategy(DefaultDef, 150);
 
-				if (lState.current_tick % 5 == 0 || NextCardSpawn == -1)NextCardSpawn = CardPickerFromBT(opBT_Area, None, entitiesTOentity(myId, lState.entities.token_slots).size());
+				if (lState.current_tick % 5 == 0 || NextCardSpawn == -1)NextCardSpawn = CardPickerFromBT(opBT_Area, None);
 
 			if (SMJDeck[NextCardSpawn].powerCost < lState.players[imyPlayerIDX].power)
 			{
@@ -752,7 +756,7 @@ std::vector<capi::Command> FireBot::sPanicDef()
 	}
 	
 	//Spawn Archers
-	unsigned int iArchers = CardPicker(99, 99, Archer, entitiesTOentity(myId, lState.entities.token_slots).size());
+	unsigned int iArchers = CardPicker(99, 99, Archer);
 	if (lState.players[imyPlayerIDX].power > SMJDeck[iArchers].powerCost)
 	{
 		vReturn.push_back(MIS_CommandProduceSquad(iArchers, capi::to2D(myOrb[0].position)));
@@ -910,7 +914,7 @@ std::vector<capi::Command> FireBot::sDefaultDef()
 			if (MoreUnitsNeeded(myBT_Area, opBT_Area) || 
 				GetAspect(EE, capi::AspectCase::Health) < 1500)
 			{
-				NextCardSpawn = CardPickerFromBT(opBT_Area, None, entitiesTOentity(myId, lState.entities.token_slots).size());
+				NextCardSpawn = CardPickerFromBT(opBT_Area, None);
 				if(SMJDeck[NextCardSpawn].powerCost < lState.players[imyPlayerIDX].power)
 					vReturn.push_back(
 					MIS_CommandProduceSquad(NextCardSpawn,capi::to2D(EE.position)));

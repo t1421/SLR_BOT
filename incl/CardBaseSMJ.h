@@ -16,6 +16,7 @@ public:
 	~CardBaseSMJ();	
 
     Card CardFromJson(unsigned int ID);
+	void FIX_Cards();
 	
 	std::vector<std::pair<std::string, std::string>> EnumColor;
 	std::vector<std::pair<std::string, std::string>> EnumRarity;

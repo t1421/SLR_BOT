@@ -140,3 +140,18 @@ Card CardBaseSMJ::CardFromJson(unsigned int ID)
 	MISERROR("Card not found:" + std::to_string(ID));
 	return Card();
 }
+
+void CardBaseSMJ::FIX_Cards()
+{
+	MISS;
+	for (auto& item : mainJSON["data"])
+	{
+		//Firesworn
+		if (item["officialCardIds"].at(0) == 1237 || item["officialCardIds"].at(0) == 1386)
+		{
+			// L Counter
+			item["offenseType"] = 2;
+		}
+	}
+	MISE;
+}
