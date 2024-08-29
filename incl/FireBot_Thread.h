@@ -18,7 +18,7 @@ std::vector<capi::Command> FireBot::CoolEruption(const capi::GameState& state)
 	std::vector<capi::Squad> vSquad;
 	for (auto U : Bro->U->FilterSquad(opId, state.entities.squads))
 	{
-		if (Bro->J->CardFromJson(U.card_id).movementType == 1)
+		if (Bro->J->CardFromJson(U.card_id % 1000000).movementType == 1)
 		{
 			if(
 			MoreUnitsNeeded(CalcBattleTable(Bro->U->SquadsInRadius(myId, lState.entities.squads, capi::to2D(U.entity.position), 25)),
@@ -59,6 +59,8 @@ std::vector<capi::Command> FireBot::CoolEruption(const capi::GameState& state)
 			}
 		}
 	}
+
+	// Lava Field Code
 
 	MISE;
 	return vReturn;

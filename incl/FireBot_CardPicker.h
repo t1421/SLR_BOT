@@ -38,6 +38,15 @@ int FireBot::CardPicker(unsigned int opSize, unsigned int opCounter, CardPickCri
 					return i;
 				}
 				break;
+			case Siege:
+				for (Ability A : SMJDeck[i].abilities)
+					if (A.abilityIdentifier == "Siege")
+					{
+						MISEA("Siege: " + SMJDeck[i].cardName);
+						return i;
+					}
+				break;
+				
 			case NotS:
 				if (SMJDeck[i].defenseType == 0)break;
 			case NotM:

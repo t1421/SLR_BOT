@@ -148,10 +148,7 @@ void CardBaseSMJ::FIX_Cards()
 	{
 		//Firesworn
 		if (item["officialCardIds"].at(0) == 1237 || item["officialCardIds"].at(0) == 1386)
-		{
-			// L Counter
-			item["offenseType"] = 2;
-		}
+			item["offenseType"] = 2; // L Counter
 	}
 	MISE;
 }

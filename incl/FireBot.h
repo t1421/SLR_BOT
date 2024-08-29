@@ -249,6 +249,7 @@ private:
 	int iPanicDefCheck;
 	int iTierReady;
 	int iTier2Tick;
+	bool bTier2VSWall;
 
 	std::vector<MIS_RejectCheck> RejectedComamandChecklist;
 	void CleanUpRejectedComamandChecklist();
@@ -261,6 +262,7 @@ private:
 	Stages eStage;
 	int iStageValue;
 	void ChangeStrategy(Stages _Stage, int _Value);
+	void ReplaceStrategy(Stages _Stage, int _Value);
 	bool bStage;
 	bool Stage();
 	std::vector<capi::Command> sWaitForOP();

@@ -2,7 +2,7 @@
 
 
 // Memory Leak :-|
-//What to do vs a WALL!!
+// PanicDef Nur beim Main Orb
 
 
 #include "../incl/FireBot.h"
@@ -42,6 +42,7 @@ void FireBot::PrepareForBattle(const capi::MapInfo& mapInfo, const capi::Deck& d
 	iPanicDefCheck = 0;
 	iTierReady = -1;
 	iTier2Tick = 3000;
+	bTier2VSWall = true;
 
 //if mapInfo.map == 1003 -> no Panic Def
 	eStage = NoStage;
@@ -156,6 +157,7 @@ std::vector<capi::Command> FireBot::Tick(const capi::GameState& state)
 			MISERROR("# bt       = Print BattleTable");
 			MISERROR("# stage    = Go to next stage ");
 			MISERROR("# st       = echo strategy    ");
+			MISERROR("# i        = Bot Infos        ");
 			MISERROR("------------------------------");
 			Bro->sComand = "";
 		}
@@ -179,6 +181,12 @@ std::vector<capi::Command> FireBot::Tick(const capi::GameState& state)
 		if (Bro->sComand == "stage")
 		{
 			bStage = true;
+			Bro->sComand = "";
+		}
+
+		if (Bro->sComand == "i")
+		{
+			MISD("Power:" + std::to_string(lState.players[imyPlayerIDX].power));
 			Bro->sComand = "";
 		}
 
@@ -402,31 +410,39 @@ bool FireBot::Stage()
 
 	//OP builds wall
 	if (entitiesTOentity(opId, lState.entities.barrier_modules).size() > 1 && 
-		entitiesTOentity(myId, lState.entities.token_slots).size() == 1 && eStage == Fight)
+		entitiesTOentity(myId, lState.entities.token_slots).size() == 1 && eStage == Fight && bTier2VSWall)
 	{		
-		ChangeStrategy(DefaultDef, 125); // Def for 125 energy		
+		//iTier2Tick = lState.current_tick - 1;
+		ChangeStrategy(DefaultDef, 124); // Def for 125 energy		
 		ChangeStrategy(Tier2, 0); // Def for 125 energy
+		bTier2VSWall = false;
 	}
 
 	
 	//I lost my Orb !!!!
+	/*
 	if (entitiesTOentity(myId, lState.entities.token_slots).size() == 0 && lState.current_tick > 1000)
 	{
 		ChangeStrategy(Tier1, 0);
 	}
-
+	*/
 	//Tier 2 Time?
-	if(iTier2Tick < lState.current_tick)
+	if (iTier2Tick < lState.current_tick && eStage == Fight)
+	{
 		if (goTier2())
-		{
-			
-			ChangeStrategy(DefaultDef, 125); // Def for 125 energy	
+		{				
 			ChangeStrategy(Tier2, 0);
+			ChangeStrategy(DefaultDef, 126); // Def for 125 energy
 		}
 		else
-		{			
-			ChangeStrategy(SkipTier2, 300);
+		{
+			iTier2Tick = lState.current_tick + 300;
+			bStage = true;
+			//iTier2Tick = lState.current_tick + 600;
+			//ChangeStrategy(SkipTier2, 300);
+			//return Stage();
 		}
+	}
 
 	//When Take another Power well??? (Max 6? or 40% wells of the map?)
 		
@@ -493,14 +509,14 @@ bool FireBot::Stage()
 		break;
 	case SpamBotX: 
 	case Fight: 
-		if (entitiesTOentity(myId, lState.entities.squads).size() == 0)ChangeStrategy(DefaultDef, 150);
+		if (entitiesTOentity(myId, lState.entities.squads).size() == 0)ChangeStrategy(DefaultDef, 151);
 		for (auto B : entitiesTOentity(myId, lState.entities.power_slots, lState.entities.token_slots))
 			if(Bro->U->SquadsInRadius(opId, lState.entities.squads, capi::to2D(B.position), 25).size() > 0)
 				ChangeStrategy(DefaultDef, 75);
 		break;
 	case SkipTier2:
-		iTier2Tick = lState.current_tick + iStageValue;
-		ChangeStrategy(Fight, 0);
+		//iTier2Tick = lState.current_tick + iStageValue;
+		//ReplaceStrategy(Fight, 0);
 		break;
 	}
 	
@@ -677,9 +693,9 @@ std::vector<capi::Command> FireBot::sFight()
 			
 			// if we are behind -> go to def mode
 			MoreUnitsNeeded(myBT_Area, opBT_Area, PowerLevel);
-			if(std::accumulate(PowerLevel.begin(), PowerLevel.end(), 0) < -1250)ChangeStrategy(DefaultDef, 150);
+			if(std::accumulate(PowerLevel.begin(), PowerLevel.end(), 0) < -1250)ChangeStrategy(DefaultDef, 152);
 
-				if (lState.current_tick % 5 == 0 || NextCardSpawn == -1)NextCardSpawn = CardPickerFromBT(opBT_Area, None);
+			if (lState.current_tick % 5 == 0 || NextCardSpawn == -1)NextCardSpawn = CardPickerFromBT(opBT_Area, None);
 
 			if (SMJDeck[NextCardSpawn].powerCost < lState.players[imyPlayerIDX].power)
 			{
@@ -850,12 +866,16 @@ std::vector<capi::Command> FireBot::sTier2()
 
 	//Is OP near that orb?
 	if (Bro->U->CloseCombi(entitiesTOentity(opId, lState.entities.squads),{ B }, C, B) < 50)
-		ChangeStrategy(SkipTier2, 300);
+	{
+		//ChangeStrategy(SkipTier2, 300);
+		iTier2Tick = lState.current_tick + 300;
+		bStage = true;
+	}
 
 	if (A.player_entity_id == myId)
 	{
 		if (fDistanc > CastRange)vReturn.push_back(MIS_CommandGroupGoto({ A.id }, capi::to2D(B.position), capi::WalkMode_Normal));
-		else if(lState.players[imyPlayerIDX].power >= 150)
+		else if(lState.players[imyPlayerIDX].power >= 153)
 		{
 			vReturn.push_back(capi::Command(MIS_CommandTokenSlotBuild(B.id)));			
 		}

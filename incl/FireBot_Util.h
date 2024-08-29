@@ -20,10 +20,35 @@ Card FireBot::CARD_ID_to_SMJ_CARD(capi::CardId card_id)
 
 void FireBot::ChangeStrategy(Stages _Stage, int _Value)
 {
-	MISD("ChangeStrategy: " + std::to_string(_Stage) + "(" + std::to_string(_Value) + ") " + SwitchStagesText(_Stage));
-	if (Bro->L->vStrategy.size() > 0) if (Bro->L->vStrategy[0].first == _Stage)return;
+	MISD("ADD: " + std::to_string(_Stage) + "(" + std::to_string(_Value) + ") " + SwitchStagesText(_Stage));
+	MISD("eStage = " + std::to_string(eStage) + "(" + std::to_string(iStageValue) + ") " + SwitchStagesText(eStage));
+	
+	if (Bro->L->vStrategy.size() > 0)
+	{
+		MISD("vStrategy[0]: " + std::to_string(Bro->L->vStrategy[0].first) + "(" + std::to_string(Bro->L->vStrategy[0].second) + ") ");
+		if (Bro->L->vStrategy[0].first == _Stage)return;
+	}
 	Bro->L->vStrategy.insert(Bro->L->vStrategy.begin(), std::make_pair(_Stage, _Value));
 	bStage = true;
+}
+
+void FireBot::ReplaceStrategy(Stages _Stage, int _Value)
+{
+	MISD("Replace: " + std::to_string(_Stage) + "(" + std::to_string(_Value) + ") " + SwitchStagesText(_Stage));
+	MISD("ReStage = " + std::to_string(eStage) + "(" + std::to_string(iStageValue) + ") " + SwitchStagesText(eStage));
+
+	if (Bro->L->vStrategy.size() > 0)
+	{
+		MISD("RvStrategy[0]: " + std::to_string(Bro->L->vStrategy[0].first) + "(" + std::to_string(Bro->L->vStrategy[0].second) + ") ");
+		Bro->L->vStrategy[0].first = _Stage;
+		Bro->L->vStrategy[0].second = _Value;
+		eStage = _Stage;
+		iStageValue = _Value;
+	}
+	else
+	{
+		ChangeStrategy(_Stage, _Value);
+	}
 }
 
 
