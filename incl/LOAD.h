@@ -33,7 +33,7 @@ public:
 	std::string Name;
 	std::string Settings;
 
-	std::vector<std::pair<int, int> > vStrategy;	
+	//std::vector<std::pair<int, int> > vStrategy;	
 
 	//BROKER
 	static broker* Bro;

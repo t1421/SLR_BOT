@@ -32,7 +32,7 @@ enum Stages
 
 	Tier2 = 30,
 	Tier1 = 31,
-	SkipTier2 = 32,
+	WaitTier = 33,
 
 	NoStage = 99
 };
@@ -55,7 +55,7 @@ std::string SwitchStagesText(Stages S)
 
 	case 30: return "Tier2";
 	case 31: return "Tier1";
-	case 32: return "SkipTier2";
+	case 33: return "WaitTier";
 
 	case 99: return "NoStage";
 	default: return "Undefined in SwitchStagesText";
@@ -242,13 +242,15 @@ private:
 	std::vector< capi::EntityId> vSaveUnit;
 	Card CARD_ID_to_SMJ_CARD(capi::CardId card_id);
 
-	bool goTier2();
+	bool BuildWellOrbCheck();
 
 	int iWallReady;
 	int iMyWells;
 	int iPanicDefCheck;
-	int iTierReady;
-	int iTier2Tick;
+	//int iTierReady;
+	unsigned long int TierReadyTick;
+	unsigned long int TierCheckTick;
+	//int iTier2Tick;
 	bool bTier2VSWall;
 
 	std::vector<MIS_RejectCheck> RejectedComamandChecklist;
@@ -260,12 +262,17 @@ private:
 
 	//STAGE
 	Stages eStage;
+	Stages eStageNext;
 	int iStageValue;
-	void ChangeStrategy(Stages _Stage, int _Value);
-	void ReplaceStrategy(Stages _Stage, int _Value);
-	bool bStage;
-	bool Stage();
-	std::vector<capi::Command> sWaitForOP();
+	int iStageValueNext;
+	//void ChangeStrategy(Stages _Stage, int _Value);
+	void SwitchStrategy();
+	void SetNextStrategy(Stages _Stage, int _Value) { eStageNext = _Stage; iStageValueNext = _Value; bSwitchStrategy = true; };
+	//void ReplaceStrategy(Stages _Stage, int _Value);
+	bool bSwitchStrategy;
+	bool CalcStrategy(const capi::GameState& StrategyState);
+	MIS_thread Strategy;
+	//std::vector<capi::Command> sWaitForOP();
 	std::vector<capi::Command> sBuildWell();
 	std::vector<capi::Command> sGetUnit();
 	std::vector<capi::Command> sSpamBotX();

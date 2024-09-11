@@ -17,7 +17,7 @@ Card FireBot::CARD_ID_to_SMJ_CARD(capi::CardId card_id)
 	return SMJDeckOP[SMJDeckOP.size() - 1];
 	//MISE;
 }
-
+/*
 void FireBot::ChangeStrategy(Stages _Stage, int _Value)
 {
 	MISD("ADD: " + std::to_string(_Stage) + "(" + std::to_string(_Value) + ") " + SwitchStagesText(_Stage));
@@ -50,7 +50,7 @@ void FireBot::ReplaceStrategy(Stages _Stage, int _Value)
 		ChangeStrategy(_Stage, _Value);
 	}
 }
-
+*/
 
 std::vector<capi::Command>  FireBot::IdleToFight()
 {

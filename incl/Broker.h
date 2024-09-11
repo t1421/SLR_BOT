@@ -5,6 +5,10 @@
 #define ArcherRange 29
 #define FightRange 100
 #define HealRange 10
+#define WaitSpawnTime 50
+#define OrbBuildWait 330 //30 sec
+#define TierCheckOffset 300
+#define Tier2Init 3000
 
 
 #ifdef MIS_DEBUG

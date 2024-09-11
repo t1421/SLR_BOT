@@ -42,6 +42,7 @@ void LOAD::Load_Settings()
 			if (INI_Value_Check(line, "DrawAvoidArea"))DrawAvoidArea = line.substr(0, 1) != "0";
 			if (INI_Value_Check(line, "AllTick"))AllTick = line.substr(0, 1) != "0";
 
+			/*
 			if (INI_Value_Check(line, "Strategy"))
 			{
 				iStrategyCount = 0;
@@ -52,7 +53,7 @@ void LOAD::Load_Settings()
 						atoi(entry(entry(line, 0 + i, ","), 1, "|").c_str())
 					));				
 			}
-			
+			*/
 			
 			ifFile.clear();
 		}
@@ -129,7 +130,7 @@ void LOAD::EchoSettings()
 	MISERROR("# AllTick      = " + std::to_string(AllTick));
 	MISERROR("########################");
 	MISERROR("Strategy");
-	for (auto S: vStrategy)MISERROR(std::to_string(S.first) + " - " + std::to_string(S.second));
+	//for (auto S: vStrategy)MISERROR(std::to_string(S.first) + " - " + std::to_string(S.second));
 	MISERROR("########################");
 	MISE;
 }
