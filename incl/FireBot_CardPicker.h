@@ -17,7 +17,10 @@ int FireBot::CardPicker(unsigned int opSize, unsigned int opCounter, CardPickCri
 		if ((SMJDeck[i].offenseType == opSize || opSize == 99)
 			&& (SMJDeck[i].defenseType != opCounter || opCounter == 99)	)
 		{
-			
+			//Skip flyer for the moment since you cant spawrn new stuf neer it
+			if(SMJDeck[i].officialCardIds== 703)continue;
+
+
 			//If not in my Tier then skip
 			if(Crit != IgnorTier && SMJDeck[i].orbsTotal < tier) continue; 
 

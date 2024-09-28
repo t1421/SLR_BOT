@@ -40,20 +40,10 @@ void LOAD::Load_Settings()
 			if (INI_Value_Check(line, "Name") && Name == "")Name = line.c_str();
 			
 			if (INI_Value_Check(line, "DrawAvoidArea"))DrawAvoidArea = line.substr(0, 1) != "0";
+			if (INI_Value_Check(line, "DrawRejected"))DrawRejected = line.substr(0, 1) != "0";
+			if (INI_Value_Check(line, "EchoRejected"))EchoRejected = line.substr(0, 1) != "0";
+			
 			if (INI_Value_Check(line, "AllTick"))AllTick = line.substr(0, 1) != "0";
-
-			/*
-			if (INI_Value_Check(line, "Strategy"))
-			{
-				iStrategyCount = 0;
-				for (char character : line)if (character == ',')iStrategyCount++;
-				for (unsigned int i = 0; i < iStrategyCount + 1; i++)
-					vStrategy.push_back(std::make_pair(
-						atoi(entry(entry(line, 0 + i, ","), 0, "|").c_str()),
-						atoi(entry(entry(line, 0 + i, ","), 1, "|").c_str())
-					));				
-			}
-			*/
 			
 			ifFile.clear();
 		}
@@ -127,10 +117,9 @@ void LOAD::EchoSettings()
 	MISERROR("# InstantRepair= " + std::to_string(InstantRepair));
 	MISERROR("########################");	
 	MISERROR("# DrawAvoidArea= " + std::to_string(DrawAvoidArea));	
+	MISERROR("# DrawRejected = " + std::to_string(DrawRejected));
+	MISERROR("# EchoRejected = " + std::to_string(EchoRejected));		
 	MISERROR("# AllTick      = " + std::to_string(AllTick));
-	MISERROR("########################");
-	MISERROR("Strategy");
-	//for (auto S: vStrategy)MISERROR(std::to_string(S.first) + " - " + std::to_string(S.second));
 	MISERROR("########################");
 	MISE;
 }

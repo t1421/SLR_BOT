@@ -207,6 +207,16 @@ std::vector<capi::Squad> Util::SquadsInRadius(const capi::EntityId iFilter, std:
 	return vReturn;
 }
 
+std::vector<capi::Entity> Util::EntitiesInRadius(const capi::EntityId iFilter, std::vector<capi::Entity> toCheck, capi::Position2D Center, float Range)
+{
+	std::vector<capi::Entity> vReturn;
+	for (auto e : toCheck)
+		if (e.player_entity_id == iFilter)
+			if (distance(capi::to2D(e.position), Center) <= Range)
+				vReturn.push_back(e);
+	return vReturn;
+}
+
 float Util::distance(capi::Position2D p1, capi::Position2D p2)
 {
 	return float(sqrt(pow(p2.x - p1.x, 2) + pow(p2.y - p1.y, 2)));

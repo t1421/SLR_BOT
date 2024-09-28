@@ -78,7 +78,6 @@ struct MIS_thread
 {
 	std::future<std::vector<capi::Command>> fc;
 	std::future<bool> fb;
-	//std::thread t;
 	bool s;
 
 };
@@ -173,7 +172,13 @@ capi::Command MIS_CommandTokenSlotBuild(capi::EntityId _ID)
 	TokenSlotBuild.color = capi::CreateOrbColor_Fire;
 	return capi::Command(TokenSlotBuild);
 }
-
+capi::Command MIS_Ping_Attention(capi::Position2D _Pos)
+{
+	auto Ping = capi::CommandPing();
+	Ping.ping = capi::Ping::Ping_Attention;
+	Ping.xy = _Pos;	
+	return capi::Command(Ping);
+}
 /////////////////
 
 
@@ -265,14 +270,11 @@ private:
 	Stages eStageNext;
 	int iStageValue;
 	int iStageValueNext;
-	//void ChangeStrategy(Stages _Stage, int _Value);
 	void SwitchStrategy();
 	void SetNextStrategy(Stages _Stage, int _Value) { eStageNext = _Stage; iStageValueNext = _Value; bSwitchStrategy = true; };
-	//void ReplaceStrategy(Stages _Stage, int _Value);
 	bool bSwitchStrategy;
 	bool CalcStrategy(const capi::GameState& StrategyState);
 	MIS_thread Strategy;
-	//std::vector<capi::Command> sWaitForOP();
 	std::vector<capi::Command> sBuildWell();
 	std::vector<capi::Command> sGetUnit();
 	std::vector<capi::Command> sSpamBotX();
@@ -285,10 +287,3 @@ private:
 
 	
 };
-
-/*
-auto effect_json = nlohmann::json(state).dump();
-std::ofstream file("ALLat" + std::to_string(state.current_tick) + ".json");
-file << effect_json << std::endl;
-file.close();
-*/

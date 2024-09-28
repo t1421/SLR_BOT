@@ -1,14 +1,9 @@
 #ifndef LOAD_H
 #define LOAD_H
 
-//#include "Thread_MIS.h"
-
 #include <string>
 #include <vector>
 
-
-
-//struct TomeStruct;
 
 class LOAD //: public Thread_MIS
 {
@@ -24,6 +19,8 @@ public:
 	bool AvoidArea;
 	bool UnitEruption;
 	bool DrawAvoidArea;
+	bool DrawRejected;
+	bool EchoRejected;
 	bool AllTick;
 	bool BattleTable;
 	bool LowHPMover;
@@ -32,8 +29,6 @@ public:
 	unsigned int Port;
 	std::string Name;
 	std::string Settings;
-
-	//std::vector<std::pair<int, int> > vStrategy;	
 
 	//BROKER
 	static broker* Bro;

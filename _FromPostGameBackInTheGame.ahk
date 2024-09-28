@@ -10,7 +10,7 @@ Click, 1317, 442 ; click SPawing
 Sleep,300
 Click, 640, 800 ; click Create game
 Sleep,300
-Click, 930, 515 ; click Elyon Spec
+Click, 930, 555 ; click Elyon Spec
 Sleep,300
 Click, 1330, 865 ; click contino
 Sleep,300

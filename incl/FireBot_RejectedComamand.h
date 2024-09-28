@@ -34,16 +34,32 @@ std::vector<capi::Command> FireBot::Handel_CardRejected_ProduceSquad(capi::Comma
 				switch (RejectedComamandChecklist[i].retry)
 				{
 				case 0:
-					RejectedComamandChecklist[i].lastCommand.variant_union.produce_squad.xy.x += 10;
+					RejectedComamandChecklist[i].lastCommand.variant_union.produce_squad.xy.x += 15;
 					break;
 				case 1:
-					RejectedComamandChecklist[i].lastCommand.variant_union.produce_squad.xy.y += 10;
+					RejectedComamandChecklist[i].lastCommand.variant_union.produce_squad.xy.y += 15;
 					break;
 				case 2:
-					RejectedComamandChecklist[i].lastCommand.variant_union.produce_squad.xy.x -= 10;
+					RejectedComamandChecklist[i].lastCommand.variant_union.produce_squad.xy.x -= 15;
 					break;
 				case 3:
-					RejectedComamandChecklist[i].lastCommand.variant_union.produce_squad.xy.y -= 10;
+					RejectedComamandChecklist[i].lastCommand.variant_union.produce_squad.xy.y -= 15;
+					break;
+				case 4:
+					RejectedComamandChecklist[i].lastCommand.variant_union.produce_squad.xy.x += 15;
+					RejectedComamandChecklist[i].lastCommand.variant_union.produce_squad.xy.y += 15;
+					break;
+				case 5:
+					RejectedComamandChecklist[i].lastCommand.variant_union.produce_squad.xy.x += 15;
+					RejectedComamandChecklist[i].lastCommand.variant_union.produce_squad.xy.y -= 15;
+					break;
+				case 6:
+					RejectedComamandChecklist[i].lastCommand.variant_union.produce_squad.xy.x -= 15;
+					RejectedComamandChecklist[i].lastCommand.variant_union.produce_squad.xy.y -= 15;
+					break;
+				case 7:
+					RejectedComamandChecklist[i].lastCommand.variant_union.produce_squad.xy.x -= 15;
+					RejectedComamandChecklist[i].lastCommand.variant_union.produce_squad.xy.y += 15;
 					break;
 				default:
 					RejectedComamandChecklist[i].rejected = false;
@@ -51,7 +67,13 @@ std::vector<capi::Command> FireBot::Handel_CardRejected_ProduceSquad(capi::Comma
 				}
 				RejectedComamandChecklist[i].retry++;
 
-				if (RejectedComamandChecklist[i].rejected)vReturn.push_back(RejectedComamandChecklist[i].lastCommand);
+				if (RejectedComamandChecklist[i].rejected)
+				{
+					vReturn.push_back(RejectedComamandChecklist[i].lastCommand);
+#ifdef MIS_DEBUG
+					if(Bro->L->DrawRejected)vReturn.push_back(MIS_Ping_Attention(RejectedComamandChecklist[i].lastCommand.variant_union.produce_squad.xy));
+#endif // MIS_DEBUG	
+				}
 			}
 		}
 
