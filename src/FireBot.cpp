@@ -124,7 +124,12 @@ void FireBot::MatchStart(const capi::GameStartState& state)
 	MISD("OP ID: " + std::to_string(opId));	
 
 	EruptionPos = -1;
-	for (unsigned int i = 0; i < SMJDeck.size(); i++) if (SMJDeck[i].cardName == "Eruption")EruptionPos = i;
+	iArchers = -1;
+	for (unsigned int i = 0; i < SMJDeck.size(); i++)
+	{
+		if (SMJDeck[i].cardName == "Eruption" && EruptionPos==-1)EruptionPos = i;
+		if (SMJDeck[i].unitClass == "Archer"  && iArchers==-1)iArchers = i;
+	}
 	if (EruptionPos == -1)
 	{
 		MISD("No Eruption in deck");		
@@ -133,8 +138,15 @@ void FireBot::MatchStart(const capi::GameStartState& state)
 	else CoolEruptionTest.s = true;
 	GlobalBattleTable.s = true;
 	InstantRepair.s = true;
-	Strategy.s = true;
-		
+	Strategy.s = true;	
+
+	MISE;
+}
+
+void FireBot::init()
+{
+	MISS;
+	eMainOrb = entitiesTOentity(myId, lState.entities.token_slots)[0];
 	MISE;
 }
 
@@ -143,6 +155,8 @@ std::vector<capi::Command> FireBot::Tick(const capi::GameState& state)
 	lState = state;
 	auto v = std::vector<capi::Command>();
 	auto vTemp = std::vector<capi::Command>();
+	if (state.current_tick == 10)init();
+
 #ifdef MIS_DEBUG
 
 	if (Bro->L->AllTick && state.current_tick % 10 == 1)
@@ -150,7 +164,7 @@ std::vector<capi::Command> FireBot::Tick(const capi::GameState& state)
 		//MISD(std::to_string(eStage) + "#" + Bro->sTime(state.current_tick) + "#" + std::to_string(state.current_tick) + "#" + std::to_string(state.players[imyPlayerIDX].power));
 		std::vector<int> plTemp;
 		MoreUnitsNeeded(myBT, opBT, plTemp);
-		MISD(std::to_string(plTemp[0]) + " # " + std::to_string(plTemp[1]) + " # " + std::to_string(plTemp[2]) + " # " + std::to_string(plTemp[3]));
+		MISD(std::to_string(plTemp[0]) + " # " + std::to_string(plTemp[1]) + " # " + std::to_string(plTemp[2]) + " # " + std::to_string(plTemp[3]) + " # " + std::to_string(state.players[imyPlayerIDX].power));
 	}
 
 	if (Bro->sComand != "")
@@ -409,16 +423,15 @@ bool FireBot::CalcStrategy(const capi::GameState& StrategyState)
 	BattleTable opBT_Area;
 	std::vector<int> PowerLevel;
 
-	std::vector<capi::Entity> vMY_Tokens = entitiesTOentity(myId, StrategyState.entities.token_slots);
 	if (
+		OrbOnebOK() && // Is Main Orb is sill alive?
 		mapinfo.map == 1003 && // only for event
-		iPanicDefCheck >= 0 &&
-		vMY_Tokens.size() >0)
+		iPanicDefCheck >= 0)
 		if(	Bro->U->pointsInRadius(entitiesTOentity(opId, StrategyState.entities.squads),
-				capi::to2D(vMY_Tokens[0].position),
+				capi::to2D(eMainOrb.position),
 				100).size() >= 3
 		&&	Bro->U->pointsInRadius(entitiesTOentity(myId, StrategyState.entities.squads),
-				capi::to2D(vMY_Tokens[0].position),
+				capi::to2D(eMainOrb.position),
 				100).size() <= 1
 		)SetNextStrategy(PanicDef, 0);
 
@@ -447,8 +460,8 @@ bool FireBot::CalcStrategy(const capi::GameState& StrategyState)
 		break;
 		
 	case PanicDef:
-		if(vMY_Tokens.size() > 0)if (Bro->U->pointsInRadius(entitiesTOentity(opId, StrategyState.entities.squads),
-			capi::to2D(vMY_Tokens[0].position),
+		if (Bro->U->pointsInRadius(entitiesTOentity(opId, StrategyState.entities.squads),
+			capi::to2D(eMainOrb.position),
 			100).size() == 0)SetNextStrategy(DisablePanicDef, 0);
 		if (iPanicDefCheck >= 3)
 		{
@@ -712,17 +725,13 @@ std::vector<capi::Command> FireBot::sPanicDef()
 {
 	MISS;
 	auto vReturn = std::vector<capi::Command>();
-	std::vector<capi::Entity> myOrb = entitiesTOentity(myId, lState.entities.token_slots);
 
-	if (myOrb.size() == 0) return vReturn;
-	
-	
 	if (iWallReady == -1)
 	{
 		//Find My Wall
 		std::vector<capi::Entity> barrier =
 			Bro->U->pointsInRadius(entitiesTOentity(0, lState.entities.barrier_sets),
-				capi::to2D(myOrb[0].position),
+				capi::to2D(eMainOrb.position),
 				50);
 
 		if (barrier.size() == 1)
@@ -740,11 +749,10 @@ std::vector<capi::Command> FireBot::sPanicDef()
 		}
 	}
 	
-	//Spawn Archers
-	unsigned int iArchers = CardPicker(99, 99, Archer);
+	//Spawn Archers	
 	if (lState.players[imyPlayerIDX].power > SMJDeck[iArchers].powerCost)
 	{
-		vReturn.push_back(MIS_CommandProduceSquad(iArchers, capi::to2D(myOrb[0].position)));
+		vReturn.push_back(MIS_CommandProduceSquad(iArchers, capi::to2D(eMainOrb.position)));
 	}
 
 	//Archers on the Wall
@@ -772,7 +780,7 @@ std::vector<capi::Command> FireBot::sPanicDef()
 
 
 	
-	for (auto S : Bro->U->pointsInRadius(entitiesTOentity(myId, lState.entities.squads), capi::to2D(myOrb[0].position), 50))
+	for (auto S : Bro->U->pointsInRadius(entitiesTOentity(myId, lState.entities.squads), capi::to2D(eMainOrb.position), 50))
 		for (auto A : S.aspects)
 			if (A.variant_case == capi::AspectCase::MountBarrier)		
 				if (A.variant_union.mount_barrier.state.variant_case == capi::MountStateCase::Unmounted)

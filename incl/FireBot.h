@@ -192,6 +192,7 @@ public:
 	void PrepareForBattle(const capi::MapInfo& mapInfo, const capi::Deck& deck) override;
 	void MatchStart(const capi::GameStartState& state) override;
 	std::vector<capi::Command> Tick(const capi::GameState& state) override;
+	void init();
 
 	const std::string Name;
 
@@ -252,11 +253,12 @@ private:
 	int iWallReady;
 	int iMyWells;
 	int iPanicDefCheck;
-	//int iTierReady;
+	unsigned int iArchers;
 	unsigned long int TierReadyTick;
 	unsigned long int TierCheckTick;
-	//int iTier2Tick;
 	bool bTier2VSWall;
+	capi::Entity eMainOrb;
+	bool OrbOnebOK();
 
 	std::vector<MIS_RejectCheck> RejectedComamandChecklist;
 	void CleanUpRejectedComamandChecklist();

@@ -60,3 +60,9 @@ std::vector<capi::Command>  FireBot::IdleToFight()
 
 	return vReturn;
 }
+
+bool FireBot::OrbOnebOK()
+{
+	for (auto O : entitiesTOentity(myId, lState.entities.token_slots))if (O.id == eMainOrb.id)return true;
+	return false;
+}
