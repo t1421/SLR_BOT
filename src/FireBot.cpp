@@ -78,7 +78,7 @@ std::vector<capi::Deck> FireBot::DecksForMap(const capi::MapInfo& mapInfo)
 	deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::ScorchedEarthAFire, capi::Upgrade_U3);
 
 	deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::Enforcer, capi::Upgrade_U3);
-	deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::FiredancerPromo, capi::Upgrade_U3);
+	deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::Firedancer, capi::Upgrade_U3);
 	deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::ScytheFiends, capi::Upgrade_U3);
 	deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::SkyfireDrake, capi::Upgrade_U3);
 	deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::GladiatrixANature, capi::Upgrade_U3);
@@ -433,6 +433,10 @@ bool FireBot::CalcStrategy(const capi::GameState& StrategyState)
 		&&	Bro->U->pointsInRadius(entitiesTOentity(myId, StrategyState.entities.squads),
 				capi::to2D(eMainOrb.position),
 				100).size() <= 1
+		//Orb Still alive?
+		&& Bro->U->pointsInRadius(entitiesTOentity(myId, StrategyState.entities.token_slots),
+			capi::to2D(eMainOrb.position),
+			10).size() > 0
 		)SetNextStrategy(PanicDef, 0);
 
 	//OP builds wall
@@ -503,7 +507,7 @@ bool FireBot::CalcStrategy(const capi::GameState& StrategyState)
 	case Fight: 
 		if (entitiesTOentity(myId, StrategyState.entities.squads).size() == 0)SetNextStrategy(GetUnit, WaitSpawnTime);		
 		for (auto B : entitiesTOentity(myId, StrategyState.entities.power_slots, StrategyState.entities.token_slots))
-			if(Bro->U->SquadsInRadius(opId, StrategyState.entities.squads, capi::to2D(B.position), 25).size() > 0)
+			if(Bro->U->SquadsInRadius(opId, StrategyState.entities.squads, capi::to2D(B.position), SwitchToDefRange).size() > 0)
 				SetNextStrategy(DefaultDef, 75);
 
 		if (BuildWellOrbCheck() && entitiesTOentity(myId, StrategyState.entities.token_slots).size() < 2 && TierCheckTick < StrategyState.current_tick)SetNextStrategy(Tier2, 2);
@@ -643,9 +647,10 @@ std::vector<capi::Command> FireBot::sFight()
 		MISEA("No Units change Stage");
 		return vReturn;
 	}
-	else for (auto S : mySquat)
+
+	for (auto S : mySquat)
 	{		
-		if (S.entity.job.variant_case == capi::JobCase::AttackSquad || fDistanc < CastRange * 3) // Unit in Combet pr near
+		if (S.entity.job.variant_case == capi::JobCase::AttackSquad || fDistanc < FightRange) // Unit in Combet pr near
 		{
 			//Fall Back with Archers
 			if (CARD_ID_to_SMJ_CARD(S.card_id).attackType == 1)
@@ -670,14 +675,18 @@ std::vector<capi::Command> FireBot::sFight()
 			MoreUnitsNeeded(myBT_Area, opBT_Area, PowerLevel);
 			
 			if (entitiesTOentity(myId, lState.entities.token_slots).size() == 2 && TierReadyTick < lState.current_tick
-				&& 
+				&&
 				//With High Power Level and Tier to go Sieg
-				(std::accumulate(PowerLevel.begin(), PowerLevel.end(), 0) > 500 
-				//Or OP gos Wall
-				||
-				Bro->U->EntitiesInRadius(opId, entitiesTOentity(opId, lState.entities.barrier_modules), capi::to2D(S.entity.position), FightRange).size() > 0)
+				(std::accumulate(PowerLevel.begin(), PowerLevel.end(), 0) > 500
+					//Or OP gos Wall
+					||
+					Bro->U->EntitiesInRadius(opId, entitiesTOentity(opId, lState.entities.barrier_modules), capi::to2D(S.entity.position), 500).size() > 0)
 				)
+			{
 				NextCardSpawn = CardPickerFromBT(opBT_Area, Siege);
+				MISD("DANCE");
+				MISD(NextCardSpawn);
+			}
 			else NextCardSpawn = CardPickerFromBT(opBT_Area, None);
 
 			if (SMJDeck[NextCardSpawn].powerCost < lState.players[imyPlayerIDX].power)
@@ -867,27 +876,34 @@ std::vector<capi::Command> FireBot::sDefaultDef()
 	std::vector < capi::Squad> myUnits;
 
 	auto eBase = entitiesTOentity(myId, lState.entities.power_slots, lState.entities.token_slots);
+	auto eOP   = entitiesTOentity(myId, lState.entities.power_slots, lState.entities.token_slots, lState.entities.squads);
+
+	capi::Entity eBaseFrontLine;
+	capi::Entity eOPFront;
+	Bro->U->CloseCombi(eBase, eOP, eBaseFrontLine, eOPFront);
+
+
 
 	//If units fare between 50 and 100 Pull bakc
 	// >100 will be send on a atack later
 	for (auto eSquat : entitiesTOentity(myId, lState.entities.squads))
 	{
 		fDisntanc = Bro->U->CloseCombi({ eSquat }, eBase, A, B);
-		if (fDisntanc > 50 && fDisntanc < 100)
+		if (fDisntanc > RetreatRange && fDisntanc < FightRange && squadIsIdle(A.id))
 			vReturn.push_back(MIS_CommandGroupGoto({ A.id }, capi::to2D(B.position), capi::WalkMode_Normal));
 	}
 	
 	for (auto EE : eBase)
 	{
 		//when no OP is close the get all units in range to get closer + NEXT
-		opUnits = Bro->U->SquadsInRadius(opId, lState.entities.squads, capi::to2D(EE.position), 50);
-		myUnits = Bro->U->SquadsInRadius(myId, lState.entities.squads, capi::to2D(EE.position), 50);
-		if (opUnits.size() == 0)
+		opUnits = Bro->U->SquadsInRadius(opId, lState.entities.squads, capi::to2D(EE.position), FightRange);
+		myUnits = Bro->U->SquadsInRadius(myId, lState.entities.squads, capi::to2D(EE.position), RetreatRange);
+		if (opUnits.size() == 0 && EE.id != eBaseFrontLine.id)
 		{
 			for (auto EEE : myUnits)
-				if(Bro->U->CloseCombi({ EEE.entity }, eBase, A, B) > HealRange)
-					vReturn.push_back(MIS_CommandGroupGoto({ EEE.entity.id }, capi::to2D(EE.position), capi::WalkMode_Normal));
-
+				//if(Bro->U->CloseCombi({ EEE.entity }, eBase, A, B) > HealRange)
+				if(squadIsIdle(EEE.entity.id))
+					vReturn.push_back(MIS_CommandGroupGoto({ EEE.entity.id }, capi::to2D(eBaseFrontLine.position), capi::WalkMode_Normal));
 			continue;
 		}
 
@@ -948,4 +964,13 @@ bool FireBot::BuildWellOrbCheck()
 	}
 	MISEA("BUILD time");
 	return true;
+}
+
+bool FireBot::squadIsIdle(capi::EntityId _ID)
+{
+	for (auto E : lState.entities.squads)
+		if (E.entity.id == _ID)
+			if (E.entity.job.variant_case == capi::JobCase::Idle)
+				return true;
+	return false;
 }

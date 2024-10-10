@@ -259,6 +259,7 @@ private:
 	bool bTier2VSWall;
 	capi::Entity eMainOrb;
 	bool OrbOnebOK();
+	bool squadIsIdle(capi::EntityId _ID);
 
 	std::vector<MIS_RejectCheck> RejectedComamandChecklist;
 	void CleanUpRejectedComamandChecklist();

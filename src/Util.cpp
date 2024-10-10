@@ -300,3 +300,4 @@ std::vector<capi::Squad> Util::FilterSquad(const capi::EntityId iFilter, std::ve
 
 	return allSquad;
 }
+

@@ -14,8 +14,8 @@ int FireBot::CardPicker(unsigned int opSize, unsigned int opCounter, CardPickCri
 
 	for (unsigned int i = 0; i < SMJDeck.size(); i++)
 	{
-		if ((SMJDeck[i].offenseType == opSize || opSize == 99)
-			&& (SMJDeck[i].defenseType != opCounter || opCounter == 99)	)
+		if ((SMJDeck[i].offenseType == opSize || opSize == 9)
+			&& (SMJDeck[i].defenseType != opCounter || opCounter == 9)	)
 		{
 			//Skip flyer for the moment since you cant spawrn new stuf neer it
 			if(SMJDeck[i].officialCardIds== 703)continue;
@@ -94,11 +94,10 @@ int FireBot::CardPickerFromBT(BattleTable BT, CardPickCrit Crit) // , unsigned i
 
 	if ((iReturn = CardPicker(MaxSize, MaxCounter, Crit)) == -1)    //Perfect Counter
 		if ((iReturn = CardPicker(MaxSize, 9, Crit)) == -1)   //Counter of any Size
-			if ((iReturn = CardPicker(MaxSize, MaxCounter, None)) == -1)    //Perfect Counter, not Crits
-				if ((iReturn = CardPicker(MaxSize, 9, None)) == -1)   //Counter of any Size, not Crits
-					iReturn = -1; // I dont have a counter card???
-
-	// If size is XL do XYZ
+			if (Crit != None && (iReturn = CardPicker(9, 9, Crit)) == -1)   //Focus 100% on Crit if not none
+				if ((iReturn = CardPicker(MaxSize, MaxCounter, None)) == -1)    //Perfect Counter, not Crits
+					if ((iReturn = CardPicker(MaxSize, 9, None)) == -1)   //Counter of any Size, not Crits
+						iReturn = -1; // I dont have a counter card???
 
 
 	if (iReturn == -1)
