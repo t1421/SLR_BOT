@@ -344,7 +344,11 @@ std::vector<capi::Command> FireBot::Tick(const capi::GameState& state)
 		if (Strategy.fb.wait_for(0ms) == std::future_status::ready)
 		{
 			//if (Strategy.fb.get())SwitchStrategy();
-			if (bSwitchStrategy)SwitchStrategy();			
+			if (bSwitchStrategy)
+			{
+				SwitchStrategy();
+				for (auto vv : ResetUnits())v.push_back(vv);
+			}
 			Strategy.s = true;
 		}
 		
@@ -426,7 +430,8 @@ bool FireBot::CalcStrategy(const capi::GameState& StrategyState)
 	if (
 		OrbOnebOK() && // Is Main Orb is sill alive?
 		mapinfo.map == 1003 && // only for event
-		iPanicDefCheck >= 0)
+		iPanicDefCheck >= 0 &&
+		eStage != PanicDef)
 		if(	Bro->U->pointsInRadius(entitiesTOentity(opId, StrategyState.entities.squads),
 				capi::to2D(eMainOrb.position),
 				100).size() >= 3
@@ -684,8 +689,8 @@ std::vector<capi::Command> FireBot::sFight()
 				)
 			{
 				NextCardSpawn = CardPickerFromBT(opBT_Area, Siege);
-				MISD("DANCE");
-				MISD(NextCardSpawn);
+				//MISD("DANCE");
+				//MISD(NextCardSpawn);
 			}
 			else NextCardSpawn = CardPickerFromBT(opBT_Area, None);
 
@@ -720,9 +725,11 @@ std::vector<capi::Command> FireBot::sFight()
 					SpawnPos = Bro->U->Offseter(capi::to2D(A.position), capi::to2D(B.position), fDistanc - 1, -1); //a bit offset
 				}
 				vReturn.push_back(MIS_CommandProduceSquad(NextCardSpawn, SpawnPos));
+#ifdef MIS_DEBUG
+				if (Bro->L->DrawSpawn)vReturn.push_back(MIS_Ping_Attention(SpawnPos));
+#endif // MIS_DEBUG	
 			}
 		}
-
 
 		for (auto vv : IdleToFight())vReturn.push_back(vv);
 	}
@@ -973,4 +980,13 @@ bool FireBot::squadIsIdle(capi::EntityId _ID)
 			if (E.entity.job.variant_case == capi::JobCase::Idle)
 				return true;
 	return false;
+}
+
+std::vector<capi::Command> FireBot::ResetUnits()
+{
+	MISD("RESET")
+	auto vReturn = std::vector<capi::Command>();
+	for (auto E : lState.entities.squads)	
+		vReturn.push_back(MIS_CommandGroupStopJob({ E.entity.id }));	
+	return vReturn;
 }

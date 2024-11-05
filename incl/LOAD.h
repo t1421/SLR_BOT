@@ -20,6 +20,7 @@ public:
 	bool UnitEruption;
 	bool DrawAvoidArea;
 	bool DrawRejected;
+	bool DrawSpawn;
 	bool EchoRejected;
 	bool AllTick;
 	bool BattleTable;

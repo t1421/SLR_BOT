@@ -179,6 +179,12 @@ capi::Command MIS_Ping_Attention(capi::Position2D _Pos)
 	Ping.xy = _Pos;	
 	return capi::Command(Ping);
 }
+capi::Command MIS_CommandGroupStopJob(std::vector<capi::EntityId> _Units)
+{
+	auto CommandGroupStopJob = capi::CommandGroupStopJob();
+	CommandGroupStopJob.squads = _Units;	
+	return capi::Command(CommandGroupStopJob);
+}
 /////////////////
 
 
@@ -277,6 +283,7 @@ private:
 	void SetNextStrategy(Stages _Stage, int _Value) { eStageNext = _Stage; iStageValueNext = _Value; bSwitchStrategy = true; };
 	bool bSwitchStrategy;
 	bool CalcStrategy(const capi::GameState& StrategyState);
+	std::vector<capi::Command> ResetUnits();
 	MIS_thread Strategy;
 	std::vector<capi::Command> sBuildWell();
 	std::vector<capi::Command> sGetUnit();

@@ -41,6 +41,7 @@ void LOAD::Load_Settings()
 			
 			if (INI_Value_Check(line, "DrawAvoidArea"))DrawAvoidArea = line.substr(0, 1) != "0";
 			if (INI_Value_Check(line, "DrawRejected"))DrawRejected = line.substr(0, 1) != "0";
+			if (INI_Value_Check(line, "DrawSpawn"))DrawSpawn = line.substr(0, 1) != "0";
 			if (INI_Value_Check(line, "EchoRejected"))EchoRejected = line.substr(0, 1) != "0";
 			
 			if (INI_Value_Check(line, "AllTick"))AllTick = line.substr(0, 1) != "0";
@@ -118,6 +119,7 @@ void LOAD::EchoSettings()
 	MISERROR("########################");	
 	MISERROR(("# DrawAvoidArea= " + std::to_string(DrawAvoidArea)).c_str());
 	MISERROR(("# DrawRejected = " + std::to_string(DrawRejected)).c_str());
+	MISERROR(("# DrawSpawn = " + std::to_string(DrawSpawn)).c_str());
 	MISERROR(("# EchoRejected = " + std::to_string(EchoRejected)).c_str());
 	MISERROR(("# AllTick      = " + std::to_string(AllTick)).c_str());
 	MISERROR("########################");

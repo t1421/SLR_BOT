@@ -90,7 +90,8 @@ int FireBot::CardPickerFromBT(BattleTable BT, CardPickCrit Crit) // , unsigned i
 	//Maybe check my own Battle Tabble if i have egnaut units of that type???
 
 	// Stuff vs Flyer
-	if (BT.Flyer && Crit == None)Crit = Archer;
+	// // # NOT WORKING !!! Flyer is an INT
+	//if (BT.Flyer && Crit == None)Crit = Archer;
 
 	if ((iReturn = CardPicker(MaxSize, MaxCounter, Crit)) == -1)    //Perfect Counter
 		if ((iReturn = CardPicker(MaxSize, 9, Crit)) == -1)   //Counter of any Size
@@ -131,6 +132,7 @@ int FireBot::CardPickerFromBT(BattleTable BT, CardPickCrit Crit) // , unsigned i
 						iReturn = -1; // I dont have a counter card???
 	}
 
+	//MISD("iReturn=" + std::to_string(iReturn) + "#" + SMJDeck[iReturn].cardName);
 
 	if (iReturn == -1)iReturn = 0; // Play card 1
 	MISE;
