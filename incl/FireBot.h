@@ -266,6 +266,7 @@ private:
 	capi::Entity eMainOrb;
 	bool OrbOnebOK();
 	bool squadIsIdle(capi::EntityId _ID);
+	std::vector<capi::Command> SwitchTargets();
 
 	std::vector<MIS_RejectCheck> RejectedComamandChecklist;
 	void CleanUpRejectedComamandChecklist();

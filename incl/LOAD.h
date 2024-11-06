@@ -26,6 +26,7 @@ public:
 	bool BattleTable;
 	bool LowHPMover;
 	bool InstantRepair;
+	bool TragetSwitcher;
 	
 	unsigned int Port;
 	std::string Name;

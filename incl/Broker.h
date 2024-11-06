@@ -11,6 +11,7 @@
 #define OrbBuildWait 330 //33 sec
 #define TierCheckOffset 300
 #define Tier2Init 3000
+#define SwitchTargetRange 15
 
 
 #ifdef MIS_DEBUG

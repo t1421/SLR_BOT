@@ -732,6 +732,8 @@ std::vector<capi::Command> FireBot::sFight()
 		}
 
 		for (auto vv : IdleToFight())vReturn.push_back(vv);
+
+		if(Bro->L->TragetSwitcher)for (auto vv : SwitchTargets())vReturn.push_back(vv);
 	}
 	MISE;
 	return vReturn;
@@ -934,6 +936,8 @@ std::vector<capi::Command> FireBot::sDefaultDef()
 
 	//Ideal Units do stuff
 	for (auto vv : IdleToFight())vReturn.push_back(vv);
+	if (Bro->L->TragetSwitcher)for (auto vv : SwitchTargets())vReturn.push_back(vv);
+
 				
 	MISE;
 	return vReturn;
@@ -988,5 +992,41 @@ std::vector<capi::Command> FireBot::ResetUnits()
 	auto vReturn = std::vector<capi::Command>();
 	for (auto E : lState.entities.squads)	
 		vReturn.push_back(MIS_CommandGroupStopJob({ E.entity.id }));	
+	return vReturn;
+}
+
+
+std::vector<capi::Command> FireBot::SwitchTargets()
+{
+	auto vReturn = std::vector<capi::Command>();
+
+	//for (auto E : lState.entities.squads)
+	for (auto E : Bro->U->FilterSquad(myId, lState.entities.squads))
+	{		
+		if (E.entity.job.variant_case != capi::JobCase::AttackSquad)continue;		
+		if (E.entity.job.variant_union.attack_squad.target.variant_case != capi::TargetCase::Single)continue;
+		if (E.entity.job.variant_union.attack_squad.target.variant_union.single.single.variant_case != capi::SingleTargetCase::SingleEntity)continue;
+		
+		E.entity.job.variant_union.attack_squad.target.variant_union.single.single.variant_union.single_entity.id;
+		//When Atacking <> Squats no switch (wells / orbs)
+		for (auto OP : lState.entities.squads)
+		{
+			if (OP.entity.id != E.entity.job.variant_union.attack_squad.target.variant_union.single.single.variant_union.single_entity.id)continue;
+
+			//Not perfect Counter
+			if (CARD_ID_to_SMJ_CARD(E.card_id).offenseType != CARD_ID_to_SMJ_CARD(OP.card_id).defenseType)		
+				for (auto OP2 : Bro->U->SquadsInRadius(opId, lState.entities.squads, capi::to2D(E.entity.position), SwitchTargetRange))
+					//Is perfect counter
+					if (CARD_ID_to_SMJ_CARD(E.card_id).offenseType == CARD_ID_to_SMJ_CARD(OP2.card_id).defenseType)
+					{
+						vReturn.push_back(MIS_CommandGroupAttack({ E.entity.id }, OP2.entity.id));
+						MISD("SWITCH " + CARD_ID_to_SMJ_CARD(E.card_id).cardName + " to " + CARD_ID_to_SMJ_CARD(OP2.card_id).cardName);
+						break;
+					}
+						
+			break;
+		}
+	}
+
 	return vReturn;
 }

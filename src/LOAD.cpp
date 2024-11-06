@@ -34,8 +34,8 @@ void LOAD::Load_Settings()
 			if (INI_Value_Check(line, "BattleTable"))BattleTable = line.substr(0, 1) != "0";
 			if (INI_Value_Check(line, "LowHPMover"))LowHPMover = line.substr(0, 1) != "0";
 			if (INI_Value_Check(line, "InstantRepair"))InstantRepair = line.substr(0, 1) != "0";
+			if (INI_Value_Check(line, "TragetSwitcher"))TragetSwitcher = line.substr(0, 1) != "0";
 			
-
 			if (INI_Value_Check(line, "Port") && Port == 0)Port = atoi(line.c_str());
 			if (INI_Value_Check(line, "Name") && Name == "")Name = line.c_str();
 			
@@ -116,10 +116,12 @@ void LOAD::EchoSettings()
 	MISERROR(("# AvoidArea    = " + std::to_string(AvoidArea)).c_str());
 	MISERROR(("# BattleTable  = " + std::to_string(BattleTable)).c_str());
 	MISERROR(("# InstantRepair= " + std::to_string(InstantRepair)).c_str());
+	MISERROR(("# Trag.Switcher= " + std::to_string(TragetSwitcher)).c_str());
+	
 	MISERROR("########################");	
 	MISERROR(("# DrawAvoidArea= " + std::to_string(DrawAvoidArea)).c_str());
 	MISERROR(("# DrawRejected = " + std::to_string(DrawRejected)).c_str());
-	MISERROR(("# DrawSpawn = " + std::to_string(DrawSpawn)).c_str());
+	MISERROR(("# DrawSpawn    = " + std::to_string(DrawSpawn)).c_str());
 	MISERROR(("# EchoRejected = " + std::to_string(EchoRejected)).c_str());
 	MISERROR(("# AllTick      = " + std::to_string(AllTick)).c_str());
 	MISERROR("########################");
