@@ -258,6 +258,7 @@ private:
 
 	int iWallReady;
 	int iMyWells;
+	unsigned long int  WellCheckTick;
 	int iPanicDefCheck;
 	unsigned int iArchers;
 	unsigned long int TierReadyTick;

@@ -27,6 +27,9 @@ void LOAD::Load_Settings()
 			line.erase(line.size() - 1);
 			//printf("%s\n",line.c_str());
 
+			if (INI_Value_Check(line, "Port") && Port == 0)Port = atoi(line.c_str());
+			if (INI_Value_Check(line, "Name") && Name == "")Name = line.c_str();
+
 			if (INI_Value_Check(line, "SMJOnline"))SMJOnline = line.substr(0,1) != "0";
 			if (INI_Value_Check(line, "WellKiller"))WellKiller = line.substr(0, 1) != "0";
 			if (INI_Value_Check(line, "UnitEruption"))UnitEruption = line.substr(0, 1) != "0";
@@ -36,15 +39,30 @@ void LOAD::Load_Settings()
 			if (INI_Value_Check(line, "InstantRepair"))InstantRepair = line.substr(0, 1) != "0";
 			if (INI_Value_Check(line, "TragetSwitcher"))TragetSwitcher = line.substr(0, 1) != "0";
 			
-			if (INI_Value_Check(line, "Port") && Port == 0)Port = atoi(line.c_str());
-			if (INI_Value_Check(line, "Name") && Name == "")Name = line.c_str();
-			
 			if (INI_Value_Check(line, "DrawAvoidArea"))DrawAvoidArea = line.substr(0, 1) != "0";
 			if (INI_Value_Check(line, "DrawRejected"))DrawRejected = line.substr(0, 1) != "0";
 			if (INI_Value_Check(line, "DrawSpawn"))DrawSpawn = line.substr(0, 1) != "0";
-			if (INI_Value_Check(line, "EchoRejected"))EchoRejected = line.substr(0, 1) != "0";
-			
+			if (INI_Value_Check(line, "EchoRejected"))EchoRejected = line.substr(0, 1) != "0";			
 			if (INI_Value_Check(line, "AllTick"))AllTick = line.substr(0, 1) != "0";
+
+
+			if (INI_Value_Check(line, "CastRange"))CastRange = atoi(line.c_str());
+			if (INI_Value_Check(line, "FightRange"))FightRange = atoi(line.c_str());
+			if (INI_Value_Check(line, "RetreatRange"))RetreatRange = atoi(line.c_str());
+			if (INI_Value_Check(line, "SwitchToDefRange"))SwitchToDefRange = atoi(line.c_str());
+			if (INI_Value_Check(line, "HealRange"))HealRange = atoi(line.c_str());
+			if (INI_Value_Check(line, "SaveRangeWellOrb"))SaveRangeWellOrb = atoi(line.c_str());
+			if (INI_Value_Check(line, "SwitchTargetRange"))SwitchTargetRange = atoi(line.c_str());
+
+			if (INI_Value_Check(line, "WaitSpawnTime"))WaitSpawnTime = atoi(line.c_str());
+			if (INI_Value_Check(line, "OrbBuildWait"))OrbBuildWait = atoi(line.c_str());
+			if (INI_Value_Check(line, "TierCheckOffset"))TierCheckOffset = atoi(line.c_str());
+			if (INI_Value_Check(line, "WellCheckOffset"))WellCheckOffset = atoi(line.c_str());
+			if (INI_Value_Check(line, "Tier2Init"))Tier2Init = atoi(line.c_str());
+
+			if (INI_Value_Check(line, "GiveUpFight"))GiveUpFight = atoi(line.c_str());
+			if (INI_Value_Check(line, "AddSiegeToMix"))AddSiegeToMix = atoi(line.c_str());
+
 			
 			ifFile.clear();
 		}
@@ -117,7 +135,29 @@ void LOAD::EchoSettings()
 	MISERROR(("# BattleTable  = " + std::to_string(BattleTable)).c_str());
 	MISERROR(("# InstantRepair= " + std::to_string(InstantRepair)).c_str());
 	MISERROR(("# Trag.Switcher= " + std::to_string(TragetSwitcher)).c_str());
-	
+	MISERROR("########################");
+	MISERROR("# RANGES               #");
+	MISERROR("########################");
+	MISERROR(("# CastRange    = " + std::to_string(CastRange)).c_str());
+	MISERROR(("# FightRange   = " + std::to_string(FightRange)).c_str());
+	MISERROR(("# RetreatRange = " + std::to_string(RetreatRange)).c_str());
+	MISERROR(("# SwitchDefRang= " + std::to_string(SwitchToDefRange)).c_str());
+	MISERROR(("# HealRange    = " + std::to_string(HealRange)).c_str());
+	MISERROR(("# SaveRangeWell= " + std::to_string(SaveRangeWellOrb)).c_str());
+	MISERROR(("# SwitchTargRan= " + std::to_string(SwitchTargetRange)).c_str());
+	MISERROR("########################");
+	MISERROR("# Timings              #");
+	MISERROR("########################");
+	MISERROR(("# WaitSpawnTime= " + std::to_string(WaitSpawnTime)).c_str());
+	MISERROR(("# OrbBuildWait = " + std::to_string(OrbBuildWait)).c_str());
+	MISERROR(("# TierCheckOffs= " + std::to_string(TierCheckOffset)).c_str());
+	MISERROR(("# WellCheckOffs= " + std::to_string(WellCheckOffset)).c_str());
+	MISERROR(("# Tier2Init    = " + std::to_string(Tier2Init)).c_str());
+	MISERROR("########################");
+	MISERROR("# Power Levels         #");
+	MISERROR("########################");
+	MISERROR(("# GiveUpFight  = " + std::to_string(GiveUpFight)).c_str());
+	MISERROR(("# AddSiegeToMix= " + std::to_string(AddSiegeToMix)).c_str());	
 	MISERROR("########################");	
 	MISERROR(("# DrawAvoidArea= " + std::to_string(DrawAvoidArea)).c_str());
 	MISERROR(("# DrawRejected = " + std::to_string(DrawRejected)).c_str());

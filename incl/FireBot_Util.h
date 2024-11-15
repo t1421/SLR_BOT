@@ -32,7 +32,7 @@ std::vector<capi::Command>  FireBot::IdleToFight()
 			OnWall = false;
 			FoundOP = false;
 			//Units Close By
-			std::vector<capi::Squad> SOP = Bro->U->SquadsInRadius(opId, lState.entities.squads, capi::to2D(S.entity.position), FightRange);
+			std::vector<capi::Squad> SOP = Bro->U->SquadsInRadius(opId, lState.entities.squads, capi::to2D(S.entity.position), Bro->L->FightRange);
 			//for (auto S : STemp)
 			for(unsigned int i = 0; i < SOP.size() && OnWall == false; i++)
 			{

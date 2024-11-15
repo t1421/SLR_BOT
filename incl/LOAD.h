@@ -13,20 +13,38 @@ public:
 	void EchoSettings();
 	int ProcessArg(int argc, char** argv);
 
+	//Functions
 	bool SMJOnline;
-
 	bool WellKiller;
 	bool AvoidArea;
-	bool UnitEruption;
+	bool UnitEruption;	
+	bool BattleTable;
+	bool LowHPMover;
+	bool InstantRepair;
+	bool TragetSwitcher;
+
+	//Ranges
+	int CastRange;
+	int FightRange;
+	int RetreatRange;
+	int SwitchToDefRange;
+	int HealRange;
+	int WaitSpawnTime;
+	int OrbBuildWait;
+	int TierCheckOffset;
+	int Tier2Init;
+	int SwitchTargetRange;
+	int GiveUpFight;
+	int AddSiegeToMix;
+	int WellCheckOffset;
+	int SaveRangeWellOrb;
+
+	//DEBUGs
 	bool DrawAvoidArea;
 	bool DrawRejected;
 	bool DrawSpawn;
 	bool EchoRejected;
 	bool AllTick;
-	bool BattleTable;
-	bool LowHPMover;
-	bool InstantRepair;
-	bool TragetSwitcher;
 	
 	unsigned int Port;
 	std::string Name;

@@ -1,19 +1,6 @@
 #pragma once
 //#define DF_Debug
 
-#define CastRange 14.5
-#define ArcherRange 29
-#define FightRange 100
-#define RetreatRange 50
-#define SwitchToDefRange 25
-#define HealRange 10
-#define WaitSpawnTime 50
-#define OrbBuildWait 330 //33 sec
-#define TierCheckOffset 300
-#define Tier2Init 3000
-#define SwitchTargetRange 15
-
-
 #ifdef MIS_DEBUG
 	#ifdef DF_Debug 
 		#define MISD(___Mes___) Bro->B_StatusNew(__FUNCTION__, ___Mes___);
