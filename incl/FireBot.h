@@ -104,6 +104,16 @@ struct MIS_RejectCheck
 	MIS_RejectCheck(capi::Command _C) :orgCommand(_C), lastCommand(_C), retry(0), rejected(false) {};
 };
 
+struct BaseDef
+{
+	capi::Entity Base;
+	std::vector<capi::Squad> mySquads;
+	std::vector<capi::Squad> opSquads;
+	BattleTable myBattleTable;
+	BattleTable opBattleTable;
+	std::vector<int> PowerLevel;
+	int PowerLevelSum() { return std::accumulate(PowerLevel.begin(), PowerLevel.end(), 0); };
+};
 
 /////////////////
 capi::Command MIS_CommandGroupAttack(std::vector<capi::EntityId> _Units, capi::EntityId _OP)
@@ -200,7 +210,7 @@ public:
 	std::vector<capi::Command> Tick(const capi::GameState& state) override;
 	void init();
 
-	const std::string Name;
+	//const std::string Name;
 
 	static broker* Bro;
 	static void learnBro(broker* _Bro) { Bro = _Bro; }
@@ -275,6 +285,9 @@ private:
 	
 	std::vector<capi::Command>  IdleToFight();
 	float GetAspect(capi::Entity E, capi::AspectCase A);
+
+	capi::EntityId getAttackTargetID(capi::Squad toCheck);
+	capi::Entity* getAttackTargetEntity(capi::Squad toCheck);
 
 	//STAGE
 	Stages eStage;

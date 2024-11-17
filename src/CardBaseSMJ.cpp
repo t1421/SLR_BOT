@@ -149,6 +149,21 @@ void CardBaseSMJ::FIX_Cards()
 		//Firesworn
 		if (item["officialCardIds"].at(0) == 1237 || item["officialCardIds"].at(0) == 1386)
 			item["offenseType"] = 2; // L Counter
+		//Shadow Mage
+		if (item["officialCardIds"].at(0) == 405)
+			item["offenseType"] = 1; // M Counter
+		//Harvester
+		if (item["officialCardIds"].at(0) == 304)
+			item["offenseType"] = 2; // L Counter
+		//AshbonePyro
+		if (item["officialCardIds"].at(0) == 408)
+			item["offenseType"] = 2; // L Counter
+		//Windweavers
+		if (item["officialCardIds"].at(0) == 362)
+			item["offenseType"] = 0; // S Counter
+		//EnergyParasite
+		if (item["officialCardIds"].at(0) == 427)
+			item["offenseType"] = 4; // NONE Counter
 	}
 	MISE;
 }

@@ -62,7 +62,8 @@ void LOAD::Load_Settings()
 
 			if (INI_Value_Check(line, "GiveUpFight"))GiveUpFight = atoi(line.c_str());
 			if (INI_Value_Check(line, "AddSiegeToMix"))AddSiegeToMix = atoi(line.c_str());
-
+			if (INI_Value_Check(line, "MoreUnitsGlobal"))MoreUnitsGlobal = atoi(line.c_str());
+			if (INI_Value_Check(line, "MoreUnitsPerType"))MoreUnitsPerType = atoi(line.c_str());
 			
 			ifFile.clear();
 		}
@@ -136,7 +137,7 @@ void LOAD::EchoSettings()
 	MISERROR(("# InstantRepair= " + std::to_string(InstantRepair)).c_str());
 	MISERROR(("# Trag.Switcher= " + std::to_string(TragetSwitcher)).c_str());
 	MISERROR("########################");
-	MISERROR("# RANGES               #");
+	MISERROR("# RANGES");
 	MISERROR("########################");
 	MISERROR(("# CastRange    = " + std::to_string(CastRange)).c_str());
 	MISERROR(("# FightRange   = " + std::to_string(FightRange)).c_str());
@@ -146,7 +147,7 @@ void LOAD::EchoSettings()
 	MISERROR(("# SaveRangeWell= " + std::to_string(SaveRangeWellOrb)).c_str());
 	MISERROR(("# SwitchTargRan= " + std::to_string(SwitchTargetRange)).c_str());
 	MISERROR("########################");
-	MISERROR("# Timings              #");
+	MISERROR("# Timings");
 	MISERROR("########################");
 	MISERROR(("# WaitSpawnTime= " + std::to_string(WaitSpawnTime)).c_str());
 	MISERROR(("# OrbBuildWait = " + std::to_string(OrbBuildWait)).c_str());
@@ -154,10 +155,12 @@ void LOAD::EchoSettings()
 	MISERROR(("# WellCheckOffs= " + std::to_string(WellCheckOffset)).c_str());
 	MISERROR(("# Tier2Init    = " + std::to_string(Tier2Init)).c_str());
 	MISERROR("########################");
-	MISERROR("# Power Levels         #");
+	MISERROR("# Power Levels");
 	MISERROR("########################");
 	MISERROR(("# GiveUpFight  = " + std::to_string(GiveUpFight)).c_str());
 	MISERROR(("# AddSiegeToMix= " + std::to_string(AddSiegeToMix)).c_str());	
+	MISERROR(("# MoreUnitsGlob= " + std::to_string(MoreUnitsGlobal)).c_str());
+	MISERROR(("# MoreUnitsType= " + std::to_string(MoreUnitsPerType)).c_str());
 	MISERROR("########################");	
 	MISERROR(("# DrawAvoidArea= " + std::to_string(DrawAvoidArea)).c_str());
 	MISERROR(("# DrawRejected = " + std::to_string(DrawRejected)).c_str());

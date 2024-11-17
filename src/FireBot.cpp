@@ -14,6 +14,11 @@
 
 broker* (FireBot::Bro) = NULL;
 
+bool comparePower(BaseDef a, BaseDef b)
+{
+	return a.PowerLevelSum() < b.PowerLevelSum();
+}
+
 bool run_FireBot(broker* Bro, unsigned short port, std::string sName)
 {
 	MISS;
@@ -63,37 +68,143 @@ std::vector<capi::Deck> FireBot::DecksForMap(const capi::MapInfo& mapInfo)
 {
 	MISS;	
 	
-	MISD("DecksForMap: " + mapInfo.map)
+	MISD("DecksForMap: " + mapInfo.map);
+	MISD("Name: " + Name);
 	unsigned int i = 0;
 	auto v = std::vector<capi::Deck>();
 	auto deck = capi::Deck();
-	deck.name = "FireDeck";
-	deck.cover_card_index = 19;
-	deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::Scavenger, capi::Upgrade_U3);
-	deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::Sunstriders, capi::Upgrade_U3);
-	deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::Thugs, capi::Upgrade_U3);	
-	deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::Wrecker, capi::Upgrade_U3);
-	deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::Sunderer, capi::Upgrade_U3);
-	deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::FireswornAFrost, capi::Upgrade_U3);
-	deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::Eruption, capi::Upgrade_U3);
-	deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::ScorchedEarthAFire, capi::Upgrade_U3);
 
-	deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::Enforcer, capi::Upgrade_U3);
-	deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::Firedancer, capi::Upgrade_U3);
-	deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::ScytheFiends, capi::Upgrade_U3);
-	deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::SkyfireDrake, capi::Upgrade_U3);
-	deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::GladiatrixANature, capi::Upgrade_U3);
-	deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::LavaField, capi::Upgrade_U3);
-	deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::Wildfire, capi::Upgrade_U3);
-	deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::Ravage, capi::Upgrade_U3);
-	deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::RallyingBanner, capi::Upgrade_U3);
-	
-	deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::BurningSpears, capi::Upgrade_U3);
-	deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::DisenchantANature, capi::Upgrade_U3);
-	
-	deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::Spitfire, capi::Upgrade_U3);
 
-	v.push_back(deck);
+	if (Name == "FireDeck" || Name == "FireBot")
+	{
+		deck.name = "FireDeck";
+		i = 0;
+
+		deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::Scavenger, capi::Upgrade_U3);
+		deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::Sunstriders, capi::Upgrade_U3);
+		deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::Thugs, capi::Upgrade_U3);
+		deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::Wrecker, capi::Upgrade_U3);
+		deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::Sunderer, capi::Upgrade_U3);
+		deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::FireswornAFrost, capi::Upgrade_U3);
+		deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::Eruption, capi::Upgrade_U3);
+		deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::ScorchedEarthAFire, capi::Upgrade_U3);
+
+		deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::Enforcer, capi::Upgrade_U3);
+		deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::Firedancer, capi::Upgrade_U3);
+		deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::ScytheFiends, capi::Upgrade_U3);
+		deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::SkyfireDrake, capi::Upgrade_U3);
+		deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::GladiatrixANature, capi::Upgrade_U3);
+		deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::LavaField, capi::Upgrade_U3);
+		deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::Wildfire, capi::Upgrade_U3);
+		deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::Ravage, capi::Upgrade_U3);
+		deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::RallyingBanner, capi::Upgrade_U3);
+
+		deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::BurningSpears, capi::Upgrade_U3);
+		deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::DisenchantANature, capi::Upgrade_U3);
+
+		deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::Spitfire, capi::Upgrade_U3);
+		deck.cover_card_index = 19;
+
+		v.push_back(deck);
+	}
+
+	if (Name == "ShadowDeck" || Name == "FireBot")
+	{
+		deck.name = "ShadowDeck";
+		i = 0;
+		deck.cover_card_index = 19;
+		deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::Dreadcharger, capi::Upgrade_U3);
+		deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::Forsaken, capi::Upgrade_U3);
+		deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::NoxTrooper, capi::Upgrade_U3);
+		deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::Motivate, capi::Upgrade_U3);
+
+		deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::NastySurprise, capi::Upgrade_U3);
+		deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::LifeWeaving, capi::Upgrade_U3);
+		deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::Executor, capi::Upgrade_U3);
+		deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::DarkelfAssassins, capi::Upgrade_U3);
+
+		deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::Nightcrawler, capi::Upgrade_U3);
+		deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::ShadowMage, capi::Upgrade_U3);
+		deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::KnightOfChaosAFrost, capi::Upgrade_U3);
+		deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::CorpseExplosion, capi::Upgrade_U3);
+
+		deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::NetherWarpAFrost, capi::Upgrade_U3);
+		deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::Harvester, capi::Upgrade_U3);
+		deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::AuraofCorruption, capi::Upgrade_U3);
+		deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::CultistMaster, capi::Upgrade_U3);
+
+		deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::AshbonePyro, capi::Upgrade_U3);
+		deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::SatanaelAFire, capi::Upgrade_U3);
+		deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::BloodHealing, capi::Upgrade_U3);
+		deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::Voidstorm, capi::Upgrade_U3);
+
+		v.push_back(deck);
+	}
+
+	if (Name == "NatureDeck" || Name == "FireBot")
+	{
+		deck.name = "NatureDeck";
+		i = 0;
+		deck.cover_card_index = 19;
+		deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::Swiftclaw, capi::Upgrade_U3);
+		deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::DryadAFrost, capi::Upgrade_U3);
+		deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::Windweavers, capi::Upgrade_U3);
+		deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::Shaman, capi::Upgrade_U3);
+
+		deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::Spearmen, capi::Upgrade_U3);
+		deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::EnsnaringRoots, capi::Upgrade_U3);
+		deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::Hurricane, capi::Upgrade_U3);
+		deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::SurgeOfLight, capi::Upgrade_U3);
+
+		deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::Burrower, capi::Upgrade_U3);
+		deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::Ghostspears, capi::Upgrade_U3);
+		deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::SpiritHuntersANature, capi::Upgrade_U3);
+		deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::DeepOneANature, capi::Upgrade_U3);
+
+		deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::EnergyParasite, capi::Upgrade_U3);
+		deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::CurseofOink, capi::Upgrade_U3);
+		deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::CreepingParalysis, capi::Upgrade_U3);
+		deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::Parasite, capi::Upgrade_U3);
+
+		deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::ParasiteSwarm, capi::Upgrade_U3);
+		deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::Thunderstorm, capi::Upgrade_U3);
+		deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::FathomLord, capi::Upgrade_U3);
+		deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::Mo, capi::Upgrade_U3);
+
+		v.push_back(deck);
+	}
+	if (Name == "FrostDeck" || Name == "FireBot")
+	{
+		deck.name = "FrostDeck";
+		i = 0;
+		deck.cover_card_index = 19;
+		deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::MasterArchers, capi::Upgrade_U3);
+		deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::IceGuardian, capi::Upgrade_U3);
+		deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::LightbladeAShadow, capi::Upgrade_U3);
+		deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::FrostBiteAShadow, capi::Upgrade_U3);
+
+		deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::GlyphofFrost, capi::Upgrade_U3);
+		deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::IceBarrier, capi::Upgrade_U3);
+		deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::HomeSoil, capi::Upgrade_U3);
+		deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::GlacierShell, capi::Upgrade_U3);
+
+		deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::KoboldTrick, capi::Upgrade_U3);
+		deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::IcefangRaptorAFrost, capi::Upgrade_U3);
+		deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::MountainRowdyAShadow, capi::Upgrade_U3);
+		deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::StormsingerANature, capi::Upgrade_U3);
+
+		deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::WhiteRangers, capi::Upgrade_U3);
+		deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::WarEagle, capi::Upgrade_U3);
+		deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::Coldsnap, capi::Upgrade_U3);
+		deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::AreaIceShield, capi::Upgrade_U3);
+
+		deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::TimelessOne, capi::Upgrade_U3);
+		deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::SilverwindLancers, capi::Upgrade_U3);
+		deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::Tremor, capi::Upgrade_U3);
+		deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::ShieldBuilding, capi::Upgrade_U3);
+
+		v.push_back(deck);
+	}
 
 	MISE;
 	return v;
@@ -135,6 +246,7 @@ void FireBot::MatchStart(const capi::GameStartState& state)
 	{
 		MISD("No Eruption in deck");		
 		CoolEruptionTest.s = false;
+		Bro->L->UnitEruption = false;
 	}
 	else CoolEruptionTest.s = true;
 	GlobalBattleTable.s = true;
@@ -496,19 +608,19 @@ bool FireBot::CalcStrategy(const capi::GameState& StrategyState)
 		if(BuildWellOrbCheck()== false && iStageValue != 99)SetNextStrategy(Fight, 4);
 		break;
 	case WaitTier:
-		if (TierReadyTick < StrategyState.current_tick)SetNextStrategy(Fight, 4);
-		if (entitiesTOentity(myId, StrategyState.entities.token_slots).size() >= iStageValue)SetNextStrategy(Fight, 5);
+		if (TierReadyTick < StrategyState.current_tick)SetNextStrategy(Fight, 5);
+		if (entitiesTOentity(myId, StrategyState.entities.token_slots).size() >= iStageValue)SetNextStrategy(Fight, 6);
 		break;
 
 	case BuildWell:
 		if (entitiesTOentity(myId, StrategyState.entities.squads).size() == 0)SetNextStrategy(GetUnit, Bro->L->WaitSpawnTime);
-		if (WellCheckTick > StrategyState.current_tick)SetNextStrategy(Fight, 6);
+		if (WellCheckTick > StrategyState.current_tick)SetNextStrategy(Fight, 7);
 		if (iMyWells != -1 && iMyWells != entitiesTOentity(myId, StrategyState.entities.power_slots).size())
 		{
 			iMyWells = -1;
 			SetNextStrategy(DefaultDef, 53);
 		}
-		if (WellCheckTick > StrategyState.current_tick)SetNextStrategy(Fight, 77);
+		if (WellCheckTick > StrategyState.current_tick)SetNextStrategy(Fight, 8);
 		if(BuildWellOrbCheck() == false)SetNextStrategy(DefaultDef, 54);
 		break;
 	case SpamBotX: 
@@ -602,6 +714,7 @@ std::vector<capi::Command> FireBot::sGetUnit()
 		entitiesTOentity(opId, lState.entities.power_slots, lState.entities.token_slots, lState.entities.squads),
 		A, B);
 
+	MISD("iReturn=" + std::to_string(iCard) + "#" + SMJDeck[iCard].cardName);
 	vReturn.push_back(MIS_CommandProduceSquad(iCard,
 		Bro->U->Offseter(capi::to2D(A.position), capi::to2D(B.position), Bro->L->CastRange)));
 
@@ -654,9 +767,7 @@ std::vector<capi::Command> FireBot::sFight()
 	std::vector<int> PowerLevel;
 
 	capi::Entity A;
-	capi::Entity B;
-	float fDistanc = Bro->U->CloseCombi(entitiesTOentity(myId, lState.entities.squads),
-		entitiesTOentity(opId, lState.entities.power_slots, lState.entities.token_slots, lState.entities.squads, lState.entities.buildings, lState.entities.barrier_modules), A, B);
+	capi::Entity B;	
 
 	//NO unit? get any unit
 	if (mySquat.size() == 0)
@@ -668,8 +779,18 @@ std::vector<capi::Command> FireBot::sFight()
 
 	for (auto S : mySquat)
 	{		
+		float fDistanc = Bro->U->CloseCombi({ S.entity },
+			entitiesTOentity(opId, lState.entities.power_slots, lState.entities.token_slots, lState.entities.squads, lState.entities.buildings, lState.entities.barrier_modules), A, B);
+
 		if (S.entity.job.variant_case == capi::JobCase::AttackSquad || fDistanc < Bro->L->FightRange) // Unit in Combet pr near
 		{
+			/*
+			//Check if the target is near, else set to Idel for a tick to pick new target
+			auto eTarget = getAttackTargetEntity(S);
+			if (eTarget != NULL)
+				if (Bro->U->distance(capi::to2D(S.entity.position), capi::to2D(eTarget->position)) > fDistanc * 1.25)
+					vReturn.push_back(MIS_CommandGroupStopJob({ S.entity.id }));*/
+						
 			//Fall Back with Archers
 			if (CARD_ID_to_SMJ_CARD(S.card_id).attackType == 1)
 				if (std::find(vSaveUnit.begin(), vSaveUnit.end(), S.entity.id) == vSaveUnit.end())
@@ -717,14 +838,14 @@ std::vector<capi::Command> FireBot::sFight()
 				std::vector<capi::Entity> UnDazed = Bro->U->pointsInRadius(entitiesTOentity(myId, lState.entities.power_slots, lState.entities.token_slots), capi::to2D(S.entity.position), 25);
 				if (UnDazed.size() > 0)
 				{
-					MISD("Spawn undazed");
+					//MISD("Spawn undazed");
 					SpawnPos = Bro->U->Offseter(capi::to2D(UnDazed[0].position), capi::to2D(S.entity.position), Bro->L->CastRange);
 
 				}
 				//if archer go away
 				else if (SMJDeck[NextCardSpawn].attackType == 1) //ranged
 				{
-					MISD("Spawn Range Distance");
+					//MISD("Spawn Range Distance");
 					Bro->U->CloseCombi({ S.entity },
 						entitiesTOentity(opId, Bro->U->SquadsInRadius(opId, lState.entities.squads, capi::to2D(S.entity.position), Bro->L->FightRange)),
 						A, B);
@@ -733,7 +854,7 @@ std::vector<capi::Command> FireBot::sFight()
 				//if melee go near
 				else
 				{
-					MISD("Spawn Near");
+					//MISD("Spawn Near");
 					fDistanc = Bro->U->CloseCombi(entitiesTOentity(myId, Bro->U->SquadsInRadius(myId, lState.entities.squads, capi::to2D(S.entity.position), 75)),
 						entitiesTOentity(opId, Bro->U->SquadsInRadius(opId, lState.entities.squads, capi::to2D(S.entity.position), Bro->L->FightRange)), A, B);
 					if (fDistanc > Bro->L->CastRange)fDistanc = Bro->L->CastRange;
@@ -892,19 +1013,43 @@ std::vector<capi::Command> FireBot::sDefaultDef()
 	auto vReturn = std::vector<capi::Command>();
 	capi::Entity A;
 	capi::Entity B;
-	BattleTable myBT_Area;
-	BattleTable opBT_Area;
+
 	float fDisntanc;
+	
+	std::vector<BaseDef> vBase;
 
-	std::vector < capi::Squad> opUnits;
-	std::vector < capi::Squad> myUnits;
+	//auto eBase = entitiesTOentity(myId, lState.entities.power_slots, lState.entities.token_slots);
+	//auto eOP   = entitiesTOentity(myId, lState.entities.power_slots, lState.entities.token_slots, lState.entities.squads);
 
-	auto eBase = entitiesTOentity(myId, lState.entities.power_slots, lState.entities.token_slots);
-	auto eOP   = entitiesTOentity(myId, lState.entities.power_slots, lState.entities.token_slots, lState.entities.squads);
+	
+	for (auto E : entitiesTOentity(myId, lState.entities.power_slots, lState.entities.token_slots))
+	{
+		BaseDef TempBase;
+		TempBase.Base = E;
+		TempBase.mySquads = Bro->U->SquadsInRadius(myId, lState.entities.squads, capi::to2D(E.position), Bro->L->RetreatRange);
+		TempBase.opSquads = Bro->U->SquadsInRadius(opId, lState.entities.squads, capi::to2D(E.position), Bro->L->FightRange);
+		TempBase.myBattleTable = CalcBattleTable(TempBase.mySquads);
+		TempBase.opBattleTable = CalcBattleTable(TempBase.opSquads);
+		MoreUnitsNeeded(TempBase.myBattleTable, TempBase.opBattleTable, TempBase.PowerLevel);
 
-	capi::Entity eBaseFrontLine;
-	capi::Entity eOPFront;
-	Bro->U->CloseCombi(eBase, eOP, eBaseFrontLine, eOPFront);
+		vBase.push_back(TempBase);
+	}
+	
+	std::sort(vBase.begin(), vBase.end(), comparePower);
+
+	for (auto V : vBase)
+	{
+		//ALL Fine at this base
+		if (V.PowerLevelSum() >= 0) continue;
+
+		NextCardSpawn = CardPickerFromBT(V.opBattleTable, None);
+		if (SMJDeck[NextCardSpawn].powerCost < lState.players[imyPlayerIDX].power)
+			vReturn.push_back(
+				MIS_CommandProduceSquad(NextCardSpawn, capi::to2D(V.Base.position)));
+	}
+	//capi::Entity eBaseFrontLine;
+	//capi::Entity eOPFront;
+	//Bro->U->CloseCombi(eBase, eOP, eBaseFrontLine, eOPFront);
 
 
 
@@ -912,11 +1057,14 @@ std::vector<capi::Command> FireBot::sDefaultDef()
 	// >100 will be send on a atack later
 	for (auto eSquat : entitiesTOentity(myId, lState.entities.squads))
 	{
-		fDisntanc = Bro->U->CloseCombi({ eSquat }, eBase, A, B);
+		fDisntanc = Bro->U->CloseCombi({ eSquat }, entitiesTOentity(myId, lState.entities.power_slots, lState.entities.token_slots), A, B);
 		if (fDisntanc > Bro->L->RetreatRange && fDisntanc < Bro->L->FightRange && squadIsIdle(A.id))
 			vReturn.push_back(MIS_CommandGroupGoto({ A.id }, capi::to2D(B.position), capi::WalkMode_Normal));
 	}
 	
+	
+
+	/*
 	for (auto EE : eBase)
 	{
 		//when no OP is close the get all units in range to get closer + NEXT
@@ -948,6 +1096,7 @@ std::vector<capi::Command> FireBot::sDefaultDef()
 			}
 		}
 	}
+	*/
 
 	//Ideal Units do stuff
 	for (auto vv : IdleToFight())vReturn.push_back(vv);
@@ -1018,15 +1167,11 @@ std::vector<capi::Command> FireBot::SwitchTargets()
 	//for (auto E : lState.entities.squads)
 	for (auto E : Bro->U->FilterSquad(myId, lState.entities.squads))
 	{		
-		if (E.entity.job.variant_case != capi::JobCase::AttackSquad)continue;		
-		if (E.entity.job.variant_union.attack_squad.target.variant_case != capi::TargetCase::Single)continue;
-		if (E.entity.job.variant_union.attack_squad.target.variant_union.single.single.variant_case != capi::SingleTargetCase::SingleEntity)continue;
-		
-		E.entity.job.variant_union.attack_squad.target.variant_union.single.single.variant_union.single_entity.id;
+		capi::EntityId Target = getAttackTargetID(E);
 		//When Atacking <> Squats no switch (wells / orbs)
 		for (auto OP : lState.entities.squads)
 		{
-			if (OP.entity.id != E.entity.job.variant_union.attack_squad.target.variant_union.single.single.variant_union.single_entity.id)continue;
+			if (OP.entity.id != Target)continue;
 
 			//Not perfect Counter
 			if (CARD_ID_to_SMJ_CARD(E.card_id).offenseType != CARD_ID_to_SMJ_CARD(OP.card_id).defenseType)		
@@ -1044,4 +1189,32 @@ std::vector<capi::Command> FireBot::SwitchTargets()
 	}
 
 	return vReturn;
+}
+
+capi::EntityId FireBot::getAttackTargetID(capi::Squad toCheck)
+{
+	if (toCheck.entity.job.variant_case != capi::JobCase::AttackSquad)return -1;
+	if (toCheck.entity.job.variant_union.attack_squad.target.variant_case != capi::TargetCase::Single)return -1;
+	if (toCheck.entity.job.variant_union.attack_squad.target.variant_union.single.single.variant_case != capi::SingleTargetCase::SingleEntity)return -1;
+
+	return toCheck.entity.job.variant_union.attack_squad.target.variant_union.single.single.variant_union.single_entity.id;
+}
+
+capi::Entity* FireBot::getAttackTargetEntity(capi::Squad toCheck)
+{
+	auto CheckID = getAttackTargetID(toCheck);
+
+	if (CheckID == -1) return NULL;
+
+	auto eAllopEnteties = entitiesTOentity(opId, 
+		lState.entities.barrier_modules, 
+		lState.entities.buildings,
+		lState.entities.power_slots,
+		lState.entities.token_slots,
+		lState.entities.squads);
+
+	for (auto OP : eAllopEnteties)
+		if (OP.id == CheckID)return &OP;
+	
+	return NULL;
 }

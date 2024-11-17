@@ -86,14 +86,14 @@ bool FireBot::MoreUnitsNeeded(BattleTable myBT, BattleTable opBT, std::vector<in
 	for (auto i : PowerLevel)
 	{
 		total += i;
-		if (i < -250)
+		if (i < Bro->L->MoreUnitsPerType)
 		{
 			//MISEA("More stuff");
 			return true;
 		}
 	}
 
-	if (total < -500)
+	if (total < Bro->L->MoreUnitsGlobal)
 	{
 		//MISEA("More stuff2");
 		return true;

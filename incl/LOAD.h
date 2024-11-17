@@ -29,15 +29,23 @@ public:
 	int RetreatRange;
 	int SwitchToDefRange;
 	int HealRange;
+	int SaveRangeWellOrb;
+	int SwitchTargetRange;
+
+	//Timings
 	int WaitSpawnTime;
 	int OrbBuildWait;
 	int TierCheckOffset;
 	int Tier2Init;
-	int SwitchTargetRange;
+	int WellCheckOffset;
+
+	//Power
 	int GiveUpFight;
 	int AddSiegeToMix;
-	int WellCheckOffset;
-	int SaveRangeWellOrb;
+	int MoreUnitsGlobal;
+	int MoreUnitsPerType;
+	
+	
 
 	//DEBUGs
 	bool DrawAvoidArea;
