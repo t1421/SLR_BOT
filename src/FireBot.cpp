@@ -978,6 +978,8 @@ std::vector<capi::Command> FireBot::sTier2()
 
 	auto vReturn = std::vector<capi::Command>();
 
+	capi::CreateOrbColor ToBuild;
+
 	capi::Entity A;
 	capi::Entity B;
 	capi::Entity C;
@@ -998,7 +1000,12 @@ std::vector<capi::Command> FireBot::sTier2()
 		if (fDistanc > Bro->L->CastRange)vReturn.push_back(MIS_CommandGroupGoto({ A.id }, capi::to2D(B.position), capi::WalkMode_Normal));
 		else if(lState.players[imyPlayerIDX].power >= 153)
 		{
-			vReturn.push_back(capi::Command(MIS_CommandTokenSlotBuild(B.id)));			
+			if (lState.players[imyPlayerIDX].orbs.frost > 0) ToBuild = capi::CreateOrbColor::CreateOrbColor_Frost;
+			else if (lState.players[imyPlayerIDX].orbs.nature > 0) ToBuild = capi::CreateOrbColor::CreateOrbColor_Nature;
+			else if (lState.players[imyPlayerIDX].orbs.shadow > 0) ToBuild = capi::CreateOrbColor::CreateOrbColor_Shadow;
+			else ToBuild = capi::CreateOrbColor::CreateOrbColor_Fire;
+
+			vReturn.push_back(capi::Command(MIS_CommandTokenSlotBuild(B.id, ToBuild)));
 		}
 	}
 

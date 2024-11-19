@@ -175,11 +175,11 @@ capi::Command MIS_CommandRepairBuilding(capi::EntityId _building_id)
 	RepairBuilding.building_id = _building_id;
 	return capi::Command(RepairBuilding);
 }
-capi::Command MIS_CommandTokenSlotBuild(capi::EntityId _ID)
+capi::Command MIS_CommandTokenSlotBuild(capi::EntityId _ID, capi::CreateOrbColor _Color)
 {
 	auto TokenSlotBuild = capi::CommandTokenSlotBuild();
 	TokenSlotBuild.slot_id = _ID;
-	TokenSlotBuild.color = capi::CreateOrbColor_Fire;
+	TokenSlotBuild.color = _Color;
 	return capi::Command(TokenSlotBuild);
 }
 capi::Command MIS_Ping_Attention(capi::Position2D _Pos)
