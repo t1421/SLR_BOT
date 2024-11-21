@@ -16,12 +16,15 @@ public:
 	//Functions
 	bool SMJOnline;
 	bool WellKiller;
-	bool AvoidArea;
-	bool UnitEruption;	
-	bool BattleTable;
+	bool AvoidArea;	
 	bool LowHPMover;
-	bool InstantRepair;
 	bool TragetSwitcher;
+	bool ResetUnitsOnStratSwitch;
+
+	//threads
+	bool UnitEruption;
+	bool BattleTable;
+	bool InstantRepair;
 
 	//Ranges
 	int CastRange;

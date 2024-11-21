@@ -289,6 +289,8 @@ private:
 	capi::EntityId getAttackTargetID(capi::Squad toCheck);
 	capi::Entity* getAttackTargetEntity(capi::Squad toCheck);
 
+	std::vector<capi::Command> FixGroupGotoType2();
+
 	//STAGE
 	Stages eStage;
 	Stages eStageNext;

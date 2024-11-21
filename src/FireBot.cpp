@@ -286,6 +286,7 @@ std::vector<capi::Command> FireBot::Tick(const capi::GameState& state)
 		{
 			MISERROR("------------------------------");
 			MISERROR("# dump     = Save tick        ");
+			MISERROR("# dumpx    = Save Commands    ");			
 			MISERROR("# bt       = Print BattleTable");
 			MISERROR("# st       = echo strategy    ");
 			MISERROR("# pl       = echo power level ");
@@ -460,7 +461,7 @@ std::vector<capi::Command> FireBot::Tick(const capi::GameState& state)
 			if (bSwitchStrategy)
 			{
 				SwitchStrategy();
-				for (auto vv : ResetUnits())v.push_back(vv);
+				if(Bro->L->ResetUnitsOnStratSwitch)for (auto vv : ResetUnits())v.push_back(vv);
 			}
 			Strategy.s = true;
 		}
@@ -469,6 +470,7 @@ std::vector<capi::Command> FireBot::Tick(const capi::GameState& state)
 	/////////////Cleanups////////////////
 	if (Bro->L->AvoidArea)if (vAvoid.size() > 0)RemoveFromMIS_AvoidArea(state.current_tick);
 	if (state.current_tick % 100 == 1)RemoveFromSaveUnit();
+	if (state.current_tick % 10 == 1)for (auto vv : FixGroupGotoType2())v.push_back(vv); 
 	CleanUpRejectedComamandChecklist();
 
 	/////////////THREADS////////////////
@@ -1159,7 +1161,7 @@ bool FireBot::squadIsIdle(capi::EntityId _ID)
 
 std::vector<capi::Command> FireBot::ResetUnits()
 {
-	MISD("RESET")
+	//MISD("RESET")
 	auto vReturn = std::vector<capi::Command>();
 	for (auto E : lState.entities.squads)	
 		vReturn.push_back(MIS_CommandGroupStopJob({ E.entity.id }));	
@@ -1224,4 +1226,46 @@ capi::Entity* FireBot::getAttackTargetEntity(capi::Squad toCheck)
 		if (OP.id == CheckID)return &OP;
 	
 	return NULL;
+}
+
+
+
+void FireBot::RemoveFromSaveUnit()
+{
+	MISS;
+	bool bDel;
+	std::vector < capi::Entity> MyUnits = entitiesTOentity(myId, lState.entities.squads);
+	for (std::vector<capi::EntityId>::iterator it = vSaveUnit.begin(); it != vSaveUnit.end();)
+	{
+		bDel = true;
+		for (auto U : MyUnits)if ((*it) == U.id) bDel = false;
+
+		if (bDel)it = vSaveUnit.erase(it);
+		else  ++it;
+	}
+	MISE;
+}
+
+std::vector<capi::Command> FireBot::FixGroupGotoType2()
+{
+	MISS;
+	bool bFixMode;
+	
+	auto vReturn = std::vector<capi::Command>();
+	for (auto S : entitiesTOentity(myId, lState.entities.squads))
+	{
+		if (S.job.variant_case != capi::JobCase::Goto)continue;
+		if (S.job.variant_union.gotoCppField.walk_mode == capi::WalkMode_Force)
+		{
+			bFixMode = true;
+			for (unsigned int i = 0; i < vSaveUnit.size() && bFixMode; i++)
+				bFixMode = vSaveUnit[i] != S.id;
+
+			if (bFixMode)
+				vReturn.push_back(MIS_CommandGroupGoto({ S.id }, Bro->U->WaypointTo2D(S.job.variant_union.gotoCppField.waypoints[0]), capi::WalkMode_Normal));										
+		}
+	}
+	
+	MISE;
+	return vReturn;
 }

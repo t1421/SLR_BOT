@@ -148,22 +148,6 @@ void FireBot::RemoveFromMIS_AvoidArea(capi::Tick curTick)
 	MISE;
 }
 
-void FireBot::RemoveFromSaveUnit()
-{
-	MISS;
-	bool bDel;
-	std::vector < capi::Entity> MyUnits = entitiesTOentity(myId, lState.entities.squads);
-	for (std::vector<capi::EntityId>::iterator it = vSaveUnit.begin(); it != vSaveUnit.end();)
-	{
-		bDel = true;
-		for (auto U : MyUnits)if ((*it) == U.id) bDel = false;
-
-		if (bDel)it = vSaveUnit.erase(it);
-		else  ++it;
-	}
-	MISE;
-}
-
 std::vector<capi::Command> FireBot::MoveUnitsAway()
 {
 	MISS;

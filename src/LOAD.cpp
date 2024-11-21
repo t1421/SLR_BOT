@@ -31,13 +31,15 @@ void LOAD::Load_Settings()
 			if (INI_Value_Check(line, "Name") && Name == "")Name = line.c_str();
 
 			if (INI_Value_Check(line, "SMJOnline"))SMJOnline = line.substr(0,1) != "0";
-			if (INI_Value_Check(line, "WellKiller"))WellKiller = line.substr(0, 1) != "0";
-			if (INI_Value_Check(line, "UnitEruption"))UnitEruption = line.substr(0, 1) != "0";
-			if (INI_Value_Check(line, "AvoidArea"))AvoidArea = line.substr(0, 1) != "0";
-			if (INI_Value_Check(line, "BattleTable"))BattleTable = line.substr(0, 1) != "0";
-			if (INI_Value_Check(line, "LowHPMover"))LowHPMover = line.substr(0, 1) != "0";
-			if (INI_Value_Check(line, "InstantRepair"))InstantRepair = line.substr(0, 1) != "0";
+			if (INI_Value_Check(line, "WellKiller"))WellKiller = line.substr(0, 1) != "0";			
+			if (INI_Value_Check(line, "AvoidArea"))AvoidArea = line.substr(0, 1) != "0";			
+			if (INI_Value_Check(line, "LowHPMover"))LowHPMover = line.substr(0, 1) != "0";			
 			if (INI_Value_Check(line, "TragetSwitcher"))TragetSwitcher = line.substr(0, 1) != "0";
+			if (INI_Value_Check(line, "ResetUnitsOnStratSwitch"))ResetUnitsOnStratSwitch = line.substr(0, 1) != "0";			
+
+			if (INI_Value_Check(line, "UnitEruption"))UnitEruption = line.substr(0, 1) != "0";
+			if (INI_Value_Check(line, "BattleTable"))BattleTable = line.substr(0, 1) != "0";
+			if (INI_Value_Check(line, "InstantRepair"))InstantRepair = line.substr(0, 1) != "0";			
 			
 			if (INI_Value_Check(line, "DrawAvoidArea"))DrawAvoidArea = line.substr(0, 1) != "0";
 			if (INI_Value_Check(line, "DrawRejected"))DrawRejected = line.substr(0, 1) != "0";
@@ -130,12 +132,14 @@ void LOAD::EchoSettings()
 	MISERROR("########################");
 	MISERROR(("# SMJOnline    = " + std::to_string(SMJOnline)).c_str());
 	MISERROR("########################");
-	MISERROR(("# WellKiller   = " + std::to_string(WellKiller)).c_str());
+	MISERROR(("# WellKiller   = " + std::to_string(WellKiller)).c_str());	
+	MISERROR(("# AvoidArea    = " + std::to_string(AvoidArea)).c_str());	
+	MISERROR(("# Trag.Switcher= " + std::to_string(TragetSwitcher)).c_str());
+	MISERROR(("# ResetUnits   = " + std::to_string(ResetUnitsOnStratSwitch)).c_str());	
+	MISERROR("########################");
 	MISERROR(("# UnitEruption = " + std::to_string(UnitEruption)).c_str());
-	MISERROR(("# AvoidArea    = " + std::to_string(AvoidArea)).c_str());
 	MISERROR(("# BattleTable  = " + std::to_string(BattleTable)).c_str());
 	MISERROR(("# InstantRepair= " + std::to_string(InstantRepair)).c_str());
-	MISERROR(("# Trag.Switcher= " + std::to_string(TragetSwitcher)).c_str());
 	MISERROR("########################");
 	MISERROR("# RANGES");
 	MISERROR("########################");

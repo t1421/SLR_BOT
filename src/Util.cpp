@@ -301,3 +301,11 @@ std::vector<capi::Squad> Util::FilterSquad(const capi::EntityId iFilter, std::ve
 	return allSquad;
 }
 
+
+capi::Position2D Util::WaypointTo2D(capi::Position2DWithOrientation WP)
+{
+	auto pos2d = capi::Position2D();
+	pos2d.x = WP.x;
+	pos2d.y = WP.y;
+	return pos2d;
+}
