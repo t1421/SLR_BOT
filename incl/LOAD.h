@@ -41,6 +41,7 @@ public:
 	int TierCheckOffset;
 	int Tier2Init;
 	int WellCheckOffset;
+	int Tier3Init;
 
 	//Power
 	int GiveUpFight;

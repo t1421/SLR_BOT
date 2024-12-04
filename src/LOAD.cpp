@@ -61,6 +61,8 @@ void LOAD::Load_Settings()
 			if (INI_Value_Check(line, "TierCheckOffset"))TierCheckOffset = atoi(line.c_str());
 			if (INI_Value_Check(line, "WellCheckOffset"))WellCheckOffset = atoi(line.c_str());
 			if (INI_Value_Check(line, "Tier2Init"))Tier2Init = atoi(line.c_str());
+			if (INI_Value_Check(line, "Tier3Init"))Tier3Init = atoi(line.c_str());
+			
 
 			if (INI_Value_Check(line, "GiveUpFight"))GiveUpFight = atoi(line.c_str());
 			if (INI_Value_Check(line, "AddSiegeToMix"))AddSiegeToMix = atoi(line.c_str());
@@ -158,6 +160,7 @@ void LOAD::EchoSettings()
 	MISERROR(("# TierCheckOffs= " + std::to_string(TierCheckOffset)).c_str());
 	MISERROR(("# WellCheckOffs= " + std::to_string(WellCheckOffset)).c_str());
 	MISERROR(("# Tier2Init    = " + std::to_string(Tier2Init)).c_str());
+	MISERROR(("# Tier3Init    = " + std::to_string(Tier3Init)).c_str());
 	MISERROR("########################");
 	MISERROR("# Power Levels");
 	MISERROR("########################");

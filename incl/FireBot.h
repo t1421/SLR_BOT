@@ -30,8 +30,7 @@ enum Stages
 	DisablePanicDef = 21,
 	DefaultDef = 22,
 
-	Tier2 = 30,
-	Tier1 = 31,
+	TierUp = 30,
 	WaitTier = 33,
 
 	NoStage = 99
@@ -53,8 +52,7 @@ std::string SwitchStagesText(Stages S)
 	case 21: return "DisablePanicDef";
 	case 22: return "DefaultDef";
 
-	case 30: return "Tier2";
-	case 31: return "Tier1";
+	case 30: return "TierUp";
 	case 33: return "WaitTier";
 
 	case 99: return "NoStage";
@@ -308,8 +306,7 @@ private:
 	std::vector<capi::Command> sFight();
 	std::vector<capi::Command> sPanicDef();
 	std::vector<capi::Command> sDisablePanicDef();
-	std::vector<capi::Command> sTier1();
-	std::vector<capi::Command> sTier2();
+	std::vector<capi::Command> sTierUp();
 	std::vector<capi::Command> sDefaultDef();
 
 	
