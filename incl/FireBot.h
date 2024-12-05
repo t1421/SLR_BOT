@@ -17,21 +17,21 @@ using namespace std::chrono_literals;
 
 enum Stages
 {	
-	BuildWell = 1,
-	Attack = 3,
-	Fight = 4,
-	SavePower = 5,
+	BuildWell = 10,
+	Attack = 13,
+	Fight = 14,
+	SavePower = 15,
 
-	WaitForOP = 10,
-	GetUnit = 11,
-	SpamBotX = 12,
+	WaitForOP = 20,
+	GetUnit = 21,
+	SpamBotX = 22,
 
-	PanicDef = 20,
-	DisablePanicDef = 21,
-	DefaultDef = 22,
+	PanicDef = 30,
+	DisablePanicDef = 31,
+	DefaultDef = 32,
 
-	TierUp = 30,
-	WaitTier = 33,
+	TierUp = 40,
+	WaitTier = 43,
 
 	NoStage = 99
 };
@@ -39,24 +39,24 @@ enum Stages
 std::string SwitchStagesText(Stages S)
 {
 	switch (S) {
-	case 1: return "BuildWell";
-	case 3: return "Attack";
-	case 4: return "Fight";
-	case 5: return "SavePower";
+	case 10: return "BuildWell";
+	case 13: return "Attack   ";
+	case 14: return "Fight    ";
+	case 15: return "SavePower";
 
-	case 10: return "WaitForOP";
-	case 11: return "GetUnit";
-	case 12: return "SpamBotX";
+	case 20: return "WaitForOP";
+	case 21: return "GetUnit  ";
+	case 22: return "SpamBotX ";
 
-	case 20: return "PanicDef";
-	case 21: return "DisablePanicDef";
-	case 22: return "DefaultDef";
+	case 30: return "PanicDef ";
+	case 31: return "DisPanDef";
+	case 32: return "DefaDef  ";
 
-	case 30: return "TierUp";
-	case 33: return "WaitTier";
+	case 40: return "TierUp   ";
+	case 43: return "WaitTier ";
 
-	case 99: return "NoStage";
-	default: return "Undefined in SwitchStagesText";
+	case 99: return "NoStage  ";
+	default: return "Undefined";
 	}
 }
 
@@ -271,6 +271,7 @@ private:
 	unsigned int iArchers;
 	unsigned long int TierReadyTick;
 	unsigned long int TierCheckTick;
+	//int iMyOrbs;
 	bool bTier2VSWall;
 	capi::Entity eMainOrb;
 	bool OrbOnebOK();

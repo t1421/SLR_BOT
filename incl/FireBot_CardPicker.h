@@ -10,7 +10,7 @@ int FireBot::CardPicker(unsigned int opSize, unsigned int opCounter, CardPickCri
 	MISS;
 
 	int tier = entitiesTOentity(myId, lState.entities.token_slots).size();
-	if (tier == 2 && TierReadyTick > lState.current_tick ) tier = 1;
+	if (TierReadyTick - 10 > lState.current_tick ) tier--;
 
 	for (unsigned int i = 0; i < SMJDeck.size(); i++)
 	{
