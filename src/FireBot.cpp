@@ -526,7 +526,7 @@ void FireBot::SwitchStrategy()
 	//MISERROR("Switch: " + std::to_string(eStage) + " -> " + std::to_string(eStageNext));
 	//MISERROR("Switch: " + SwitchStagesText(eStage) + " -> " + SwitchStagesText(eStageNext));
 	//MISERROR("Switch: " + std::to_string(iStageValue) + " -> " + std::to_string(iStageValueNext));
-	MISERROR("Switch: " + SwitchStagesText(eStage) + " (" + std::to_string(iStageValue) + ") -> " + SwitchStagesText(eStageNext) + " ("  + std::to_string(iStageValueNext) + ")");
+	MISERROR(("Switch: " + SwitchStagesText(eStage) + " (" + std::to_string(iStageValue) + ") -> " + SwitchStagesText(eStageNext) + " ("  + std::to_string(iStageValueNext) + ")").c_str());
 	eStage = eStageNext;
 	iStageValue = iStageValueNext;
 	bSwitchStrategy = false;
