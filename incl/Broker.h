@@ -58,6 +58,7 @@ public:
 #endif // MIS_DEBUG	
 
 	std::string sTime(unsigned long ulTime);
+	unsigned long int L_getEEE_Now();
 
 #ifdef MIS_Stream 
 	void L_StartsPlus();

@@ -54,6 +54,12 @@ std::string broker::sTime(unsigned long ulTime)
 	return cOut;
 }
 
+unsigned long int broker::L_getEEE_Now()
+{
+	const auto UNIX = std::chrono::system_clock::now();
+	return std::chrono::duration_cast<std::chrono::seconds>(UNIX.time_since_epoch()).count();
+}
+
 #ifdef MIS_Stream 
 void broker::L_StartsPlus()
 {
@@ -64,3 +70,4 @@ void broker::L_GamesPlus()
 	L->GamesPlus();
 }
 #endif
+

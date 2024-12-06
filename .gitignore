@@ -368,3 +368,4 @@ build/
 xmake/
 Stream_Games.ini
 Stream_Starts.ini
+*.exe

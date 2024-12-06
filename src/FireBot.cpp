@@ -214,8 +214,8 @@ std::vector<capi::Deck> FireBot::DecksForMap(const capi::MapInfo& mapInfo)
 void FireBot::MatchStart(const capi::GameStartState& state)
 {
 	MISS;
-
-	MISD("MatchStart");
+	
+	MISERROR(("MatchStart at " + std::to_string(Bro->L_getEEE_Now())).c_str());
 	
 	for (int iPlayerCount = 0; iPlayerCount < state.players.size(); iPlayerCount++)
 	{
@@ -526,7 +526,7 @@ void FireBot::SwitchStrategy()
 	//MISERROR("Switch: " + std::to_string(eStage) + " -> " + std::to_string(eStageNext));
 	//MISERROR("Switch: " + SwitchStagesText(eStage) + " -> " + SwitchStagesText(eStageNext));
 	//MISERROR("Switch: " + std::to_string(iStageValue) + " -> " + std::to_string(iStageValueNext));
-	MISERROR(("Switch: " + SwitchStagesText(eStage) + " (" + std::to_string(iStageValue) + ") -> " + SwitchStagesText(eStageNext) + " ("  + std::to_string(iStageValueNext) + ")").c_str());
+	MISERROR((std::to_string(lState.current_tick) + " Switch: " + SwitchStagesText(eStage) + " (" + std::to_string(iStageValue) + ") -> " + SwitchStagesText(eStageNext) + " ("  + std::to_string(iStageValueNext) + ")").c_str());
 	eStage = eStageNext;
 	iStageValue = iStageValueNext;
 	bSwitchStrategy = false;
@@ -584,7 +584,8 @@ bool FireBot::CalcStrategy(const capi::GameState& StrategyState)
 	}
 
 	// Lost my Tier 1!!!
-	if (entitiesTOentity(myId, StrategyState.entities.token_slots).size() < 1)
+	if (entitiesTOentity(myId, StrategyState.entities.token_slots).size() < 1 &&
+		eStage != TierUp)
 	{
 		SetNextStrategy(TierUp, 1);
 		MISEA("PRIO Return 3");
@@ -628,6 +629,7 @@ bool FireBot::CalcStrategy(const capi::GameState& StrategyState)
 		if(entitiesTOentity(myId, StrategyState.entities.barrier_sets).size() == 0)SetNextStrategy(Fight, 3);
 		break;	
 	case TierUp:
+		if (entitiesTOentity(myId, StrategyState.entities.squads).size() == 0)SetNextStrategy(GetUnit, Bro->L->WaitSpawnTime);
 		//if (iMyOrbs != -1 && iMyOrbs != entitiesTOentity(myId, StrategyState.entities.token_slots).size())SetNextStrategy(WaitTier, iMyOrbs);
 		for (auto O : entitiesTOentity(myId, StrategyState.entities.token_slots))if (O.job.variant_case == capi::JobCase::Construct)
 		{
