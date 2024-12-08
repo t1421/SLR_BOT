@@ -20,6 +20,7 @@ public:
 	bool LowHPMover;
 	bool TragetSwitcher;
 	bool ResetUnitsOnStratSwitch;
+	bool IgnoreEmptyWalls;
 
 	//threads
 	bool UnitEruption;
@@ -34,6 +35,7 @@ public:
 	int HealRange;
 	int SaveRangeWellOrb;
 	int SwitchTargetRange;
+	int WallSearchRange;
 
 	//Timings
 	int WaitSpawnTime;

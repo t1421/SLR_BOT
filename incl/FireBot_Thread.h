@@ -38,18 +38,19 @@ std::vector<capi::Command> FireBot::CoolEruption(const capi::GameState& state)
 			iUnitCountH = 0;
 			for (auto S : vSquad)
 			{
+				//Count Cout Units an wall as a eruption Target
+				if (onWall(S.entity.id))continue;
 				iUnitCount++;
-				for (auto A : S.entity.aspects)
-				{ 
-					if (A.variant_case == capi::AspectCase::Health)
-						if (A.variant_union.health.current_hp <= 300)iUnitCountH++;
-				}
+				if(GetSquadHP(S.entity.id) <= 300)iUnitCountH++;				
 			}
+
+			//MISD(std::to_string(iUnitCount) + " # " + std::to_string(iUnitCountH) );
+
 			if (iUnitCountH >= 1 && iUnitCount >= 3
 				|| iUnitCountH >= 2 && iUnitCount >= 2
 				|| iUnitCountH >= 1 && flyer)
 			{
-				MISD("FIRE !!!!");
+				//MISD("FIRE !!!!");
 
 				auto spell = capi::CommandCastSpellGod();
 				spell.card_position = EruptionPos;

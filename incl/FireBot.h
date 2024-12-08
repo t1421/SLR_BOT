@@ -246,6 +246,7 @@ private:
 	std::vector<capi::Command> CoolEruption(const capi::GameState& state);
 	MIS_thread CoolEruptionTest;
 	int EruptionPos;
+	int GetSquadHP(capi::EntityId SquadID);
 
 	BattleTable CalcBattleTable(std::vector<capi::Squad> squads);
 	bool CalGlobalBattleTable(const capi::GameState& state);
@@ -290,6 +291,9 @@ private:
 	capi::Entity* getAttackTargetEntity(capi::Squad toCheck);
 
 	std::vector<capi::Command> FixGroupGotoType2();
+	bool onWall(capi::EntityId ID);
+	capi::EntityId WallidOFsquad(capi::EntityId ID);
+
 
 	//STAGE
 	Stages eStage;

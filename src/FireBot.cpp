@@ -654,9 +654,9 @@ bool FireBot::CalcStrategy(const capi::GameState& StrategyState)
 		}
 
 
-		MISD("TierReadyTick=" + std::to_string(TierReadyTick));
-		MISD("TierCheckTick=" + std::to_string(TierCheckTick));
-		MISD("current_tick =" + std::to_string(StrategyState.current_tick));
+		//MISD("TierReadyTick=" + std::to_string(TierReadyTick));
+		//MISD("TierCheckTick=" + std::to_string(TierCheckTick));
+		//MISD("current_tick =" + std::to_string(StrategyState.current_tick));
 		//if(entitiesTOentity(myId, StrategyState.entities.token_slots).size() == 2)SetNextStrategy(WaitTier2, OrbBuildWait);			
 		if (TierReadyTick > StrategyState.current_tick)SetNextStrategy(WaitTier, iStageValue);
 		if (TierCheckTick > StrategyState.current_tick)SetNextStrategy(Fight, 6);
@@ -1210,15 +1210,26 @@ std::vector<capi::Command> FireBot::SwitchTargets()
 {
 	auto vReturn = std::vector<capi::Command>();
 
+	bool found;
+	bool WallWithSquad;
+	capi::Entity A;
+	capi::Entity B;
+	std::vector<capi::Entity> SquadsInRange;
+
 	//for (auto E : lState.entities.squads)
 	for (auto E : Bro->U->FilterSquad(myId, lState.entities.squads))
 	{		
 		capi::EntityId Target = getAttackTargetID(E);
 		//When Atacking <> Squats no switch (wells / orbs)
+		if (Target == -1)continue;
+		
+
+		found = false;
+		//First Check for Squads
 		for (auto OP : lState.entities.squads)
 		{
 			if (OP.entity.id != Target)continue;
-
+			found = true;
 			//Not perfect Counter
 			if (CARD_ID_to_SMJ_CARD(E.card_id).offenseType != CARD_ID_to_SMJ_CARD(OP.card_id).defenseType)		
 				for (auto OP2 : Bro->U->SquadsInRadius(opId, lState.entities.squads, capi::to2D(E.entity.position), Bro->L->SwitchTargetRange))
@@ -1232,6 +1243,40 @@ std::vector<capi::Command> FireBot::SwitchTargets()
 						
 			break;
 		}
+		//Then check for Walls
+		if (found == false && Bro->L->IgnoreEmptyWalls)for (auto OP : lState.entities.barrier_modules)
+		{
+			if (OP.entity.id != Target)continue;
+			found = true;
+
+			WallWithSquad = false;
+			SquadsInRange = entitiesTOentity(opId, Bro->U->SquadsInRadius(opId, lState.entities.squads, capi::to2D(E.entity.position), Bro->L->WallSearchRange));
+			//Atacks Wall with Squad on Top
+			if (SquadsInRange.size() > 0)for (auto S : SquadsInRange)if (Target == WallidOFsquad(S.id))WallWithSquad = true;
+			if (WallWithSquad)break;
+			
+			
+
+
+			//else find couses unit to atack
+			if (SquadsInRange.size() > 0)
+			{
+				//Cloases Squad around
+				Bro->U->CloseCombi({ E.entity }, SquadsInRange, A, B);
+				//If on wall then atack wall
+				if (onWall(B.id)) B.id = WallidOFsquad(B.id);				
+			}
+			else
+			{
+				//Search full map for new target
+				SquadsInRange = entitiesTOentity(opId, lState.entities.squads, lState.entities.power_slots, lState.entities.token_slots);
+				Bro->U->CloseCombi({ E.entity }, SquadsInRange, A, B);
+			}
+
+			vReturn.push_back(MIS_CommandGroupAttack({ E.entity.id }, B.id));
+			break;
+		}
+
 	}
 
 	return vReturn;

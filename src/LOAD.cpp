@@ -36,6 +36,7 @@ void LOAD::Load_Settings()
 			if (INI_Value_Check(line, "LowHPMover"))LowHPMover = line.substr(0, 1) != "0";			
 			if (INI_Value_Check(line, "TragetSwitcher"))TragetSwitcher = line.substr(0, 1) != "0";
 			if (INI_Value_Check(line, "ResetUnitsOnStratSwitch"))ResetUnitsOnStratSwitch = line.substr(0, 1) != "0";			
+			if (INI_Value_Check(line, "IgnoreEmptyWalls"))IgnoreEmptyWalls = line.substr(0, 1) != "0";			
 
 			if (INI_Value_Check(line, "UnitEruption"))UnitEruption = line.substr(0, 1) != "0";
 			if (INI_Value_Check(line, "BattleTable"))BattleTable = line.substr(0, 1) != "0";
@@ -55,6 +56,8 @@ void LOAD::Load_Settings()
 			if (INI_Value_Check(line, "HealRange"))HealRange = atoi(line.c_str());
 			if (INI_Value_Check(line, "SaveRangeWellOrb"))SaveRangeWellOrb = atoi(line.c_str());
 			if (INI_Value_Check(line, "SwitchTargetRange"))SwitchTargetRange = atoi(line.c_str());
+			if (INI_Value_Check(line, "WallSearchRange"))WallSearchRange = atoi(line.c_str());
+			
 
 			if (INI_Value_Check(line, "WaitSpawnTime"))WaitSpawnTime = atoi(line.c_str());
 			if (INI_Value_Check(line, "OrbBuildWait"))OrbBuildWait = atoi(line.c_str());
@@ -139,6 +142,8 @@ void LOAD::EchoSettings()
 	MISERROR(("# AvoidArea    = " + std::to_string(AvoidArea)).c_str());	
 	MISERROR(("# Trag.Switcher= " + std::to_string(TragetSwitcher)).c_str());
 	MISERROR(("# ResetUnits   = " + std::to_string(ResetUnitsOnStratSwitch)).c_str());	
+	MISERROR(("# IgnoreEmptyWa= " + std::to_string(IgnoreEmptyWalls)).c_str());
+	
 	MISERROR("########################");
 	MISERROR(("# UnitEruption = " + std::to_string(UnitEruption)).c_str());
 	MISERROR(("# BattleTable  = " + std::to_string(BattleTable)).c_str());
@@ -153,6 +158,8 @@ void LOAD::EchoSettings()
 	MISERROR(("# HealRange    = " + std::to_string(HealRange)).c_str());
 	MISERROR(("# SaveRangeWell= " + std::to_string(SaveRangeWellOrb)).c_str());
 	MISERROR(("# SwitchTargRan= " + std::to_string(SwitchTargetRange)).c_str());
+	MISERROR(("# WallSearchRan= " + std::to_string(WallSearchRange)).c_str());
+	
 	MISERROR("########################");
 	MISERROR("# Timings");
 	MISERROR("########################");
