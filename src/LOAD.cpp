@@ -62,7 +62,8 @@ void LOAD::Load_Settings()
 			if (INI_Value_Check(line, "WellCheckOffset"))WellCheckOffset = atoi(line.c_str());
 			if (INI_Value_Check(line, "Tier2Init"))Tier2Init = atoi(line.c_str());
 			if (INI_Value_Check(line, "Tier3Init"))Tier3Init = atoi(line.c_str());
-			
+
+			if (INI_Value_Check(line, "ToMutchEnergy"))ToMutchEnergy = atoi(line.c_str());
 
 			if (INI_Value_Check(line, "GiveUpFight"))GiveUpFight = atoi(line.c_str());
 			if (INI_Value_Check(line, "AddSiegeToMix"))AddSiegeToMix = atoi(line.c_str());
@@ -168,6 +169,10 @@ void LOAD::EchoSettings()
 	MISERROR(("# AddSiegeToMix= " + std::to_string(AddSiegeToMix)).c_str());	
 	MISERROR(("# MoreUnitsGlob= " + std::to_string(MoreUnitsGlobal)).c_str());
 	MISERROR(("# MoreUnitsType= " + std::to_string(MoreUnitsPerType)).c_str());
+	MISERROR("########################");
+	MISERROR("# Energy Pools");
+	MISERROR("########################");
+	MISERROR(("# ToMutchEnergy= " + std::to_string(ToMutchEnergy)).c_str());	
 	MISERROR("########################");	
 	MISERROR(("# DrawAvoidArea= " + std::to_string(DrawAvoidArea)).c_str());
 	MISERROR(("# DrawRejected = " + std::to_string(DrawRejected)).c_str());

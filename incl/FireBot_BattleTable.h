@@ -99,6 +99,20 @@ bool FireBot::MoreUnitsNeeded(BattleTable myBT, BattleTable opBT, std::vector<in
 		return true;
 	}
 
+	//Im way a head
+	if(lState.players[imyPlayerIDX].power > lState.players[iopPlayerIDX].power * 1.5)
+	{
+		//MISEA("More stuff3");
+		return true;
+	}
+
+	//Im swimming in energy
+	if (lState.players[imyPlayerIDX].power > Bro->L->ToMutchEnergy)
+	{
+		//MISEA("More stuff4");
+		return true;
+	}
+
 	MISE;
 	return false;
 }

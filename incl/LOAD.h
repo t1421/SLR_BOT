@@ -49,6 +49,8 @@ public:
 	int MoreUnitsGlobal;
 	int MoreUnitsPerType;
 	
+	//Energy
+	int ToMutchEnergy;
 	
 
 	//DEBUGs

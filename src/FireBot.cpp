@@ -42,7 +42,8 @@ void FireBot::PrepareForBattle(const capi::MapInfo& mapInfo, const capi::Deck& d
 	//iMyOrbs = -1;
 	iPanicDefCheck = 0;
 	TierCheckTick = Bro->L->Tier2Init;
-	bTier2VSWall = true;
+	//bTier2VSWall = true;
+	opUsingWalls = false;
 	iSkipTick = 0;
 	WellCheckTick = 0;
 
@@ -217,22 +218,24 @@ void FireBot::MatchStart(const capi::GameStartState& state)
 	
 	MISERROR(("MatchStart at " + std::to_string(Bro->L_getEEE_Now())).c_str());
 	
+	//First Get My ID and Index
 	for (int iPlayerCount = 0; iPlayerCount < state.players.size(); iPlayerCount++)
-	{
-		
 		if (state.players[iPlayerCount].entity.id == state.your_player_id)
 		{
 			myId = state.players[iPlayerCount].entity.id;
 			imyPlayerIDX = iPlayerCount;
 		}
 
-		if (state.players[iPlayerCount].entity.id != state.your_player_id && state.players[iPlayerCount].entity.power > 0)
+	//Sec. Get First OP ID and Index
+	for (int iPlayerCount = 0; iPlayerCount < state.players.size(); iPlayerCount++)
+		if (state.players[iPlayerCount].entity.id != state.your_player_id && 
+			state.players[iPlayerCount].entity.power > 0 &&
+			state.players[iPlayerCount].entity.team != state.players[imyPlayerIDX].entity.team)
 		{
 			opId = state.players[iPlayerCount].entity.id;
 			iopPlayerIDX = iPlayerCount;
 		}
-	}
-
+	
 	MISD("MY ID: " + std::to_string(myId));
 	MISD("OP ID: " + std::to_string(opId));	
 
@@ -569,6 +572,19 @@ bool FireBot::CalcStrategy(const capi::GameState& StrategyState)
 		}
 
 	//OP builds wall
+	if (opUsingWalls == false &&
+		entitiesTOentity(opId, StrategyState.entities.barrier_modules).size() > 1 &&
+		entitiesTOentity(myId, StrategyState.entities.token_slots).size() == 1 &&
+		eStage == Fight)
+	{
+		SetNextStrategy(TierUp, 99); // Def for 125 energy
+		TierCheckTick = 0;
+		Bro->L->TierCheckOffset = Bro->L->TierCheckOffset / 3; // CHeck for Tier two more often
+		opUsingWalls = true;
+		MISEA("PRIO Return 2");
+		return true;
+	}
+	/*
 	if (entitiesTOentity(opId, StrategyState.entities.barrier_modules).size() > 1 && 
 		entitiesTOentity(myId, StrategyState.entities.token_slots).size() == 1 && 
 		eStage == Fight && 
@@ -581,7 +597,7 @@ bool FireBot::CalcStrategy(const capi::GameState& StrategyState)
 		bTier2VSWall = false;
 		MISEA("PRIO Return 2");
 		return true;
-	}
+	}*/
 
 	// Lost my Tier 1!!!
 	if (entitiesTOentity(myId, StrategyState.entities.token_slots).size() < 1 &&
@@ -1184,7 +1200,7 @@ std::vector<capi::Command> FireBot::ResetUnits()
 {
 	//MISD("RESET")
 	auto vReturn = std::vector<capi::Command>();
-	for (auto E : lState.entities.squads)	
+	for (auto E : Bro->U->FilterSquad(myId, lState.entities.squads))
 		vReturn.push_back(MIS_CommandGroupStopJob({ E.entity.id }));	
 	return vReturn;
 }

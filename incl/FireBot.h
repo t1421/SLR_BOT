@@ -272,7 +272,8 @@ private:
 	unsigned long int TierReadyTick;
 	unsigned long int TierCheckTick;
 	//int iMyOrbs;
-	bool bTier2VSWall;
+	//bool bTier2VSWall;
+	bool opUsingWalls;
 	capi::Entity eMainOrb;
 	bool OrbOnebOK();
 	bool squadIsIdle(capi::EntityId _ID);
