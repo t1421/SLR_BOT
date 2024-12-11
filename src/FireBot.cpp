@@ -908,6 +908,8 @@ std::vector<capi::Command> FireBot::sFight()
 #endif // MIS_DEBUG	
 			}
 		
+			/*
+			* !!!!!!!!!!!!!!!!!!!!!
 			//Stop current units (IdleToFight will find new target)
 			if (S.entity.job.variant_case == capi::JobCase::Goto)
 				if(S.entity.job.variant_union.gotoCppField.walk_mode == capi::WalkMode_Normal)
@@ -917,6 +919,7 @@ std::vector<capi::Command> FireBot::sFight()
 				}
 		
 		}
+		*/
 	}
 
 	for (auto vv : IdleToFight())vReturn.push_back(vv);
