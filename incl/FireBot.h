@@ -24,7 +24,6 @@ enum Stages
 
 	WaitForOP = 20,
 	GetUnit = 21,
-	SpamBotX = 22,
 
 	PanicDef = 30,
 	DisablePanicDef = 31,
@@ -46,7 +45,6 @@ std::string SwitchStagesText(Stages S)
 
 	case 20: return "WaitForOP";
 	case 21: return "GetUnit  ";
-	case 22: return "SpamBotX ";
 
 	case 30: return "PanicDef ";
 	case 31: return "DisPanDef";
@@ -193,6 +191,13 @@ capi::Command MIS_CommandGroupStopJob(std::vector<capi::EntityId> _Units)
 	CommandGroupStopJob.squads = _Units;	
 	return capi::Command(CommandGroupStopJob);
 }
+
+capi::Command MIS_CommandBarrierRepair(capi::EntityId _barrier_id)
+{
+	auto BarrierRepair = capi::CommandBarrierRepair();
+	BarrierRepair.barrier_id = _barrier_id;
+	return capi::Command(BarrierRepair);
+}
 /////////////////
 
 
@@ -308,7 +313,6 @@ private:
 	MIS_thread Strategy;
 	std::vector<capi::Command> sBuildWell();
 	std::vector<capi::Command> sGetUnit();
-	std::vector<capi::Command> sSpamBotX();
 	std::vector<capi::Command> sFight();
 	std::vector<capi::Command> sPanicDef();
 	std::vector<capi::Command> sDisablePanicDef();

@@ -71,6 +71,7 @@ std::vector<capi::Command> FireBot::CoolEruption(const capi::GameState& state)
 std::vector<capi::Command> FireBot::InstantRepairFunction(const capi::GameState& state)
 {
 	MISS;
+	bool inRebpair;
 
 	auto vReturn = std::vector<capi::Command>();
 	for (auto E : entitiesTOentity(myId, state.entities.power_slots, state.entities.token_slots))
@@ -78,7 +79,17 @@ std::vector<capi::Command> FireBot::InstantRepairFunction(const capi::GameState&
 			if (A.variant_case == capi::AspectCase::Health)
 				if (A.variant_union.health.current_hp != A.variant_union.health.cap_current_max)
 					vReturn.push_back(MIS_CommandRepairBuilding(E.id));
-	//MISD(vReturn.size());
+
+	
+	for (auto E : entitiesTOentity(myId, state.entities.barrier_sets))
+	{
+		inRebpair = false;
+		for (auto A : E.aspects)
+			if (A.variant_case == capi::AspectCase::RepairBarrierSet)
+				inRebpair = true;
+		if (inRebpair == false)vReturn.push_back(MIS_CommandBarrierRepair(E.id));
+	}
+	
 	MISE;
 	return vReturn;
 }

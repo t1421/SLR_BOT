@@ -8,9 +8,12 @@
 int FireBot::CardPicker(unsigned int opSize, unsigned int opCounter, CardPickCrit Crit) // , unsigned int Tier)
 {
 	MISS;
+	
 
 	int tier = entitiesTOentity(myId, lState.entities.token_slots).size();
-	if (TierReadyTick - 10 > lState.current_tick ) tier--;
+	if (TierReadyTick - 10 > lState.current_tick && TierReadyTick != 0) tier--;
+
+	MISD("S:" + std::to_string(opSize) + "C:" + std::to_string(opCounter) + "TR:" + std::to_string(TierReadyTick - 10) + "TN:" + std::to_string(lState.current_tick));
 
 	for (unsigned int i = 0; i < SMJDeck.size(); i++)
 	{

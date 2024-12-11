@@ -437,10 +437,7 @@ std::vector<capi::Command> FireBot::Tick(const capi::GameState& state)
 			//Get a Well
 		case BuildWell:
 			for (auto vv : sBuildWell())v.push_back(vv);
-			break;
-		case SpamBotX:
-			for (auto vv : sSpamBotX())v.push_back(vv);
-			break;
+			break;		
 		case Fight:
 			for (auto vv : sFight())v.push_back(vv);
 			break;
@@ -673,8 +670,7 @@ bool FireBot::CalcStrategy(const capi::GameState& StrategyState)
 		if (iMyWells != -1 && iMyWells != entitiesTOentity(myId, StrategyState.entities.power_slots).size())SetNextStrategy(DefaultDef, 53);
 		//if (WellCheckTick > StrategyState.current_tick)SetNextStrategy(Fight, 8);
 		if(BuildWellOrbCheck() == false)SetNextStrategy(DefaultDef, 54);
-		break;
-	case SpamBotX: 
+		break;	
 	case Fight: 
 		if (entitiesTOentity(myId, StrategyState.entities.squads).size() == 0)SetNextStrategy(GetUnit, Bro->L->WaitSpawnTime);
 		for (auto B : entitiesTOentity(myId, StrategyState.entities.power_slots, StrategyState.entities.token_slots))
@@ -799,36 +795,6 @@ std::vector<capi::Command> FireBot::sGetUnit()
 	return vReturn;
 }
 
-std::vector<capi::Command> FireBot::sSpamBotX()
-{
-	MISS;
-
-	auto vReturn = std::vector<capi::Command>();
-
-	capi::Entity A;
-	capi::Entity B;	
-	int iCard = CardPickerFromBT(opBT, None);
-
-	float fDistanc = Bro->U->CloseCombi(entitiesTOentity(myId, lState.entities.squads, lState.entities.buildings, lState.entities.power_slots, lState.entities.token_slots),
-		entitiesTOentity(opId, lState.entities.power_slots, lState.entities.token_slots), A, B);
-
-	if (SMJDeck[iCard].powerCost > lState.players[imyPlayerIDX].power)
-	{
-		//Cant Spawn insice the base (collition)
-		if (fDistanc > Bro->L->CastRange * 2) fDistanc = Bro->L->CastRange;
-		else fDistanc = Bro->L->CastRange * -1;
-
-		vReturn.push_back(MIS_CommandProduceSquad(iCard,
-			Bro->U->Offseter(capi::to2D(A.position), capi::to2D(B.position), fDistanc)));
-	}
-
-	for (auto E : entitiesTOentity(myId, lState.entities.squads))	
-		if (E.job.variant_case == capi::JobCase::Idle)		
-			vReturn.push_back(MIS_CommandGroupGoto({ E.id }, capi::to2D(B.position), capi::WalkMode_Normal));
-
-	MISE;
-	return vReturn;
-}
 
 std::vector<capi::Command> FireBot::sFight()
 {
@@ -857,8 +823,9 @@ std::vector<capi::Command> FireBot::sFight()
 		float fDistanc = Bro->U->CloseCombi({ S.entity },
 			entitiesTOentity(opId, lState.entities.power_slots, lState.entities.token_slots, lState.entities.squads, lState.entities.buildings, lState.entities.barrier_modules), A, B);
 
-		if (S.entity.job.variant_case == capi::JobCase::AttackSquad || fDistanc < Bro->L->FightRange) // Unit in Combet pr near
+		if (fDistanc < Bro->L->FightRange) // Unit in Combet pr near
 		{
+			
 			/*
 			//Check if the target is near, else set to Idel for a tick to pick new target
 			auto eTarget = getAttackTargetEntity(S);
@@ -940,11 +907,21 @@ std::vector<capi::Command> FireBot::sFight()
 				if (Bro->L->DrawSpawn)vReturn.push_back(MIS_Ping_Attention(SpawnPos));
 #endif // MIS_DEBUG	
 			}
+		
+			//Stop current units (IdleToFight will find new target)
+			if (S.entity.job.variant_case == capi::JobCase::Goto)
+				if(S.entity.job.variant_union.gotoCppField.walk_mode == capi::WalkMode_Normal)
+				{
+					vReturn.push_back(MIS_CommandGroupStopJob({ S.entity.id }));
+					vSaveUnit.push_back(S.entity.id);
+				}
+		
 		}
-
-		for (auto vv : IdleToFight())vReturn.push_back(vv);
-		if(Bro->L->TragetSwitcher)for (auto vv : SwitchTargets())vReturn.push_back(vv);
 	}
+
+	for (auto vv : IdleToFight())vReturn.push_back(vv);
+	if (Bro->L->TragetSwitcher)for (auto vv : SwitchTargets())vReturn.push_back(vv);
+
 	MISE;
 	return vReturn;
 }
@@ -953,6 +930,7 @@ std::vector<capi::Command> FireBot::sPanicDef()
 {
 	MISS;
 	auto vReturn = std::vector<capi::Command>();
+	
 
 	if (iWallReady == -1)
 	{
@@ -986,7 +964,16 @@ std::vector<capi::Command> FireBot::sPanicDef()
 	//Archers on the Wall
 	
 	std::vector < capi::Entity> myBarrier = entitiesTOentity(myId, lState.entities.barrier_modules);
-	capi::Position GatePos;
+
+	if (myBarrier.size() == 0)
+	{
+		MISEA("WHERE IS MY WALL!!!");
+		return vReturn;
+	}
+
+
+	capi::Position GatePos = myBarrier[0].position; //Init with something
+
 	//Remove Gate from Vector
 	for (unsigned int i = 0; i < myBarrier.size() ;i++)
 		for(auto A: myBarrier[i].aspects)
@@ -999,34 +986,31 @@ std::vector<capi::Command> FireBot::sPanicDef()
     GateLoopOut:
 
 
-	if (myBarrier.size() == 0)
+	bool CanMount;
+	for (auto S : Bro->U->SquadsInRadius(myId, lState.entities.squads, capi::to2D(eMainOrb.position), 50))
 	{
-		MISEA("WHERE IS MY WALL!!!");
-		
-		return vReturn;
+		//Archer
+		if (CARD_ID_to_SMJ_CARD(S.card_id).attackType == 1)
+		{
+			//Already on wall?
+			for (auto A : S.entity.aspects)
+				if (A.variant_case == capi::AspectCase::MountBarrier)
+					if (A.variant_union.mount_barrier.state.variant_case == capi::MountStateCase::Unmounted)
+					{
+						capi::Entity A;
+						capi::Entity B;
+
+						Bro->U->CloseCombi({ S.entity }, myBarrier, A, B);
+						vReturn.push_back(MIS_CommandGroupEnterWall({ S.entity.id }, B.id));
+					}
+
+		}
+		else if (S.entity.job.variant_case == capi::JobCase::Idle)
+			vReturn.push_back(MIS_CommandGroupGoto({ S.entity.id }, capi::to2D(GatePos), capi::WalkMode_Normal));
+				
 	}
-
-
 	
-	for (auto S : Bro->U->pointsInRadius(entitiesTOentity(myId, lState.entities.squads), capi::to2D(eMainOrb.position), 50))
-		for (auto A : S.aspects)
-			if (A.variant_case == capi::AspectCase::MountBarrier)		
-				if (A.variant_union.mount_barrier.state.variant_case == capi::MountStateCase::Unmounted)
-				{
-					capi::Entity A;
-					capi::Entity B;
-
-					Bro->U->CloseCombi({ S }, myBarrier, A, B);
-					vReturn.push_back(MIS_CommandGroupEnterWall({ S.id }, B.id));
-				}
-
-	
-	// Get Idle Units to help
-	for (auto E : entitiesTOentity(myId, lState.entities.squads))
-		if(Bro->U->distance(capi::to2D(E.position), capi::to2D(GatePos))>25)
-		if (E.job.variant_case == capi::JobCase::Idle)
-			vReturn.push_back(MIS_CommandGroupGoto({ E.id }, capi::to2D(GatePos), capi::WalkMode_Normal));
-	
+	for (auto vv : IdleToFight())vReturn.push_back(vv);
 	if (Bro->L->TragetSwitcher)for (auto vv : SwitchTargets())vReturn.push_back(vv);
 	
 	MISE;
