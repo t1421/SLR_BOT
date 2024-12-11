@@ -916,10 +916,10 @@ std::vector<capi::Command> FireBot::sFight()
 				{
 					vReturn.push_back(MIS_CommandGroupStopJob({ S.entity.id }));
 					vSaveUnit.push_back(S.entity.id);
-				}
+				}*/
 		
 		}
-		*/
+		
 	}
 
 	for (auto vv : IdleToFight())vReturn.push_back(vv);
