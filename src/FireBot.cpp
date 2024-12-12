@@ -251,22 +251,16 @@ void FireBot::MatchStart(const capi::GameStartState& state)
 		Bro->L->UnitEruption = false;
 	}
 	
+	eMainOrb = entitiesTOentity(myId, state.entities.token_slots)[0];
 	MISE;
 }
 
-void FireBot::init()
-{
-	MISS;
-	eMainOrb = entitiesTOentity(myId, lState.entities.token_slots)[0];
-	MISE;
-}
 
 std::vector<capi::Command> FireBot::Tick(const capi::GameState& state)
 {		
 	lState = state;
 	auto v = std::vector<capi::Command>();
 	auto vTemp = std::vector<capi::Command>();
-	if (state.current_tick == 10)init();
 
 #ifdef MIS_DEBUG
 

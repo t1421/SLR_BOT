@@ -203,7 +203,6 @@ public:
 	void PrepareForBattle(const capi::MapInfo& mapInfo, const capi::Deck& deck) override;
 	void MatchStart(const capi::GameStartState& state) override;
 	std::vector<capi::Command> Tick(const capi::GameState& state) override;
-	void init();
 
 	//const std::string Name;
 
