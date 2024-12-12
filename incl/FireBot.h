@@ -296,7 +296,7 @@ private:
 	capi::Entity* getAttackTargetEntity(capi::Squad toCheck);
 
 	std::vector<capi::Command> FixGroupGotoType2();
-	bool onWall(capi::EntityId ID);
+	bool onWall(capi::Entity E);
 	capi::EntityId WallidOFsquad(capi::EntityId ID);
 
 

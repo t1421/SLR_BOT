@@ -32,7 +32,7 @@ BattleTable FireBot::CalcBattleTable(std::vector<capi::Squad> squads)
 	Card TempCard;
 	for (auto S : squads)
 	{
-		TempCard = Bro->J->CardFromJson(S.card_id % 1000000);
+		TempCard = CARD_ID_to_SMJ_CARD(S.card_id);
 		if (TempCard.offenseType < 0)TempCard.offenseType = 4; //fall back;
 		if (TempCard.defenseType < 0)TempCard.defenseType = 4; //fall back;
 		BTreturn.SizeCounter[TempCard.defenseType][TempCard.offenseType] += TempCard.health;

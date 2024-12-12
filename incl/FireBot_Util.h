@@ -42,7 +42,7 @@ std::vector<capi::Command>  FireBot::IdleToFight()
 					if (SOP[i].entity.aspects[j].variant_case == capi::AspectCase::MountBarrier)
 						OnWall = SOP[i].entity.aspects[j].variant_union.mount_barrier.state.variant_case == capi::MountStateCase::MountedSquad;
 						*/	
-				OnWall = onWall(SOP[i].entity.id);
+				OnWall = onWall(SOP[i].entity);
 							
 				
 				if (OnWall == false)
@@ -63,13 +63,11 @@ std::vector<capi::Command>  FireBot::IdleToFight()
 	return vReturn;
 }
 
-bool FireBot::onWall(capi::EntityId ID)
+bool FireBot::onWall(capi::Entity E)
 {
-	for (auto S : lState.entities.squads)
-		if(S.entity.id == ID)
-			for (auto A : S.entity.aspects)
-				if (A.variant_case == capi::AspectCase::MountBarrier)
-					return true;
+	for (auto A : E.aspects)
+		if (A.variant_case == capi::AspectCase::MountBarrier)
+			return true;
 	return false;
 }
 

@@ -18,7 +18,7 @@ std::vector<capi::Command> FireBot::CoolEruption(const capi::GameState& state)
 	std::vector<capi::Squad> vSquad;
 	for (auto U : Bro->U->FilterSquad(opId, state.entities.squads))
 	{
-		if (Bro->J->CardFromJson(U.card_id % 1000000).movementType == 1)
+		if (CARD_ID_to_SMJ_CARD(U.card_id).movementType == 1)
 		{
 			if(
 			MoreUnitsNeeded(CalcBattleTable(Bro->U->SquadsInRadius(myId, lState.entities.squads, capi::to2D(U.entity.position), 25)),
@@ -39,7 +39,7 @@ std::vector<capi::Command> FireBot::CoolEruption(const capi::GameState& state)
 			for (auto S : vSquad)
 			{
 				//Count Cout Units an wall as a eruption Target
-				if (onWall(S.entity.id))continue;
+				if (onWall(S.entity))continue;
 				iUnitCount++;
 				if(GetSquadHP(S.entity.id) <= 300)iUnitCountH++;				
 			}
@@ -98,12 +98,8 @@ bool FireBot::WellKiller(std::vector<capi::Command>& vMain, std::vector<capi::En
 {
 	MISS;
 	for (auto W : Wells)
-	{
 		for (auto A : W.aspects)
-		{
-			//if (std::get_if<capi::AspectHealth>(&A.v))
 			if (A.variant_case == capi::AspectCase::Health)
-			{
 				if (A.variant_union.health.current_hp <= 300)
 				{
 					MISD("FIRE !!!!");
@@ -114,9 +110,8 @@ bool FireBot::WellKiller(std::vector<capi::Command>& vMain, std::vector<capi::En
 					vMain.push_back(capi::Command(spell));
 					return true;
 				}
-			}
-		}
-	}
+				else break;
+			
 	MISE;
 	return false;
 }

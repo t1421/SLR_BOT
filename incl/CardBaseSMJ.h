@@ -38,10 +38,6 @@ public:
 	std::string SwitchAffinity(char _Affinity);
 	std::string SwitchColor(char _Color);
 	std::string SwitchRarity(char _Rarity);
-	//SMJCard* GetSMJCard(unsigned short _CardID);
-	
-	//std::vector<SMJCard*> SMJMatrix;	
-	//bool Init();
 
 	//BROKER
 	static broker* Bro;

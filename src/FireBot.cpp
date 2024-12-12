@@ -102,9 +102,10 @@ std::vector<capi::Deck> FireBot::DecksForMap(const capi::MapInfo& mapInfo)
 		deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::RallyingBanner, capi::Upgrade_U3);
 
 		deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::BurningSpears, capi::Upgrade_U3);
-		deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::DisenchantANature, capi::Upgrade_U3);
+		//deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::DisenchantANature, capi::Upgrade_U3);
+		deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::GiantSlayer, capi::Upgrade_U3);
 
-		deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::Spitfire, capi::Upgrade_U3);
+		deck.cards[i++] = capi::CardIdWithUpgrade(card_templates::Juggernaut, capi::Upgrade_U3);
 		deck.cover_card_index = 19;
 
 		v.push_back(deck);
@@ -546,22 +547,16 @@ bool FireBot::CalcStrategy(const capi::GameState& StrategyState)
 	BattleTable opBT_Area;
 	std::vector<int> PowerLevel;
 
-	if (
+	if (eStage != PanicDef &&
 		OrbOnebOK() && // Is Main Orb is sill alive?
 		mapinfo.map == 1003 && // only for event
-		iPanicDefCheck >= 0 &&
-		eStage != PanicDef)
+		iPanicDefCheck >= 0 )
 		if (Bro->U->pointsInRadius(entitiesTOentity(opId, StrategyState.entities.squads),
 			capi::to2D(eMainOrb.position),
 			100).size() >= 3
 			&& Bro->U->pointsInRadius(entitiesTOentity(myId, StrategyState.entities.squads),
 				capi::to2D(eMainOrb.position),
-				100).size() <= 1
-			//Orb Still alive?
-			&& Bro->U->pointsInRadius(entitiesTOentity(myId, StrategyState.entities.token_slots),
-				capi::to2D(eMainOrb.position),
-				10).size() > 0
-			)
+				100).size() <= 1)
 		{
 			SetNextStrategy(PanicDef, 0);
 			MISEA("PRIO Return 1");
@@ -569,10 +564,10 @@ bool FireBot::CalcStrategy(const capi::GameState& StrategyState)
 		}
 
 	//OP builds wall
-	if (opUsingWalls == false &&
+	if (eStage == Fight &&
+		opUsingWalls == false &&
 		entitiesTOentity(opId, StrategyState.entities.barrier_modules).size() > 1 &&
-		entitiesTOentity(myId, StrategyState.entities.token_slots).size() == 1 &&
-		eStage == Fight)
+		entitiesTOentity(myId, StrategyState.entities.token_slots).size() == 1)
 	{
 		SetNextStrategy(TierUp, 99); // Def for 125 energy
 		TierCheckTick = 0;
@@ -597,8 +592,8 @@ bool FireBot::CalcStrategy(const capi::GameState& StrategyState)
 	}*/
 
 	// Lost my Tier 1!!!
-	if (entitiesTOentity(myId, StrategyState.entities.token_slots).size() < 1 &&
-		eStage != TierUp)
+	if (eStage != TierUp && 
+		entitiesTOentity(myId, StrategyState.entities.token_slots).size() < 1)
 	{
 		SetNextStrategy(TierUp, 1);
 		MISEA("PRIO Return 3");
@@ -1154,13 +1149,13 @@ bool FireBot::BuildWellOrbCheck()
 
 	unsigned int iMyBound = 0;
 	unsigned int iOpBound = 0;
-	for (auto S : Bro->U->FilterSquad(myId, lState.entities.squads)) iMyBound += Bro->J->CardFromJson(S.card_id % 1000000).powerCost;
-	for (auto S : Bro->U->FilterSquad(opId, lState.entities.squads)) iOpBound += Bro->J->CardFromJson(S.card_id % 1000000).powerCost;
+	for (auto S : Bro->U->FilterSquad(myId, lState.entities.squads)) iMyBound += CARD_ID_to_SMJ_CARD(S.card_id).powerCost;
+	for (auto S : Bro->U->FilterSquad(opId, lState.entities.squads)) iOpBound += CARD_ID_to_SMJ_CARD(S.card_id).powerCost;
 
 	//if OP has wall, units are not as scary
 	auto opWall = entitiesTOentity(opId, lState.entities.barrier_modules);
 	if (opWall .size() > 0) for(auto S : Bro->U->SquadsInRadius(opId, lState.entities.squads, capi::to2D(opWall[0].position), 150))
-		iOpBound -= Bro->J->CardFromJson(S.card_id % 1000000).powerCost * 0.25;
+		iOpBound -= CARD_ID_to_SMJ_CARD(S.card_id).powerCost * 0.25;
 
 	if ((iMyBound + lState.players[imyPlayerIDX].power + lState.players[imyPlayerIDX].void_power * 0.5) * 0.01 //Fix roundings
 		< iOpBound + lState.players[iopPlayerIDX].power + lState.players[iopPlayerIDX].void_power * 0.5
@@ -1251,7 +1246,7 @@ std::vector<capi::Command> FireBot::SwitchTargets()
 				//Cloases Squad around
 				Bro->U->CloseCombi({ E.entity }, SquadsInRange, A, B);
 				//If on wall then atack wall
-				if (onWall(B.id)) B.id = WallidOFsquad(B.id);				
+				if (onWall(B)) B.id = WallidOFsquad(B.id);				
 			}
 			else
 			{
