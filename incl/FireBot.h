@@ -70,14 +70,6 @@ enum CardPickCrit
 	Siege = 7
 };
 
-struct MIS_thread
-{
-	std::future<std::vector<capi::Command>> fc;
-	std::future<bool> fb;
-	bool s;
-
-};
-
 
 struct MIS_AvoidArea
 {
@@ -205,7 +197,7 @@ capi::Command MIS_CommandBarrierRepair(capi::EntityId _barrier_id)
 class FireBot : public capi::IBotImp
 {
 public:
-	FireBot(std::string sBotNme) : capi::IBotImp(sBotNme), myId{}, opId{}, myStart{}, eStage(BuildWell), iSkipTick(0), imyPlayerIDX(0), iopPlayerIDX(0), MaxAvoidID(0){ };
+	FireBot(std::string sBotNme) : capi::IBotImp(sBotNme), myId{}, opId{}, eStage(BuildWell), iSkipTick(0), imyPlayerIDX(0), iopPlayerIDX(0), MaxAvoidID(0){ };
 	~FireBot() override = default;
 	std::vector<capi::Deck> DecksForMap(const capi::MapInfo& mapInfo) override;
 	void PrepareForBattle(const capi::MapInfo& mapInfo, const capi::Deck& deck) override;
@@ -220,85 +212,81 @@ public:
 
 private:
 	capi::GameState lState;
-
-	std::vector<Card> SMJDeck;
-	std::vector<Card> SMJDeckOP;
 	capi::EntityId myId;
 	capi::EntityId opId;
-	unsigned int imyPlayerIDX;
-	unsigned int iopPlayerIDX;
-	BattleTable myBT;
-	BattleTable opBT;
-	capi::Position2D myStart;
-
+	capi::EntityId MaxAvoidID;
+	capi::Entity eMainOrb;
 	capi::MapInfo mapinfo;
 
-	unsigned int iSkipTick;
+	std::vector< capi::EntityId> vSaveUnit;
+	std::vector<MIS_RejectCheck> RejectedComamandChecklist;
+	std::vector<Card> SMJDeck;
+	std::vector<Card> SMJDeckOP;
 
-	//Instand Functions
-	bool WellKiller(std::vector<capi::Command> &vMain, std::vector<capi::Entity> Wells);
+	BattleTable myBT;
+	BattleTable opBT;
+
+	bool opUsingWalls;
+	unsigned int iSkipTick;
+	unsigned int iArchers;
+	unsigned int imyPlayerIDX;
+	unsigned int iopPlayerIDX;
+	unsigned long int WellCheckTick;
+	unsigned long int TierReadyTick;
+	unsigned long int TierCheckTick;
+	int iPanicDefCheck;
+	int EruptionPos;	
+	int iWallReady;
+	int iMyWells;
+	int NextCardSpawn;
+	
+
+	//Avoid Area
 	void FindAvoidArea();
 	void RemoveFromMIS_AvoidArea(capi::Tick curTick);
 	std::vector<capi::Command> MoveUnitsAway();
 	std::vector<MIS_AvoidArea *> vAvoid;
-	capi::EntityId MaxAvoidID;
 	
-
-	//
-	int CardPickerFromBT(BattleTable BT, CardPickCrit Crit); // , unsigned int Tier);
-	int CardPicker(unsigned int opSize, unsigned int opCounter, CardPickCrit Crit); // , unsigned int Tier);
-
-	std::vector<capi::Command> CoolEruption(const capi::GameState& state);
-	MIS_thread CoolEruptionTest;
-	int EruptionPos;
-	int GetSquadHP(capi::EntityId SquadID);
-
+	// BattleTable
 	BattleTable CalcBattleTable(std::vector<capi::Squad> squads);
-	bool CalGlobalBattleTable(const capi::GameState& state);
-	MIS_thread GlobalBattleTable;
 	void EchoBattleTable(BattleTable BT);
-	int NextCardSpawn;
+	void CalGlobalBattleTable();
 	bool MoreUnitsNeeded(BattleTable myBT, BattleTable opBT);
 	bool MoreUnitsNeeded(BattleTable myBT, BattleTable opBT, std::vector<int> &PowerLevel);
+	int CardPickerFromBT(BattleTable BT, CardPickCrit Crit);
+	int CardPicker(unsigned int opSize, unsigned int opCounter, CardPickCrit Crit);
 
-	std::vector<capi::Command> InstantRepairFunction(const capi::GameState& state);
-	MIS_thread InstantRepair;
-
+	//Move Units away
 	void RemoveFromSaveUnit();
-	std::vector< capi::EntityId> vSaveUnit;
-	Card CARD_ID_to_SMJ_CARD(capi::CardId card_id);
 
-	bool BuildWellOrbCheck();
-
-	int iWallReady;
-	int iMyWells;
-	unsigned long int  WellCheckTick;
-	int iPanicDefCheck;
-	unsigned int iArchers;
-	unsigned long int TierReadyTick;
-	unsigned long int TierCheckTick;
-	//int iMyOrbs;
-	//bool bTier2VSWall;
-	bool opUsingWalls;
-	capi::Entity eMainOrb;
-	bool OrbOnebOK();
-	bool squadIsIdle(capi::EntityId _ID);
-	std::vector<capi::Command> SwitchTargets();
-
-	std::vector<MIS_RejectCheck> RejectedComamandChecklist;
+	//Reject Commands
 	void CleanUpRejectedComamandChecklist();
-	std::vector<capi::Command> Handel_CardRejected_ProduceSquad(capi::Command cIN); // , std::vector<capi::Command>& addHere);
+	std::vector<capi::Command> Handel_CardRejected_ProduceSquad(capi::Command cIN);
 	
-	std::vector<capi::Command>  IdleToFight();
-	float GetAspect(capi::Entity E, capi::AspectCase A);
-
+	//Util FUnctions Fucntions
+	capi::EntityId WallidOFsquad(capi::EntityId ID);
 	capi::EntityId getAttackTargetID(capi::Squad toCheck);
 	capi::Entity* getAttackTargetEntity(capi::Squad toCheck);
-
-	std::vector<capi::Command> FixGroupGotoType2();
+	Card CARD_ID_to_SMJ_CARD(capi::CardId card_id);
+	bool BuildWellOrbCheck();		
+	bool OrbOnebOK();
+	bool squadIsIdle(capi::EntityId _ID);
 	bool onWall(capi::Entity E);
-	capi::EntityId WallidOFsquad(capi::EntityId ID);
+	int GetSquadHP(capi::EntityId SquadID);
+	float GetAspect(capi::Entity E, capi::AspectCase A);
+	
 
+	//Extra Fuctions
+	std::vector<capi::Command> InstantRepairFunction();
+	std::vector<capi::Command> WellKiller();
+	std::vector<capi::Command> CoolEruption();
+	
+
+	//Support Fctions
+	std::vector<capi::Command> SwitchTargets();
+	std::vector<capi::Command> IdleToFight();
+	std::vector<capi::Command> FixGroupGotoType2();
+	std::vector<capi::Command> ResetUnits();
 
 	//STAGE
 	Stages eStage;
@@ -306,11 +294,9 @@ private:
 	int iStageValue;
 	int iStageValueNext;
 	void SwitchStrategy();
-	void SetNextStrategy(Stages _Stage, int _Value) { eStageNext = _Stage; iStageValueNext = _Value; bSwitchStrategy = true; };
-	bool bSwitchStrategy;
+	bool SetNextStrategy(Stages _Stage, int _Value) { eStageNext = _Stage; iStageValueNext = _Value; return true; };
 	bool CalcStrategy(const capi::GameState& StrategyState);
-	std::vector<capi::Command> ResetUnits();
-	MIS_thread Strategy;
+	
 	std::vector<capi::Command> sBuildWell();
 	std::vector<capi::Command> sGetUnit();
 	std::vector<capi::Command> sFight();

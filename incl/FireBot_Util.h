@@ -103,3 +103,123 @@ int FireBot::GetSquadHP(capi::EntityId SquadID)
 	}
 	return iReturn;
 }
+
+float FireBot::GetAspect(capi::Entity E, capi::AspectCase Asp)
+{
+	for (auto A : E.aspects)
+		if (A.variant_case == Asp && Asp == capi::AspectCase::Health)
+			return A.variant_union.health.current_hp;
+	return 0;
+}
+
+
+std::vector<capi::Command> FireBot::WellKiller()
+{
+	MISS;	
+	auto vReturn = std::vector<capi::Command>();
+	for (auto W : entitiesTOentity(opId, lState.entities.power_slots))
+		for (auto A : W.aspects)
+			if (A.variant_case == capi::AspectCase::Health)
+				if (A.variant_union.health.current_hp <= 300)
+				{
+					MISD("FIRE !!!!");
+					auto spell = capi::CommandCastSpellGod();
+					spell.card_position = EruptionPos;
+					// Spot on, maye chaneg to offset so i can hit units
+					spell.target = capi::SingleTargetLocation(capi::to2D(W.position));
+					vReturn.push_back(capi::Command(spell));
+					return vReturn;
+				}
+				else break;
+
+	MISE;
+	return vReturn;
+}
+
+std::vector<capi::Command> FireBot::InstantRepairFunction()
+{
+	MISS;
+	bool inRebpair;
+
+	auto vReturn = std::vector<capi::Command>();
+	for (auto E : entitiesTOentity(myId, lState.entities.power_slots, lState.entities.token_slots))
+		for (auto A : E.aspects)
+			if (A.variant_case == capi::AspectCase::Health)
+				if (A.variant_union.health.current_hp != A.variant_union.health.cap_current_max)
+					vReturn.push_back(MIS_CommandRepairBuilding(E.id));
+
+
+	for (auto E : entitiesTOentity(myId, lState.entities.barrier_sets))
+	{
+		inRebpair = false;
+		for (auto A : E.aspects)
+			if (A.variant_case == capi::AspectCase::RepairBarrierSet)
+				inRebpair = true;
+		if (inRebpair == false)vReturn.push_back(MIS_CommandBarrierRepair(E.id));
+	}
+
+	MISE;
+	return vReturn;
+}
+
+std::vector<capi::Command> FireBot::CoolEruption()
+{
+	MISS;
+
+	auto vReturn = std::vector<capi::Command>();
+
+	unsigned int iUnitCount;
+	unsigned int iUnitCountH;
+	bool flyer;
+
+	std::vector<capi::Squad> vSquad;
+	for (auto U : Bro->U->FilterSquad(opId, lState.entities.squads))
+	{
+		if (CARD_ID_to_SMJ_CARD(U.card_id).movementType == 1)
+		{
+			if (
+				MoreUnitsNeeded(CalcBattleTable(Bro->U->SquadsInRadius(myId, lState.entities.squads, capi::to2D(U.entity.position), 25)),
+					CalcBattleTable(Bro->U->SquadsInRadius(opId, lState.entities.squads, capi::to2D(U.entity.position), 25))))
+				flyer = true;
+			else flyer = false;
+		}
+		else flyer = false;
+
+		vSquad = Bro->U->SquadsInRadius(opId, lState.entities.squads, capi::to2D(U.entity.position), 10);
+		if (vSquad.size() >= 3)
+		{
+
+			/// Check if Units Is Skyfire and <300 HP -> Erupt
+
+			iUnitCount = 0;
+			iUnitCountH = 0;
+			for (auto S : vSquad)
+			{
+				//Count Cout Units an wall as a eruption Target
+				if (onWall(S.entity))continue;
+				iUnitCount++;
+				if (GetSquadHP(S.entity.id) <= 300)iUnitCountH++;
+			}
+
+			//MISD(std::to_string(iUnitCount) + " # " + std::to_string(iUnitCountH) );
+
+			if (iUnitCountH >= 1 && iUnitCount >= 3
+				|| iUnitCountH >= 2 && iUnitCount >= 2
+				|| iUnitCountH >= 1 && flyer)
+			{
+				//MISD("FIRE !!!!");
+
+				auto spell = capi::CommandCastSpellGod();
+				spell.card_position = EruptionPos;
+				spell.target = capi::SingleTargetLocation(capi::to2D(U.entity.position));
+				vReturn.push_back(capi::Command(spell));
+				break; //only for one unit not all 3
+			}
+		}
+	}
+
+	// Lava Field Code
+
+	MISE;
+	return vReturn;
+}

@@ -5,7 +5,6 @@
 #include "../incl/Util.h"
 #include "../incl/LOAD.h"
 
-#include "../incl/FireBot_Thread.h"
 #include "../incl/FireBot_AvoidArea.h"
 #include "../incl/FireBot_RejectedComamand.h"
 #include "../incl/FireBot_BattleTable.h"
@@ -52,7 +51,6 @@ void FireBot::PrepareForBattle(const capi::MapInfo& mapInfo, const capi::Deck& d
 	eStageNext = NoStage;
 	iStageValue = 0;
 	iStageValueNext = 0;
-	bSwitchStrategy = false;
 
 	vAvoid.clear();
 	RejectedComamandChecklist.clear();
@@ -250,14 +248,9 @@ void FireBot::MatchStart(const capi::GameStartState& state)
 	if (EruptionPos == -1)
 	{
 		MISD("No Eruption in deck");		
-		CoolEruptionTest.s = false;
 		Bro->L->UnitEruption = false;
 	}
-	else CoolEruptionTest.s = true;
-	GlobalBattleTable.s = true;
-	InstantRepair.s = true;
-	Strategy.s = true;	
-
+	
 	MISE;
 }
 
@@ -375,10 +368,24 @@ std::vector<capi::Command> FireBot::Tick(const capi::GameState& state)
 		
 	///////////////Timing critical ////////////////
 	//WELL KILLER
-	if (Bro->L->WellKiller && EruptionPos != -1)
-		if(WellKiller(v, entitiesTOentity(opId, state.entities.power_slots)))
-			return v;
+	if (Bro->L->WellKiller && EruptionPos != -1) 
+		for (auto vv : WellKiller())v.push_back(vv);
+	if (v.size() > 0) return v;
 	
+	/////////////// Extra Moduls in every Stage ////////////////
+	if (Bro->L->InstantRepair && state.current_tick % 20 == 1)
+		for (auto vv : InstantRepairFunction())v.push_back(vv);
+
+	if (Bro->L->UnitEruption)
+		for (auto vv : CoolEruption())v.push_back(vv);
+	
+	if (Bro->L->BattleTable && state.current_tick % 10 == 1)
+		CalGlobalBattleTable();
+
+	if (Bro->L->BattleTable && state.current_tick % 10 == 1)
+		CalGlobalBattleTable();
+
+
 	//Avoid Spells
 	if (Bro->L->AvoidArea)
 	{
@@ -396,35 +403,19 @@ std::vector<capi::Command> FireBot::Tick(const capi::GameState& state)
 #endif // MIS_DEBUG			
 						
 	}
-
-	/////////////THREADS////////////////
 	
-	//Cool eruption
-	if (Bro->L->UnitEruption && CoolEruptionTest.s)
-	{
-		CoolEruptionTest.fc = std::async(&FireBot::CoolEruption, this, state);
-		CoolEruptionTest.s = false; // dont start again
-	}
-	
-	if (Bro->L->BattleTable && GlobalBattleTable.s && state.current_tick % 10 == 1)
-	{
-		GlobalBattleTable.fb = std::async(&FireBot::CalGlobalBattleTable, this, state);
-		GlobalBattleTable.s = false; // dont start again
-	}
-	
-	if (Bro->L->InstantRepair && InstantRepair.s && state.current_tick % 20 == 1)
-	{
-		InstantRepair.fc = std::async(&FireBot::InstantRepairFunction, this, state);
-		InstantRepair.s = false; // dont start again
-	}
 
 	////////////////Strategy ////////////////////
 	
-	if (Strategy.s && state.current_tick % 10 == 1)
+	if (state.current_tick % 10 == 1)
 	{
-		Strategy.fb = std::async(&FireBot::CalcStrategy, this, state);
-		Strategy.s = false; // dont start again
+		if (CalcStrategy(state))
+		{
+			SwitchStrategy();
+			if (Bro->L->ResetUnitsOnStratSwitch)for (auto vv : ResetUnits())v.push_back(vv);
+		}
 	}
+		
 	
 	if (iSkipTick < state.current_tick) switch (eStage)
 	{
@@ -457,17 +448,7 @@ std::vector<capi::Command> FireBot::Tick(const capi::GameState& state)
 			break;
 	}
 	
-	if (Strategy.s == false)
-		if (Strategy.fb.wait_for(0ms) == std::future_status::ready)
-		{
-			//if (Strategy.fb.get())SwitchStrategy();
-			if (bSwitchStrategy)
-			{
-				SwitchStrategy();
-				if(Bro->L->ResetUnitsOnStratSwitch)for (auto vv : ResetUnits())v.push_back(vv);
-			}
-			Strategy.s = true;
-		}
+
 		
 
 	/////////////Cleanups////////////////
@@ -476,24 +457,6 @@ std::vector<capi::Command> FireBot::Tick(const capi::GameState& state)
 	if (state.current_tick % 10 == 1)for (auto vv : FixGroupGotoType2())v.push_back(vv); 
 	CleanUpRejectedComamandChecklist();
 
-	/////////////THREADS////////////////
-	if(Bro->L->UnitEruption && CoolEruptionTest.s == false)
-		if (CoolEruptionTest.fc.wait_for(0ms) == std::future_status::ready)
-		{
-			for (auto vv : CoolEruptionTest.fc.get())v.push_back(vv);
-			CoolEruptionTest.s = true;
-		}
-
-	if (Bro->L->BattleTable && GlobalBattleTable.s == false)
-		if (GlobalBattleTable.fb.wait_for(0ms) == std::future_status::ready)
-			GlobalBattleTable.s = true;
-
-	if (Bro->L->InstantRepair && InstantRepair.s == false)
-		if (InstantRepair.fc.wait_for(0ms) == std::future_status::ready)
-		{
-			for (auto vv : InstantRepair.fc.get())v.push_back(vv);
-			InstantRepair.s = true;
-		}
 
 	//Fight -> pick best unit to kill (counters)
 
@@ -530,7 +493,6 @@ void FireBot::SwitchStrategy()
 	MISERROR((std::to_string(lState.current_tick) + " Switch: " + SwitchStagesText(eStage) + " (" + std::to_string(iStageValue) + ") -> " + SwitchStagesText(eStageNext) + " ("  + std::to_string(iStageValueNext) + ")").c_str());
 	eStage = eStageNext;
 	iStageValue = iStageValueNext;
-	bSwitchStrategy = false;
 	MISE;
 }
 
@@ -547,6 +509,8 @@ bool FireBot::CalcStrategy(const capi::GameState& StrategyState)
 	BattleTable opBT_Area;
 	std::vector<int> PowerLevel;
 
+	bool bReturn = false;
+
 	if (eStage != PanicDef &&
 		OrbOnebOK() && // Is Main Orb is sill alive?
 		mapinfo.map == 1003 && // only for event
@@ -558,7 +522,7 @@ bool FireBot::CalcStrategy(const capi::GameState& StrategyState)
 				capi::to2D(eMainOrb.position),
 				100).size() <= 1)
 		{
-			SetNextStrategy(PanicDef, 0);
+			bReturn = SetNextStrategy(PanicDef, 0);
 			MISEA("PRIO Return 1");
 			return true;
 		}
@@ -569,7 +533,7 @@ bool FireBot::CalcStrategy(const capi::GameState& StrategyState)
 		entitiesTOentity(opId, StrategyState.entities.barrier_modules).size() > 1 &&
 		entitiesTOentity(myId, StrategyState.entities.token_slots).size() == 1)
 	{
-		SetNextStrategy(TierUp, 99); // Def for 125 energy
+		bReturn = SetNextStrategy(TierUp, 99); // Def for 125 energy
 		TierCheckTick = 0;
 		Bro->L->TierCheckOffset = Bro->L->TierCheckOffset / 3; // CHeck for Tier two more often
 		opUsingWalls = true;
@@ -583,7 +547,7 @@ bool FireBot::CalcStrategy(const capi::GameState& StrategyState)
 		eStage != TierUp &&
 		bTier2VSWall)
 	{			
-		SetNextStrategy(TierUp, 99); // Def for 125 energy
+		bReturn = SetNextStrategy(TierUp, 99); // Def for 125 energy
 		TierCheckTick = 0;
 		Bro->L->TierCheckOffset = Bro->L->TierCheckOffset / 2; // CHeck for Tier two more often
 		bTier2VSWall = false;
@@ -595,7 +559,7 @@ bool FireBot::CalcStrategy(const capi::GameState& StrategyState)
 	if (eStage != TierUp && 
 		entitiesTOentity(myId, StrategyState.entities.token_slots).size() < 1)
 	{
-		SetNextStrategy(TierUp, 1);
+		bReturn = SetNextStrategy(TierUp, 1);
 		MISEA("PRIO Return 3");
 		return true;
 	}
@@ -610,77 +574,77 @@ bool FireBot::CalcStrategy(const capi::GameState& StrategyState)
 	switch (eStage)
 	{
 	case WaitForOP:
-		if (StrategyState.current_tick >= 100)SetNextStrategy(GetUnit, Bro->L->WaitSpawnTime);
-		if (StrategyState.entities.squads.size() > 0)SetNextStrategy(GetUnit, Bro->L->WaitSpawnTime);
+		if (StrategyState.current_tick >= 100)bReturn = SetNextStrategy(GetUnit, Bro->L->WaitSpawnTime);
+		if (StrategyState.entities.squads.size() > 0)bReturn = SetNextStrategy(GetUnit, Bro->L->WaitSpawnTime);
 		break;
 	
 	case SavePower:
 	case DefaultDef:	
-		if ((int)StrategyState.players[imyPlayerIDX].power > iStageValue)SetNextStrategy(Fight, 2);
+		if ((int)StrategyState.players[imyPlayerIDX].power > iStageValue)bReturn = SetNextStrategy(Fight, 2);
 		break;
 		
 	case PanicDef:
 		if (Bro->U->pointsInRadius(entitiesTOentity(opId, StrategyState.entities.squads),
 			capi::to2D(eMainOrb.position),
-			100).size() == 0)SetNextStrategy(DisablePanicDef, 0);
+			100).size() == 0)bReturn = SetNextStrategy(DisablePanicDef, 0);
 		if (iPanicDefCheck >= 3)
 		{
 			iPanicDefCheck = -600;
-			SetNextStrategy(DefaultDef, 52);
+			bReturn = SetNextStrategy(DefaultDef, 52);
 		}
 			break;
 	case GetUnit: 
-		if (entitiesTOentity(myId, StrategyState.entities.squads).size() > 0)SetNextStrategy(Fight, 1);
+		if (entitiesTOentity(myId, StrategyState.entities.squads).size() > 0)bReturn = SetNextStrategy(Fight, 1);
 		break;
 		
 	case DisablePanicDef:
-		if(entitiesTOentity(myId, StrategyState.entities.barrier_sets).size() == 0)SetNextStrategy(Fight, 3);
+		if(entitiesTOentity(myId, StrategyState.entities.barrier_sets).size() == 0)bReturn = SetNextStrategy(Fight, 3);
 		break;	
 	case TierUp:
-		if (entitiesTOentity(myId, StrategyState.entities.squads).size() == 0)SetNextStrategy(GetUnit, Bro->L->WaitSpawnTime);
-		//if (iMyOrbs != -1 && iMyOrbs != entitiesTOentity(myId, StrategyState.entities.token_slots).size())SetNextStrategy(WaitTier, iMyOrbs);
+		if (entitiesTOentity(myId, StrategyState.entities.squads).size() == 0)bReturn = SetNextStrategy(GetUnit, Bro->L->WaitSpawnTime);
+		//if (iMyOrbs != -1 && iMyOrbs != entitiesTOentity(myId, StrategyState.entities.token_slots).size())bReturn = SetNextStrategy(WaitTier, iMyOrbs);
 		for (auto O : entitiesTOentity(myId, StrategyState.entities.token_slots))if (O.job.variant_case == capi::JobCase::Construct)
 		{
 			TierReadyTick = StrategyState.current_tick + Bro->L->OrbBuildWait;
-			SetNextStrategy(WaitTier, entitiesTOentity(myId, StrategyState.entities.token_slots).size());
+			bReturn = SetNextStrategy(WaitTier, entitiesTOentity(myId, StrategyState.entities.token_slots).size());
 		}
 
 
 		//MISD("TierReadyTick=" + std::to_string(TierReadyTick));
 		//MISD("TierCheckTick=" + std::to_string(TierCheckTick));
 		//MISD("current_tick =" + std::to_string(StrategyState.current_tick));
-		//if(entitiesTOentity(myId, StrategyState.entities.token_slots).size() == 2)SetNextStrategy(WaitTier2, OrbBuildWait);			
-		if (TierReadyTick > StrategyState.current_tick)SetNextStrategy(WaitTier, iStageValue);
-		if (TierCheckTick > StrategyState.current_tick)SetNextStrategy(Fight, 6);
-		if(BuildWellOrbCheck()== false && iStageValue != 99 && iStageValue != 1)SetNextStrategy(Fight, 4);
+		//if(entitiesTOentity(myId, StrategyState.entities.token_slots).size() == 2)bReturn = SetNextStrategy(WaitTier2, OrbBuildWait);			
+		if (TierReadyTick > StrategyState.current_tick)bReturn = SetNextStrategy(WaitTier, iStageValue);
+		if (TierCheckTick > StrategyState.current_tick)bReturn = SetNextStrategy(Fight, 6);
+		if(BuildWellOrbCheck()== false && iStageValue != 99 && iStageValue != 1)bReturn = SetNextStrategy(Fight, 4);
 		break;
 	case WaitTier:
-		if (TierReadyTick < StrategyState.current_tick)SetNextStrategy(Fight, 5);
-		//if (entitiesTOentity(myId, StrategyState.entities.token_slots).size() >= iStageValue || iStageValue == 99)SetNextStrategy(Fight, 6);
+		if (TierReadyTick < StrategyState.current_tick)bReturn = SetNextStrategy(Fight, 5);
+		//if (entitiesTOentity(myId, StrategyState.entities.token_slots).size() >= iStageValue || iStageValue == 99)bReturn = SetNextStrategy(Fight, 6);
 		break;
 
 	case BuildWell:
-		if (entitiesTOentity(myId, StrategyState.entities.squads).size() == 0)SetNextStrategy(GetUnit, Bro->L->WaitSpawnTime);
-		if (WellCheckTick > StrategyState.current_tick)SetNextStrategy(Fight, 7);
-		if (iMyWells != -1 && iMyWells != entitiesTOentity(myId, StrategyState.entities.power_slots).size())SetNextStrategy(DefaultDef, 53);
-		//if (WellCheckTick > StrategyState.current_tick)SetNextStrategy(Fight, 8);
-		if(BuildWellOrbCheck() == false)SetNextStrategy(DefaultDef, 54);
+		if (entitiesTOentity(myId, StrategyState.entities.squads).size() == 0)bReturn = SetNextStrategy(GetUnit, Bro->L->WaitSpawnTime);
+		if (WellCheckTick > StrategyState.current_tick)bReturn = SetNextStrategy(Fight, 7);
+		if (iMyWells != -1 && iMyWells != entitiesTOentity(myId, StrategyState.entities.power_slots).size())bReturn = SetNextStrategy(DefaultDef, 53);
+		//if (WellCheckTick > StrategyState.current_tick)bReturn = SetNextStrategy(Fight, 8);
+		if(BuildWellOrbCheck() == false)bReturn = SetNextStrategy(DefaultDef, 54);
 		break;	
 	case Fight: 
-		if (entitiesTOentity(myId, StrategyState.entities.squads).size() == 0)SetNextStrategy(GetUnit, Bro->L->WaitSpawnTime);
+		if (entitiesTOentity(myId, StrategyState.entities.squads).size() == 0)bReturn = SetNextStrategy(GetUnit, Bro->L->WaitSpawnTime);
 		for (auto B : entitiesTOentity(myId, StrategyState.entities.power_slots, StrategyState.entities.token_slots))
 			if(Bro->U->SquadsInRadius(opId, StrategyState.entities.squads, capi::to2D(B.position), Bro->L->SwitchToDefRange).size() > 0)
-				SetNextStrategy(DefaultDef, 75);
+				bReturn = SetNextStrategy(DefaultDef, 75);
 
 		if (BuildWellOrbCheck() )			
 		{
 			if (entitiesTOentity(myId, StrategyState.entities.token_slots).size() < 2)
 			{
-				if (TierCheckTick < StrategyState.current_tick)SetNextStrategy(TierUp, 2);
+				if (TierCheckTick < StrategyState.current_tick)bReturn = SetNextStrategy(TierUp, 2);
 				else TierCheckTick = StrategyState.current_tick + Bro->L->TierCheckOffset;
 			}
 			//Tier 3
-			else if(Bro->L->Tier3Init < StrategyState.current_tick)SetNextStrategy(TierUp, 3);
+			else if(Bro->L->Tier3Init < StrategyState.current_tick)bReturn = SetNextStrategy(TierUp, 3);
 		}
 
 		if (BuildWellOrbCheck() && 
@@ -688,7 +652,7 @@ bool FireBot::CalcStrategy(const capi::GameState& StrategyState)
 			(  entitiesTOentity(myId, StrategyState.entities.power_slots).size() < 4 
 				//Stay + 1
 			|| entitiesTOentity(myId, StrategyState.entities.power_slots).size() <= entitiesTOentity(opId, StrategyState.entities.power_slots).size())
-			&& WellCheckTick < StrategyState.current_tick)SetNextStrategy(BuildWell, 2);
+			&& WellCheckTick < StrategyState.current_tick)bReturn = SetNextStrategy(BuildWell, 2);
 		else 
 		{
 			//Earlyer CHekf if behind
@@ -706,14 +670,14 @@ bool FireBot::CalcStrategy(const capi::GameState& StrategyState)
 				// if we are behind -> go to def mode
 				MoreUnitsNeeded(myBT_Area, opBT_Area, PowerLevel);
 				//MISD(std::accumulate(PowerLevel.begin(), PowerLevel.end(), 0));
-				if (std::accumulate(PowerLevel.begin(), PowerLevel.end(), 0) < Bro->L->GiveUpFight)SetNextStrategy(DefaultDef, 152);
+				if (std::accumulate(PowerLevel.begin(), PowerLevel.end(), 0) < Bro->L->GiveUpFight)bReturn = SetNextStrategy(DefaultDef, 152);
 			}
 
 		break;
 	}
 	
 	MISE;
-	return false;
+	return bReturn;
 }
 
 std::vector<capi::Command> FireBot::sBuildWell()

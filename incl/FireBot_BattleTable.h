@@ -5,13 +5,13 @@
 #include "../incl/Util.h"
 #include "../incl/LOAD.h"
 
-bool FireBot::CalGlobalBattleTable(const capi::GameState& state)
+void FireBot::CalGlobalBattleTable()
 {
 	MISS;
 	std::vector<capi::Squad> mySquads;
 	std::vector<capi::Squad> opSquads;
 
-	for (auto S : state.entities.squads)
+	for (auto S : lState.entities.squads)
 	{
 		if (S.entity.player_entity_id == myId)mySquads.push_back(S);
 		else if (S.entity.player_entity_id == opId)opSquads.push_back(S);
@@ -20,8 +20,7 @@ bool FireBot::CalGlobalBattleTable(const capi::GameState& state)
 	myBT = CalcBattleTable(mySquads);
 	opBT = CalcBattleTable(opSquads);
 
-	MISE;
-	return true;
+	MISE;	
 }
 
 BattleTable FireBot::CalcBattleTable(std::vector<capi::Squad> squads)
