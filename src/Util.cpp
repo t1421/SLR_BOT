@@ -301,6 +301,20 @@ std::vector<capi::Squad> Util::FilterSquad(const capi::EntityId iFilter, std::ve
 	return allSquad;
 }
 
+std::vector<capi::BarrierModule> Util::FilterBarrierModule(const capi::EntityId iFilter, std::vector<capi::BarrierModule> inBarrierModule)
+{
+	std::vector<capi::BarrierModule> allBarrierModule;
+	
+	for (const auto& s : inBarrierModule)
+	{
+		if (iFilter == 0 && s.entity.player_entity_id.has_value())continue;
+		if (iFilter != 0 && !s.entity.player_entity_id.has_value())continue;
+		if (iFilter != 0 && s.entity.player_entity_id != iFilter)continue;
+		allBarrierModule.push_back(s);
+	}
+
+	return allBarrierModule;
+}
 
 capi::Position2D Util::WaypointTo2D(capi::Position2DWithOrientation WP)
 {

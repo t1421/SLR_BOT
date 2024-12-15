@@ -57,6 +57,9 @@ void LOAD::Load_Settings()
 			if (INI_Value_Check(line, "SaveRangeWellOrb"))SaveRangeWellOrb = atoi(line.c_str());
 			if (INI_Value_Check(line, "SwitchTargetRange"))SwitchTargetRange = atoi(line.c_str());
 			if (INI_Value_Check(line, "WallSearchRange"))WallSearchRange = atoi(line.c_str());
+			if (INI_Value_Check(line, "DefRange"))DefRange = atoi(line.c_str());
+			if (INI_Value_Check(line, "PanicDefSearch"))PanicDefSearch = atoi(line.c_str());
+			
 			
 
 			if (INI_Value_Check(line, "WaitSpawnTime"))WaitSpawnTime = atoi(line.c_str());
@@ -65,7 +68,8 @@ void LOAD::Load_Settings()
 			if (INI_Value_Check(line, "WellCheckOffset"))WellCheckOffset = atoi(line.c_str());
 			if (INI_Value_Check(line, "Tier2Init"))Tier2Init = atoi(line.c_str());
 			if (INI_Value_Check(line, "Tier3Init"))Tier3Init = atoi(line.c_str());
-
+			if (INI_Value_Check(line, "IdleOffset"))IdleOffset = atoi(line.c_str());
+			
 			if (INI_Value_Check(line, "ToMutchEnergy"))ToMutchEnergy = atoi(line.c_str());
 
 			if (INI_Value_Check(line, "GiveUpFight"))GiveUpFight = atoi(line.c_str());
@@ -159,6 +163,10 @@ void LOAD::EchoSettings()
 	MISERROR(("# SaveRangeWell= " + std::to_string(SaveRangeWellOrb)).c_str());
 	MISERROR(("# SwitchTargRan= " + std::to_string(SwitchTargetRange)).c_str());
 	MISERROR(("# WallSearchRan= " + std::to_string(WallSearchRange)).c_str());
+	MISERROR(("# DefRange     = " + std::to_string(DefRange)).c_str());
+	MISERROR(("# PanicDefSearc= " + std::to_string(PanicDefSearch)).c_str());
+	
+	
 	
 	MISERROR("########################");
 	MISERROR("# Timings");
@@ -169,6 +177,8 @@ void LOAD::EchoSettings()
 	MISERROR(("# WellCheckOffs= " + std::to_string(WellCheckOffset)).c_str());
 	MISERROR(("# Tier2Init    = " + std::to_string(Tier2Init)).c_str());
 	MISERROR(("# Tier3Init    = " + std::to_string(Tier3Init)).c_str());
+	MISERROR(("# IdleOffset   = " + std::to_string(IdleOffset)).c_str());
+	
 	MISERROR("########################");
 	MISERROR("# Power Levels");
 	MISERROR("########################");

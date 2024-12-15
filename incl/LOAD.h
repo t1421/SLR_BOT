@@ -13,6 +13,9 @@ public:
 	void EchoSettings();
 	int ProcessArg(int argc, char** argv);
 
+	std::string entry(std::string Liste, int pos);
+	std::string entry(std::string Liste, int pos, std::string delimiter);
+
 	//Functions
 	bool SMJOnline;
 	bool WellKiller;
@@ -36,6 +39,8 @@ public:
 	int SaveRangeWellOrb;
 	int SwitchTargetRange;
 	int WallSearchRange;
+	int DefRange;
+	int PanicDefSearch;
 
 	//Timings
 	int WaitSpawnTime;
@@ -44,6 +49,7 @@ public:
 	int Tier2Init;
 	int WellCheckOffset;
 	int Tier3Init;
+	int IdleOffset;
 
 	//Power
 	int GiveUpFight;
@@ -71,12 +77,8 @@ public:
 	void teachL() { Bro->L = this; }
 	static void learnBro(broker *_Bro) { Bro = _Bro; }
 
-protected:
-	
-	void Load_Settings();
 private:
-	std::string entry(std::string Liste, int pos);
-	std::string entry(std::string Liste, int pos, std::string delimiter);
+	void Load_Settings();
 	bool INI_Value_Check(std::string& check, std::string name);
 
 

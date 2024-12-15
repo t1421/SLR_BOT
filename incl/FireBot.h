@@ -81,6 +81,13 @@ struct MIS_AvoidArea
 	std::string note;
 };
 
+struct MIS_Ideler
+{
+	MIS_Ideler(capi::EntityId _id, capi::Tick _endTick) : id(_id),endTick(_endTick){};
+	capi::EntityId id;
+	capi::Tick endTick;	
+};
+
 
 struct MIS_RejectCheck
 {
@@ -217,7 +224,8 @@ private:
 	capi::Entity eMainOrb;
 	capi::MapInfo mapinfo;
 
-	std::vector< capi::EntityId> vSaveUnit;
+	std::vector<capi::EntityId> vSaveUnit;
+	std::vector<MIS_Ideler *> vIdler;
 	std::vector<MIS_RejectCheck> RejectedComamandChecklist;
 	std::vector<Card> SMJDeck;
 	std::vector<Card> SMJDeckOP;
@@ -233,9 +241,10 @@ private:
 	unsigned long int WellCheckTick;
 	unsigned long int TierReadyTick;
 	unsigned long int TierCheckTick;
+	unsigned long int iWallReadyTick;
 	int iPanicDefCheck;
 	int EruptionPos;	
-	int iWallReady;
+	
 	int iMyWells;
 	int NextCardSpawn;
 	
@@ -266,13 +275,18 @@ private:
 	capi::EntityId WallidOFsquad(capi::EntityId ID);
 	capi::EntityId getAttackTargetID(capi::Squad toCheck);
 	capi::Entity* getAttackTargetEntity(capi::Squad toCheck);
+	capi::EntityId behindWall(capi::Entity myUnit, capi::Entity opUnit);
+	capi::EntityId SetOfWallmodul(capi::EntityId E);
 	Card CARD_ID_to_SMJ_CARD(capi::CardId card_id);
 	bool BuildWellOrbCheck();		
-	bool OrbOnebOK();
+	bool OrbOneOK();
 	bool squadIsIdle(capi::EntityId _ID);
 	bool onWall(capi::Entity E);
-	int GetSquadHP(capi::EntityId SquadID);
-	float GetAspect(capi::Entity E, capi::AspectCase A);
+	
+	bool GapInWall(capi::EntityId E);
+	float GetSquadHP(capi::EntityId SquadID);
+	float GetSquadMAXHP(capi::EntityId SquadID);
+	float GetAspect(capi::Entity E, std::string Asp);
 	
 
 	//Extra Fuctions

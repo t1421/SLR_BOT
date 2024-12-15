@@ -48,6 +48,7 @@ public:
 	float CloseCombi(std::vector<capi::Entity> EntitiesA, std::vector<capi::Entity> EntitiesB, capi::Entity& outA, capi::Entity& outB);
 	std::vector<capi::Command> DrawCircle(capi::Position2D center, float radius);
 	std::vector<capi::Squad> FilterSquad(const capi::EntityId iFilter, std::vector<capi::Squad> inSquad);
+	std::vector<capi::BarrierModule> FilterBarrierModule(const capi::EntityId iFilter, std::vector<capi::BarrierModule> inBarrierModule);
 	capi::Position2D WaypointTo2D(capi::Position2DWithOrientation WP);
 
 	/////////////////	
