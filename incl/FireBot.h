@@ -83,11 +83,10 @@ struct MIS_AvoidArea
 
 struct MIS_Ideler
 {
-	MIS_Ideler(capi::EntityId _id, capi::Tick _endTick) : id(_id),endTick(_endTick){};
+	MIS_Ideler(capi::EntityId _id, capi::Tick _endTick) : id(_id), endTick(_endTick) {};
 	capi::EntityId id;
-	capi::Tick endTick;	
+	capi::Tick endTick;
 };
-
 
 struct MIS_RejectCheck
 {
@@ -101,6 +100,9 @@ struct MIS_RejectCheck
 
 struct BaseDef
 {
+	bool Update;
+	bool Alart;
+	float HP;	
 	capi::Entity Base;
 	std::vector<capi::Squad> mySquads;
 	std::vector<capi::Squad> opSquads;
@@ -108,6 +110,7 @@ struct BaseDef
 	BattleTable opBattleTable;
 	std::vector<int> PowerLevel;
 	int PowerLevelSum() { return std::accumulate(PowerLevel.begin(), PowerLevel.end(), 0); };
+	BaseDef(capi::Entity _Base) : Base(_Base) {};
 };
 
 /////////////////
@@ -227,6 +230,7 @@ private:
 	std::vector<capi::EntityId> vSaveUnit;
 	std::vector<MIS_Ideler *> vIdler;
 	std::vector<MIS_RejectCheck> RejectedComamandChecklist;
+	std::vector<BaseDef *> vBases;
 	std::vector<Card> SMJDeck;
 	std::vector<Card> SMJDeckOP;
 
@@ -243,8 +247,7 @@ private:
 	unsigned long int TierCheckTick;
 	unsigned long int iWallReadyTick;
 	int iPanicDefCheck;
-	int EruptionPos;	
-	
+	int EruptionPos;		
 	int iMyWells;
 	int NextCardSpawn;
 	
@@ -267,6 +270,9 @@ private:
 	//Move Units away
 	void RemoveFromSaveUnit();
 
+	//Base FUnktion
+	void UpdateBases();
+
 	//Reject Commands
 	void CleanUpRejectedComamandChecklist();
 	std::vector<capi::Command> Handel_CardRejected_ProduceSquad(capi::Command cIN);
@@ -281,8 +287,7 @@ private:
 	bool BuildWellOrbCheck();		
 	bool OrbOneOK();
 	bool squadIsIdle(capi::EntityId _ID);
-	bool onWall(capi::Entity E);
-	
+	bool onWall(capi::Entity E);	
 	bool GapInWall(capi::EntityId E);
 	float GetSquadHP(capi::EntityId SquadID);
 	float GetSquadMAXHP(capi::EntityId SquadID);

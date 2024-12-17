@@ -147,8 +147,6 @@ void LOAD::EchoSettings()
 	MISERROR(("# Trag.Switcher= " + std::to_string(TragetSwitcher)).c_str());
 	MISERROR(("# ResetUnits   = " + std::to_string(ResetUnitsOnStratSwitch)).c_str());	
 	MISERROR(("# IgnoreEmptyWa= " + std::to_string(IgnoreEmptyWalls)).c_str());
-	
-	MISERROR("########################");
 	MISERROR(("# UnitEruption = " + std::to_string(UnitEruption)).c_str());
 	MISERROR(("# BattleTable  = " + std::to_string(BattleTable)).c_str());
 	MISERROR(("# InstantRepair= " + std::to_string(InstantRepair)).c_str());

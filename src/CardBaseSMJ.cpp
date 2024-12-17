@@ -148,7 +148,10 @@ void CardBaseSMJ::FIX_Cards()
 	{
 		//Firesworn
 		if (item["officialCardIds"].at(0) == 1237 || item["officialCardIds"].at(0) == 1386)
+		{
 			item["offenseType"] = 2; // L Counter
+			item["attackType"] = 1; // Melee (to avoid battle vs Flyers)
+		}
 		//Shadow Mage
 		if (item["officialCardIds"].at(0) == 405)
 			item["offenseType"] = 1; // M Counter
