@@ -6,6 +6,24 @@
 
 broker *(Util::Bro) = NULL;
 
+void Util::InitWalls(int map)
+{
+	walls.clear();
+
+	switch(map)
+	{
+	case 1003:
+		walls.push_back({ 116,227,162,269 });
+		walls.push_back({ 138,263,212,265 });
+		walls.push_back({ 193,269,243,219 });
+		walls.push_back({ 108,122,159, 81 });
+		walls.push_back({ 144, 87,220, 87 });
+		walls.push_back({ 201, 83,250,118 });
+		walls.push_back({ 255,198,253,158 });
+		walls.push_back({ 108,199,108,158 });
+		break;
+	}	
+}
 
 std::string Util::switchCommandRejectionReason(capi::CommandRejectionReason& v)
 {	
@@ -256,7 +274,7 @@ float Util::CloseCombi(std::vector<capi::Entity> EntitiesA, std::vector<capi::En
 	for (auto A: EntitiesA)
 		for (auto B : EntitiesB)
 		{
-			DistanceTemp = distance(capi::to2D(A.position), capi::to2D(B.position));
+			DistanceTemp = PathDistance(capi::to2D(A.position), capi::to2D(B.position));
 			if (DistanceTemp < topDistance)
 			{
 				topDistance = DistanceTemp;
@@ -322,4 +340,31 @@ capi::Position2D Util::WaypointTo2D(capi::Position2DWithOrientation WP)
 	pos2d.x = WP.x;
 	pos2d.y = WP.y;
 	return pos2d;
+}
+
+float Util::PathDistance(capi::Position2D start, capi::Position2D goal)
+{
+	for (const Wall& wall : walls) {
+		if (lineIntersectsWall(start, goal, wall)) {
+			// Wand wird geschnitten -> Über Eckpunkt gehen
+			float distToStart = distance(start, wall.start) + distance(wall.start, goal);
+			float distToEnd = distance(start, wall.end) + distance(wall.end, goal);
+
+			// Wähle den kürzeren Umweg
+			return std::min(distToStart, distToEnd);
+		}
+	}
+
+	// Kein Hindernis -> Direktverbindung
+	return distance(start, goal);
+}
+
+bool Util::lineIntersectsWall(const capi::Position2D& start, const capi::Position2D& goal, const Wall& wall)
+{
+	auto ccw = [](const capi::Position2D& A, const capi::Position2D& B, const capi::Position2D& C) {
+		return (C.y - A.y) * (B.x - A.x) > (B.y - A.y) * (C.x - A.x);
+		};
+
+	return (ccw(start, wall.start, wall.end) != ccw(goal, wall.start, wall.end)) &&
+		(ccw(start, goal, wall.start) != ccw(start, goal, wall.end));
 }

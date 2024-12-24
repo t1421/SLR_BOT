@@ -23,12 +23,11 @@ public:
 	bool LowHPMover;
 	bool TragetSwitcher;
 	bool ResetUnitsOnStratSwitch;
-	bool IgnoreEmptyWalls;
-
-	//threads
+	bool IgnoreEmptyWalls;	
 	bool UnitEruption;
 	bool BattleTable;
 	bool InstantRepair;
+	bool DistancTypeTwo;
 
 	//Ranges
 	int CastRange;
@@ -50,6 +49,16 @@ public:
 	int WellCheckOffset;
 	int Tier3Init;
 	int IdleOffset;
+
+	//Interval
+	int InstaRepairInterval;
+	int BattleTableInterval;
+	int UpdateBasesInterval;
+	int UnitEruptionInterval;
+	int WellKillerInterval;
+	int StrategyInterval;
+	int FixType2Interval;
+	int CleanSaveUnitInterval;
 
 	//Power
 	int GiveUpFight;

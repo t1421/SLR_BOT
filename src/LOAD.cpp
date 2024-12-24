@@ -37,10 +37,11 @@ void LOAD::Load_Settings()
 			if (INI_Value_Check(line, "TragetSwitcher"))TragetSwitcher = line.substr(0, 1) != "0";
 			if (INI_Value_Check(line, "ResetUnitsOnStratSwitch"))ResetUnitsOnStratSwitch = line.substr(0, 1) != "0";			
 			if (INI_Value_Check(line, "IgnoreEmptyWalls"))IgnoreEmptyWalls = line.substr(0, 1) != "0";			
-
 			if (INI_Value_Check(line, "UnitEruption"))UnitEruption = line.substr(0, 1) != "0";
 			if (INI_Value_Check(line, "BattleTable"))BattleTable = line.substr(0, 1) != "0";
-			if (INI_Value_Check(line, "InstantRepair"))InstantRepair = line.substr(0, 1) != "0";			
+			if (INI_Value_Check(line, "InstantRepair"))InstantRepair = line.substr(0, 1) != "0";						
+			if (INI_Value_Check(line, "DistancTypeTwo"))DistancTypeTwo = line.substr(0, 1) != "0";
+			
 			
 			if (INI_Value_Check(line, "DrawAvoidArea"))DrawAvoidArea = line.substr(0, 1) != "0";
 			if (INI_Value_Check(line, "DrawRejected"))DrawRejected = line.substr(0, 1) != "0";
@@ -69,9 +70,18 @@ void LOAD::Load_Settings()
 			if (INI_Value_Check(line, "Tier2Init"))Tier2Init = atoi(line.c_str());
 			if (INI_Value_Check(line, "Tier3Init"))Tier3Init = atoi(line.c_str());
 			if (INI_Value_Check(line, "IdleOffset"))IdleOffset = atoi(line.c_str());
+
+			if (INI_Value_Check(line, "InstaRepairInterval"))InstaRepairInterval = atoi(line.c_str());
+			if (INI_Value_Check(line, "BattleTableInterval"))BattleTableInterval = atoi(line.c_str());
+			if (INI_Value_Check(line, "UpdateBasesInterval"))UpdateBasesInterval = atoi(line.c_str());
+			if (INI_Value_Check(line, "UnitEruptionInterval"))UnitEruptionInterval = atoi(line.c_str());
+			if (INI_Value_Check(line, "WellKillerInterval"))WellKillerInterval = atoi(line.c_str());
+			if (INI_Value_Check(line, "StrategyInterval"))StrategyInterval = atoi(line.c_str());
+			if (INI_Value_Check(line, "FixType2Interval"))FixType2Interval = atoi(line.c_str());
+			if (INI_Value_Check(line, "CleanSaveUnitInterval"))CleanSaveUnitInterval = atoi(line.c_str());
+			
 			
 			if (INI_Value_Check(line, "ToMutchEnergy"))ToMutchEnergy = atoi(line.c_str());
-
 			if (INI_Value_Check(line, "GiveUpFight"))GiveUpFight = atoi(line.c_str());
 			if (INI_Value_Check(line, "AddSiegeToMix"))AddSiegeToMix = atoi(line.c_str());
 			if (INI_Value_Check(line, "MoreUnitsGlobal"))MoreUnitsGlobal = atoi(line.c_str());
@@ -150,6 +160,8 @@ void LOAD::EchoSettings()
 	MISERROR(("# UnitEruption = " + std::to_string(UnitEruption)).c_str());
 	MISERROR(("# BattleTable  = " + std::to_string(BattleTable)).c_str());
 	MISERROR(("# InstantRepair= " + std::to_string(InstantRepair)).c_str());
+	MISERROR(("# DistancTypeTw= " + std::to_string(DistancTypeTwo)).c_str());
+	
 	MISERROR("########################");
 	MISERROR("# RANGES");
 	MISERROR("########################");
@@ -176,6 +188,20 @@ void LOAD::EchoSettings()
 	MISERROR(("# Tier2Init    = " + std::to_string(Tier2Init)).c_str());
 	MISERROR(("# Tier3Init    = " + std::to_string(Tier3Init)).c_str());
 	MISERROR(("# IdleOffset   = " + std::to_string(IdleOffset)).c_str());
+
+	MISERROR("########################");
+	MISERROR("# Intervalls");
+	MISERROR("########################");
+	MISERROR(("# InstaRepairIn= " + std::to_string(InstaRepairInterval)).c_str());
+	MISERROR(("# BattleTableIn= " + std::to_string(BattleTableInterval)).c_str());
+	MISERROR(("# UpdateBasesIn= " + std::to_string(UpdateBasesInterval)).c_str());
+	MISERROR(("# UnitEruptionI= " + std::to_string(UnitEruptionInterval)).c_str());
+	MISERROR(("# WellKillerInt= " + std::to_string(WellKillerInterval)).c_str());
+	MISERROR(("# StrategyInter= " + std::to_string(StrategyInterval)).c_str());
+	MISERROR(("# FixType2Inter= " + std::to_string(FixType2Interval)).c_str());
+	MISERROR(("# CleanSaveUnit= " + std::to_string(CleanSaveUnitInterval)).c_str());
+
+	
 	
 	MISERROR("########################");
 	MISERROR("# Power Levels");
