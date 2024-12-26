@@ -112,14 +112,14 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>MIS_Online;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>K:\Sound_Server\lib\boost_1_78_0;K:\Sound_Server\lib\curl-7.83.0\builds\libcurl-vc15-x64-debug-static-ipv6-sspi-schannel\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>K:\Sound_Server\lib\boost_1_78_0;K:\c++\LIBS\curl-7.83.0\builds\libcurl-vc15-x64-debug-static-ipv6-sspi-schannel\include</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>libcurl_a_debug.lib;Ws2_32.lib;Crypt32.lib;Wldap32.lib;Normaliz.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>K:\Sound_Server\lib\curl-7.83.0\builds\libcurl-vc15-x64-debug-static-ipv6-sspi-schannel\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>K:\c++\LIBS\curl-7.83.0\builds\libcurl-vc15-x64-debug-static-ipv6-sspi-schannel\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -130,7 +130,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>MIS_Online;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>K:\Sound_Server\lib\curl-7.83.0\builds\libcurl-vc15-x64-release-static-ipv6-sspi-schannel\include;K:\Sound_Server\lib\boost_1_78_0</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>K:\c++\LIBS\curl-7.83.0\builds\libcurl-vc15-x64-release-static-ipv6-sspi-schannel\include;K:\Sound_Server\lib\boost_1_78_0</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
@@ -139,7 +139,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>libcurl_a.lib;Ws2_32.lib;Crypt32.lib;Wldap32.lib;Normaliz.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>K:\Sound_Server\lib\curl-7.83.0\builds\libcurl-vc15-x64-release-static-ipv6-sspi-schannel\lib</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>K:\c++\LIBS\curl-7.83.0\builds\libcurl-vc15-x64-release-static-ipv6-sspi-schannel\lib</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>

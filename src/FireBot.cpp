@@ -559,7 +559,9 @@ bool FireBot::CalcStrategy(const capi::GameState& StrategyState)
 	}
 
 	//A Base is under Atack.
-	if (eStage != DefaultDef) for (auto B : vBases)
+	if (eStage != PanicDef && 
+		eStage != DefaultDef &&
+		!( eStage == TierUp && iStageValue == 1)) for (auto B : vBases)
 	{
 		if (B->Alart)bReturn = SetNextStrategy(DefaultDef, B->Base.id);
 	}

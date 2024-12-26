@@ -94,7 +94,7 @@ int FireBot::CardPickerFromBT(BattleTable BT, CardPickCrit Crit) // , unsigned i
 	//Maybe check my own Battle Tabble if i have egnaut units of that type???
 
 	// Stuff vs Flyer
-	if (BT.Flyer > 0 && Crit == None)Crit = Archer;
+	//if (BT.Flyer > 0 && Crit == None)Crit = Archer;
 
 	if ((iReturn = CardPicker(MaxSize, MaxCounter, Crit)) == -1)    //Perfect Counter
 		if ((iReturn = CardPicker(MaxSize, 9, Crit)) == -1)   //Counter of any Size
