@@ -563,7 +563,7 @@ bool FireBot::CalcStrategy(const capi::GameState& StrategyState)
 		eStage != DefaultDef &&
 		!( eStage == TierUp && iStageValue == 1)) for (auto B : vBases)
 	{
-		if (B->Alart)bReturn = SetNextStrategy(DefaultDef, B->Base.id);
+		if (B->Alart)bReturn = SetNextStrategy(DefaultDef, 159); // B->Base.id);
 	}
 
 
@@ -591,9 +591,17 @@ bool FireBot::CalcStrategy(const capi::GameState& StrategyState)
 	
 	case SavePower:
 	case DefaultDef:	
-		if ((int)StrategyState.players[imyPlayerIDX].power > iStageValue)bReturn = SetNextStrategy(Fight, 2);
 
 		//Base Def Mode
+		unsigned int iCount;
+		iCount = 0;
+		for (auto B : vBases)if (B->PowerLevelSum() >= 0) iCount++; 
+
+		if( iCount == vBases.size() &&
+			(int)StrategyState.players[imyPlayerIDX].power > iStageValue) bReturn = SetNextStrategy(Fight, 10);
+
+		/*
+
 		if (iStageValue > 1000)
 		{
 			bool bFound = false;
@@ -606,7 +614,9 @@ bool FireBot::CalcStrategy(const capi::GameState& StrategyState)
 			//Lost THe base
 			if (!bFound)bReturn = SetNextStrategy(DefaultDef, 155);
 		}
-		
+
+		if ((int)StrategyState.players[imyPlayerIDX].power > iStageValue)bReturn = SetNextStrategy(Fight, 2);
+		*/
 		break;
 		
 	case PanicDef:
@@ -971,25 +981,27 @@ std::vector<capi::Command> FireBot::sPanicDef()
     GateLoopOut:
 
 
-	bool CanMount;
+	bool DoMount;
 	for (auto S : Bro->U->SquadsInRadius(myId, lState.entities.squads, capi::to2D(eMainOrb.position), 50))
 	{
 		//Archer
 		if (CARD_ID_to_SMJ_CARD(S.card_id).attackType == 1)
 		{
+			DoMount = true;
+			for (auto I : vIdler)if (I->id == S.entity.id) DoMount = false;
 			//Already on wall?
-			for (auto A : S.entity.aspects)
-				if (A.variant_case == capi::AspectCase::MountBarrier)
-					if (A.variant_union.mount_barrier.state.variant_case == capi::MountStateCase::Unmounted)
-					{
-						capi::Entity A;
-						capi::Entity B;
-
-						Bro->U->CloseCombi({ S.entity }, myBarrier, A, B);
-						vReturn.push_back(MIS_CommandGroupEnterWall({ S.entity.id }, B.id));
-						vIdler.push_back(new MIS_Ideler(S.entity.id, lState.current_tick + Bro->L->IdleOffset));
-					}
-
+			if(DoMount)
+				for (auto A : S.entity.aspects)
+					if (A.variant_case == capi::AspectCase::MountBarrier)
+						if (A.variant_union.mount_barrier.state.variant_case == capi::MountStateCase::Unmounted)
+						{
+							capi::Entity A;
+							capi::Entity B;
+								
+							Bro->U->CloseCombi({ S.entity }, myBarrier, A, B);
+							vReturn.push_back(MIS_CommandGroupEnterWall({ S.entity.id }, B.id));
+							vIdler.push_back(new MIS_Ideler(S.entity.id, lState.current_tick + Bro->L->IdleOffset));
+						}
 		}
 		else if (squadIsIdle(S.entity.id))
 			vReturn.push_back(MIS_CommandGroupGoto({ S.entity.id }, capi::to2D(GatePos), capi::WalkMode_Normal));
@@ -1031,23 +1043,28 @@ std::vector<capi::Command> FireBot::sTierUp()
 	capi::Entity C;
 	float fDistanc = 0;
 
+	MISD("#1");
 	//Closest Orb
 	fDistanc = Bro->U->CloseCombi(entitiesTOentity(myId, lState.entities.squads, lState.entities.power_slots),
 		entitiesTOentity(0, lState.entities.token_slots), A, B);
-
+	MISD("#2");
 	//Is OP near that orb?
-	if (Bro->U->CloseCombi(entitiesTOentity(opId, lState.entities.squads),{ B }, C, B) < Bro->L->SaveRangeWellOrb 
+	if (B.id == 0 && 
+		Bro->U->CloseCombi(entitiesTOentity(opId, lState.entities.squads),{ B }, C, B) < Bro->L->SaveRangeWellOrb 
 		//If no Tier one - THEN GET ONE!!!
 		&& iStageValue != 1)
 	{
+		MISD("#3");
 		//Earyler Check if behind
 		if (entitiesTOentity(myId, lState.entities.token_slots).size() < entitiesTOentity(opId, lState.entities.token_slots).size())
 			TierCheckTick = lState.current_tick + Bro->L->TierCheckOffset * 0.25;
 		else TierCheckTick = lState.current_tick + Bro->L->TierCheckOffset;
 	}
 
-	//if (A.player_entity_id == myId)
-	//{
+	MISD("#3");
+	if (A.player_entity_id == myId)
+	{
+		MISD("#4");
 		if (fDistanc > Bro->L->CastRange)vReturn.push_back(MIS_CommandGroupGoto({ A.id }, capi::to2D(B.position), capi::WalkMode_Normal));
 		else //if(lState.players[imyPlayerIDX].power >= 153)
 		{
@@ -1056,10 +1073,11 @@ std::vector<capi::Command> FireBot::sTierUp()
 			else if (lState.players[imyPlayerIDX].orbs.shadow > 0) ToBuild = capi::CreateOrbColor::CreateOrbColor_Shadow;
 			else ToBuild = capi::CreateOrbColor::CreateOrbColor_Fire;
 
+			MISD("#8");
 			vReturn.push_back(capi::Command(MIS_CommandTokenSlotBuild(B.id, ToBuild)));
 		}
-	//}
-
+	}
+	MISD("#9");
 	for (auto vv : IdleToFight())vReturn.push_back(vv);
 	if (Bro->L->TragetSwitcher)for (auto vv : SwitchTargets())vReturn.push_back(vv);
 
@@ -1175,6 +1193,8 @@ std::vector<capi::Command> FireBot::SwitchTargets()
 	//for (auto E : lState.entities.squads)
 	for (auto E : Bro->U->FilterSquad(myId, lState.entities.squads))
 	{		
+		for (auto I : vIdler)if (I->id == E.entity.id)continue;
+
 		capi::EntityId Target = getAttackTargetID(E);
 		//When Atacking <> Squats no switch (wells / orbs)
 		if (Target == -1)continue;

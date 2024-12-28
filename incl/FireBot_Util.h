@@ -20,6 +20,8 @@ Card FireBot::CARD_ID_to_SMJ_CARD(capi::CardId card_id)
 
 std::vector<capi::Command>  FireBot::IdleToFight()
 {
+	MISS;
+
 	bool OnWall;
 	bool FoundOP;
 	auto vReturn = std::vector<capi::Command>();
@@ -79,6 +81,7 @@ std::vector<capi::Command>  FireBot::IdleToFight()
 		}
 
 	
+	MISE;
 	return vReturn;
 }
 
@@ -92,28 +95,41 @@ bool FireBot::onWall(capi::Entity E)
 
 capi::EntityId FireBot::behindWall(capi::Entity myUnit, capi::Entity opUnit)
 {
+	MISS;
 	capi::Entity A;
 	capi::Entity B;
 
 	std::vector < capi::BarrierModule> opWalls = Bro->U->FilterBarrierModule(opId, lState.entities.barrier_modules);
 	//No Walls
-	if (opWalls.size() == 0)return 0;
+	if (opWalls.size() == 0)
+	{
+		MISEA("#1");
+		return 0;
+	}
 
 	float UnitToUnit = Bro->U->distance(capi::to2D(myUnit.position), capi::to2D(opUnit.position));
 	float UnitToWall = Bro->U->CloseCombi({ myUnit }, entitiesTOentity(opId, opWalls), A, B);
 	//Unit is coser then wall
-	if (UnitToUnit < UnitToWall)return 0;		
+	if (UnitToUnit < UnitToWall)
+	{
+		MISEA("#2");
+		return 0;
+	}
 	
 	//I guess behin the wall
-	for (auto W : opWalls)if (W.entity.id == B.id)return W.entity.id;
+	for (auto W : opWalls)if (W.entity.id == B.id)
+	{
+		MISEA("#3");
+		return W.entity.id;
+	}
 	
+	MISEA("#4");
 	return 0;
 }
 
 capi::EntityId FireBot::SetOfWallmodul(capi::EntityId E)
 {
-	for (auto W : lState.entities.barrier_modules)if (W.entity.id == E)return W.set;
-	
+	for (auto W : lState.entities.barrier_modules)if (W.entity.id == E)return W.set;	
 	return 0;
 }
 

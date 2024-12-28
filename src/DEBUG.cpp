@@ -46,7 +46,7 @@ DEBUG::DEBUG(std::string sLogName, bool _bGUI, bool _bFile, bool _bFilter)
 	Fill_DBArray("FireBot", "CalGlobalBattleTable", "-->", "false");
 	*/
 
-	Fill_DBArray("FireBot", "BuildWellOrbCheck", "*", "false");
+	//Fill_DBArray("FireBot", "BuildWellOrbCheck", "*", "false");
 	
 	
 	Fill_DBArray("CardBaseSMJ", "*", "*", "true");

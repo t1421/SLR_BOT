@@ -129,6 +129,8 @@ std::string CardBaseSMJ::SwitchRarity(char _Rarity)
 Card CardBaseSMJ::CardFromJson(unsigned int ID)
 {
 	MISS;
+	if (ID == 4051)ID = 1465; //Test Sirker = Batarial (P)
+
 	for (const auto& item : mainJSON["data"])
 	{
 		if (item["officialCardIds"].at(0) == ID)
