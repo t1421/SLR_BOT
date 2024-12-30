@@ -24,7 +24,9 @@ void LOAD::Load_Settings()
 		MISD("good");
 		while (getline(ifFile, line))
 		{
+#ifdef _WIN32
 			line.erase(line.size() - 1);
+#endif
 			//printf("%s\n",line.c_str());
 
 			if (INI_Value_Check(line, "Port") && Port == 0)Port = atoi(line.c_str());
