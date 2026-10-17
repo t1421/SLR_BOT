@@ -17,8 +17,10 @@ broker::broker()
 	B = NULL;
 #endif // MIS_DEBUG		
 
+#ifndef MIS_No_CardBase
 	CardBaseSMJ::learnBro(this);
 	J = NULL;
+#endif // !MIS_No_CardBase
 
 #ifndef MIS_Online
 
@@ -28,6 +30,12 @@ broker::broker()
 	LOAD::learnBro(this);
 	L = NULL;
 #endif // !MIS_Online
+
+#ifdef MIS_DumpBot
+	LOAD::learnBro(this);
+	L = NULL;
+#endif // DumpBot
+
 }
 
 #ifdef MIS_DEBUG

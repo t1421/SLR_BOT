@@ -7,6 +7,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MIS_BOT", "MIS_BOT.vcxproj"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RefreshJSON", "RefreshJSON.vcxproj", "{1F1274D6-B471-42E1-88F2-7E7D2F0F9941}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "StateDumper", "StateDumper.vcxproj", "{AF8B85EC-42A9-40FA-B680-B138CB511494}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -31,6 +33,14 @@ Global
 		{1F1274D6-B471-42E1-88F2-7E7D2F0F9941}.Release|x64.Build.0 = Release|x64
 		{1F1274D6-B471-42E1-88F2-7E7D2F0F9941}.Release|x86.ActiveCfg = Release|Win32
 		{1F1274D6-B471-42E1-88F2-7E7D2F0F9941}.Release|x86.Build.0 = Release|Win32
+		{AF8B85EC-42A9-40FA-B680-B138CB511494}.Debug|x64.ActiveCfg = Debug|x64
+		{AF8B85EC-42A9-40FA-B680-B138CB511494}.Debug|x64.Build.0 = Debug|x64
+		{AF8B85EC-42A9-40FA-B680-B138CB511494}.Debug|x86.ActiveCfg = Debug|Win32
+		{AF8B85EC-42A9-40FA-B680-B138CB511494}.Debug|x86.Build.0 = Debug|Win32
+		{AF8B85EC-42A9-40FA-B680-B138CB511494}.Release|x64.ActiveCfg = Release|x64
+		{AF8B85EC-42A9-40FA-B680-B138CB511494}.Release|x64.Build.0 = Release|x64
+		{AF8B85EC-42A9-40FA-B680-B138CB511494}.Release|x86.ActiveCfg = Release|Win32
+		{AF8B85EC-42A9-40FA-B680-B138CB511494}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

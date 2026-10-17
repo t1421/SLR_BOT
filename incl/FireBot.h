@@ -212,7 +212,8 @@ public:
 	std::vector<capi::Deck> DecksForMap(const capi::MapInfo& mapInfo) override;
 	void PrepareForBattle(const capi::MapInfo& mapInfo, const capi::Deck& deck) override;
 	void MatchStart(const capi::GameStartState& state) override;
-	std::vector<capi::Command> Tick(const capi::GameState& state) override;
+	//std::vector<capi::Command> Tick(const capi::GameState& state) override;
+	capi::TickResponse Tick(const capi::GameState& state) override;
 
 	//const std::string Name;
 

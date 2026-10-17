@@ -260,12 +260,13 @@ void FireBot::MatchStart(const capi::GameStartState& state)
 	MISE;
 }
 
-
-std::vector<capi::Command> FireBot::Tick(const capi::GameState& state)
+capi::TickResponse FireBot::Tick(const capi::GameState& state)
+//std::vector<capi::Command> FireBot::Tick(const capi::GameState& state)
 {		
 	lState = state;
 	auto v = std::vector<capi::Command>();
 	auto vTemp = std::vector<capi::Command>();
+	auto vX = capi::TickResponse{};
 
 #ifdef MIS_DEBUG
 
@@ -392,7 +393,11 @@ std::vector<capi::Command> FireBot::Tick(const capi::GameState& state)
 	//WELL KILLER
 	if (Bro->L->WellKiller && EruptionPos != -1 && state.current_tick % Bro->L->WellKillerInterval == 1)
 		for (auto vv : WellKiller())v.push_back(vv);
-	if (v.size() > 0) return v;
+	if (v.size() > 0) 
+	{		
+		vX.commands = v;
+		return vX;
+	}
 	
 	if (Bro->L->UnitEruption && EruptionPos != -1 && state.current_tick % Bro->L->UnitEruptionInterval == 1)
 		for (auto vv : CoolEruption())v.push_back(vv);
@@ -487,7 +492,9 @@ std::vector<capi::Command> FireBot::Tick(const capi::GameState& state)
 
 	for (unsigned int i = iRejectEnd; i < v.size(); i++)
 		RejectedComamandChecklist.push_back(v[i]);
-	return v;
+
+	vX.commands = v;
+	return vX;
 }
 
 
